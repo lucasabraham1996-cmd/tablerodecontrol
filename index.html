@@ -44,6 +44,7 @@
         }
         .color-picker::-webkit-color-swatch { border: none; border-radius: 50%; }
         .color-picker::-moz-color-swatch { border: none; border-radius: 50%; }
+        canvas { cursor: pointer; }
     </style>
 </head>
 <body class="text-white min-h-screen">
@@ -113,6 +114,9 @@
         <div class="mt-8 text-center" id="action-buttons">
              <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all">
                 Actualizar Datos
+            </button>
+             <button id="copy-html-btn" class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-all">
+                Copiar Widget HTML
             </button>
         </div>
         <div id="message-container" class="text-center mt-4"></div>
@@ -234,6 +238,22 @@
                 updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), ['#fb923c', '#4ade80', '#c084fc']);
             };
             
+            const handleChartClick = (evt, elements, chartId, labels) => {
+                if (elements.length === 0) return;
+                const clickedLabel = labels[elements[0].index];
+                let filterId = null;
+
+                if (chartId === 'asesora-chart') filterId = 'filter-asesora';
+                else if (chartId === 'carrera-chart') filterId = 'filter-carrera';
+                else if (chartId === 'modalidad-chart') filterId = 'filter-modalidad';
+
+                if (filterId) {
+                    const select = document.getElementById(filterId);
+                    select.value = clickedLabel;
+                    applyFiltersAndRender();
+                }
+            };
+
             const updateChart = (chartId, type, labels, data, colors) => {
                 const ctx = document.getElementById(chartId).getContext('2d');
                 if (chartInstances[chartId]) chartInstances[chartId].destroy();
@@ -244,12 +264,15 @@
                         datasets: [{ label: 'Inscriptos', data: data, backgroundColor: colors, borderColor: '#ffffff50', borderWidth: 1 }]
                     },
                     options: {
+                        onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
                         responsive: true, maintainAspectRatio: false,
                         plugins: {
                             legend: { display: type !== 'bar', labels: { color: '#fff', font: { size: 14 } } },
                             datalabels: {
-                                color: 'white', anchor: 'end', align: 'end',
-                                font: { weight: 'bold', size: 14 },
+                                color: 'white',
+                                anchor: type === 'bar' ? 'center' : 'end',
+                                align: type === 'bar' ? 'center' : 'end',
+                                font: { weight: 'bold', size: 16 },
                                 formatter: (value) => value > 0 ? value : '',
                                 textShadow: { color: 'rgba(0,0,0,0.7)', blur: 4, offsetX: 2, offsetY: 2 }
                             }
@@ -302,6 +325,23 @@
                 applyFiltersAndRender();
             };
             
+             const copyHtml = () => {
+                const containerClone = document.getElementById('main-container').cloneNode(true);
+                const copyBtn = containerClone.querySelector('#copy-html-btn');
+                if(copyBtn) copyBtn.remove();
+                
+                const scriptContent = document.querySelector('script').textContent;
+                const fullHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Dashboard de Inscriptos</title><script src="https://cdn.tailwindcss.com"><\/script><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"><\/script><script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script><script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"><\/script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>${document.querySelector('style').textContent}<\/style></head><body class="text-white min-h-screen">${containerClone.outerHTML}<script>document.addEventListener('DOMContentLoaded', () => { ${scriptContent.replace("document.addEventListener('DOMContentLoaded', () => {", "")} );<\/script></body></html>`;
+                
+                const ta = document.createElement("textarea");
+                ta.value = fullHtml;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                alert('¡Widget copiado al portapapeles!');
+            };
+
             document.getElementById('reset-filters-btn').addEventListener('click', () => {
                 ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos');
                 applyFiltersAndRender();
@@ -311,9 +351,11 @@
             });
             document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
             document.getElementById('add-advisor-btn').addEventListener('click', handleAddAdvisor);
+            document.getElementById('copy-html-btn').addEventListener('click', copyHtml);
             
             fetchData();
         });
     </script>
 </body>
 </html>
+
