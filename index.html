@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script> <!-- Adapter for time scale -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -90,6 +91,7 @@
 
         <!-- Gráficos -->
         <main id="dashboard-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+             <!-- Reordered Charts -->
             <div class="p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
                 <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Asesora</h3>
                 <div class="chart-container"><canvas id="asesora-chart"></canvas></div>
@@ -101,6 +103,10 @@
             <div class="p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg lg:col-span-2 border border-white/20">
                 <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Modalidad</h3>
                 <div class="chart-container"><canvas id="modalidad-chart"></canvas></div>
+            </div>
+             <div class="p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg lg:col-span-2 border border-white/20">
+                <h3 class="text-xl font-bold mb-4 text-center">Línea de Tiempo de Inscriptos (por Día)</h3>
+                <div class="chart-container"><canvas id="timeline-chart"></canvas></div>
             </div>
         </main>
         
@@ -142,6 +148,7 @@
             let colorIndex = 0;
             let fullData = [];
             let chartInstances = {};
+            let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' }; // Track current filters for toggle
             Chart.register(ChartDataLabels);
 
             const showMessage = (msg, isError = false) => {
@@ -158,10 +165,25 @@
                 const careerKey = Object.keys(row)[headers.indexOf('carrera')];
                 const modalityKey = Object.keys(row)[headers.indexOf('modalidad')];
 
-                const monthMap = { 'enero': 'Enero', 'febrero': 'Febrero', 'marzo': 'Marzo', 'abril': 'Abril', 'mayo': 'Mayo', 'junio': 'Junio', 'julio': 'Julio', 'agosto': 'Agosto', 'septiembre': 'Septiembre', 'octubre': 'Octubre', 'noviembre': 'Noviembre', 'diciembre': 'Diciembre' };
+                const monthMap = { 'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6, 'julio': 7, 'agosto': 8, 'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12 };
+                const monthNameMap = { 1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre' };
+                
                 const timestamp = row[timestampKey] || '';
                 const dateParts = timestamp.toLowerCase().split(' de ');
-                const monthName = dateParts.length === 2 ? monthMap[dateParts[1].trim()] : 'Desconocido';
+                let monthIndex = -1;
+                let day = NaN;
+                let dateObject = null;
+                let monthName = 'Desconocido';
+
+                if (dateParts.length === 2) {
+                    day = parseInt(dateParts[0], 10);
+                    monthIndex = monthMap[dateParts[1].trim()];
+                    if (!isNaN(day) && monthIndex !== undefined) {
+                        const year = new Date().getFullYear(); // Assume current year if not specified
+                        dateObject = new Date(year, monthIndex - 1, day);
+                        monthName = monthNameMap[monthIndex];
+                    }
+                }
                 
                 let modality = 'No especificada';
                 const rawModality = (row[modalityKey] || '').slice(-1).toUpperCase();
@@ -173,7 +195,8 @@
                     asesora: row[advisorKey] || 'N/A',
                     mes: monthName,
                     carrera: row[careerKey] || 'N/A',
-                    modalidad: modality
+                    modalidad: modality,
+                    fecha: dateObject // Store the date object
                 };
             };
             
@@ -210,7 +233,7 @@
 
                 for (const key in filters) {
                     const select = document.getElementById(`filter-${key}`);
-                    const currentValue = select.value;
+                    const currentValue = currentFilters[key]; // Restore previous filter value if exists
                     select.innerHTML = '<option value="todos">Todos</option>';
                     [...filters[key]].sort().forEach(value => { select.innerHTML += `<option value="${value}">${value}</option>`; });
                     select.value = currentValue || 'todos';
@@ -219,13 +242,13 @@
             };
 
             const applyFiltersAndRender = () => {
-                const filters = {
+                currentFilters = { // Update current filters state
                     asesora: document.getElementById('filter-asesora').value,
                     mes: document.getElementById('filter-mes').value,
                     carrera: document.getElementById('filter-carrera').value,
                     modalidad: document.getElementById('filter-modalidad').value,
                 };
-                const filteredData = fullData.filter(row => Object.keys(filters).every(key => filters[key] === 'todos' || row[key] === filters[key]));
+                const filteredData = fullData.filter(row => Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]));
                 renderDashboard(filteredData);
             };
 
@@ -234,7 +257,21 @@
                 const asesoraCounts = data.reduce((acc, row) => { acc[row.asesora] = (acc[row.asesora] || 0) + 1; return acc; }, {});
                 const carreraCounts = data.reduce((acc, row) => { acc[row.carrera] = (acc[row.carrera] || 0) + 1; return acc; }, {});
                 const modalidadCounts = data.reduce((acc, row) => { acc[row.modalidad] = (acc[row.modalidad] || 0) + 1; return acc; }, {});
+                
+                // Timeline data preparation
+                const timelineCounts = data.reduce((acc, row) => {
+                    if (row.fecha) {
+                        const dateString = row.fecha.toISOString().split('T')[0]; // YYYY-MM-DD
+                        acc[dateString] = (acc[dateString] || 0) + 1;
+                    }
+                    return acc;
+                }, {});
+                const sortedDates = Object.keys(timelineCounts).sort((a, b) => new Date(a) - new Date(b)); // Sort dates chronologically
+                const timelineLabels = sortedDates;
+                const timelineData = sortedDates.map(date => timelineCounts[date]);
 
+
+                updateChart('timeline-chart', 'line', timelineLabels, timelineData, ['#fbbf24']); // Timeline chart
                 updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
                 updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
                 updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), ['#fb923c', '#4ade80', '#c084fc']);
@@ -243,15 +280,22 @@
             const handleChartClick = (evt, elements, chartId, labels) => {
                 if (elements.length === 0) return;
                 const clickedLabel = labels[elements[0].index];
-                let filterId = null;
+                let filterKey = null;
+                let filterSelectId = null;
 
-                if (chartId === 'asesora-chart') filterId = 'filter-asesora';
-                else if (chartId === 'carrera-chart') filterId = 'filter-carrera';
-                else if (chartId === 'modalidad-chart') filterId = 'filter-modalidad';
+                if (chartId === 'asesora-chart') { filterKey = 'asesora'; filterSelectId = 'filter-asesora'; }
+                else if (chartId === 'carrera-chart') { filterKey = 'carrera'; filterSelectId = 'filter-carrera'; }
+                else if (chartId === 'modalidad-chart') { filterKey = 'modalidad'; filterSelectId = 'filter-modalidad'; }
+                 // No filtering interaction for timeline chart
 
-                if (filterId) {
-                    const select = document.getElementById(filterId);
-                    select.value = clickedLabel;
+                if (filterKey && filterSelectId) {
+                    const select = document.getElementById(filterSelectId);
+                    // Toggle logic
+                    if (currentFilters[filterKey] === clickedLabel) {
+                         select.value = 'todos'; // Deselect if clicked again
+                    } else {
+                         select.value = clickedLabel; // Select
+                    }
                     applyFiltersAndRender();
                 }
             };
@@ -259,31 +303,58 @@
             const updateChart = (chartId, type, labels, data, colors) => {
                 const ctx = document.getElementById(chartId).getContext('2d');
                 if (chartInstances[chartId]) chartInstances[chartId].destroy();
+                
+                const isTimeline = chartId === 'timeline-chart';
+
+                const chartOptions = {
+                    onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } },
+                        datalabels: {
+                            color: 'white',
+                            anchor: type === 'bar' ? 'center' : 'end',
+                            align: type === 'bar' ? 'center' : 'end',
+                            font: { weight: 'bold', size: 16 },
+                            formatter: (value) => value > 0 ? value : '',
+                            textShadow: { color: 'rgba(0,0,0,0.7)', blur: 4, offsetX: 2, offsetY: 2 },
+                            display: !isTimeline // Hide datalabels for timeline
+                        }
+                    },
+                    scales: (type === 'bar' || isTimeline) ? {
+                        y: { ticks: { color: '#fff', beginAtZero: true }, grid: { color: '#ffffff20' } },
+                        x: isTimeline ? { 
+                            type: 'time', 
+                            time: { unit: 'day' }, 
+                            ticks: { color: '#fff' }, 
+                            grid: { color: '#ffffff20' } 
+                        } : { 
+                            ticks: { color: '#fff' }, 
+                            grid: { color: '#ffffff20' } 
+                        }
+                    } : {}
+                };
+                
+                // Specific config for line chart
+                 if (isTimeline) {
+                     chartOptions.elements = { point: { radius: 3 } }; // Show points
+                     chartOptions.plugins.datalabels.display = false; // Ensure datalabels off for line
+                 }
+
                 chartInstances[chartId] = new Chart(ctx, {
                     type: type,
                     data: {
                         labels: labels,
-                        datasets: [{ label: 'Inscriptos', data: data, backgroundColor: colors, borderColor: '#ffffff50', borderWidth: 1 }]
+                        datasets: [{ 
+                            label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', 
+                            data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data,
+                            backgroundColor: isTimeline ? colors[0] : colors, // Line uses single color
+                            borderColor: isTimeline ? colors[0] : '#ffffff50',
+                            borderWidth: isTimeline ? 2 : 1,
+                            tension: 0.1 // Slight curve for timeline
+                        }]
                     },
-                    options: {
-                        onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: type !== 'bar', labels: { color: '#fff', font: { size: 14 } } },
-                            datalabels: {
-                                color: 'white',
-                                anchor: type === 'bar' ? 'center' : 'end',
-                                align: type === 'bar' ? 'center' : 'end',
-                                font: { weight: 'bold', size: 16 },
-                                formatter: (value) => value > 0 ? value : '',
-                                textShadow: { color: 'rgba(0,0,0,0.7)', blur: 4, offsetX: 2, offsetY: 2 }
-                            }
-                        },
-                        scales: type === 'bar' ? {
-                            y: { ticks: { color: '#fff' }, grid: { color: '#ffffff20' } },
-                            x: { ticks: { color: '#fff' }, grid: { color: '#ffffff20' } }
-                        } : {}
-                    }
+                    options: chartOptions
                 });
             };
             
@@ -311,6 +382,10 @@
                     });
                 } catch (error) {
                     showMessage(error.message, true);
+                     // Render with empty data if fetch fails initially
+                    fullData = [];
+                    populateFilters([]);
+                    applyFiltersAndRender();
                 }
             };
             
@@ -324,7 +399,7 @@
                 colorIndex++;
                 newAdvisorNameInput.value = '';
                 renderAdvisorColorPickers();
-                applyFiltersAndRender();
+                // No need to call applyFiltersAndRender here, just update the picker list
             };
             
             document.getElementById('reset-filters-btn').addEventListener('click', () => {
