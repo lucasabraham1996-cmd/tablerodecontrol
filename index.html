@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script> <!-- Adapter for time scale -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -31,7 +31,7 @@
             height: 300px; /* Altura optimizada para móviles */
             width: 100%;
         }
-        @media (min-width: 768px) { /* md breakpoint de Tailwind */
+        @media (min-width: 768px) {
             .chart-container {
                 height: 350px;
             }
@@ -42,6 +42,13 @@
         }
         h1, h3, p {
              text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        /* Glassmorphism Effect */
+        .glass-effect {
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .color-picker {
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
@@ -55,72 +62,71 @@
 </head>
 <body class="text-white min-h-screen">
     <div id="main-container" class="container mx-auto p-4 md:p-8">
-        <header class="flex flex-col sm:flex-row items-center justify-center text-center mb-8 bg-black/30 backdrop-blur-md rounded-2xl shadow-lg p-4 border border-white/20">
-            <img src="https://i.ibb.co/4nqvFQGM/logo.png" alt="Logo" class="h-12 w-auto mb-4 sm:mb-0 sm:mr-6">
+        <!-- Encabezado con efecto glaseado -->
+        <header class="flex flex-col sm:flex-row items-center justify-center text-center mb-8 glass-effect rounded-2xl shadow-lg p-4">
+            <img src="https://i.ibb.co/4nqvFQGM/logo.png" alt="Logo" class="h-12 w-auto mb-4 sm:mb-0 sm:mr-6" onerror="this.style.display='none'">
             <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold">Tablero de control de inscriptos - Marzo 2026</h1>
         </header>
 
-        <!-- KPI Principal -->
-        <div class="mb-8 p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg max-w-sm mx-auto text-center border border-white/20">
+        <!-- KPI con efecto glaseado -->
+        <div class="mb-8 p-6 glass-effect rounded-2xl shadow-lg max-w-sm mx-auto text-center">
             <h3 class="text-lg font-semibold text-white/80">Total de Inscriptos (Filtrados)</h3>
             <p id="total-inscriptos" class="text-5xl sm:text-6xl font-extrabold">0</p>
         </div>
 
-        <!-- Filtros -->
-        <div class="mb-8 p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
+        <!-- Filtros con efecto glaseado -->
+        <div class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div class="flex flex-col">
                     <label for="filter-asesora" class="font-semibold mb-1 text-sm">Asesora</label>
-                    <select id="filter-asesora" class="p-2 rounded-lg bg-white/20 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <select id="filter-asesora" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
                 </div>
                 <div class="flex flex-col">
                     <label for="filter-mes" class="font-semibold mb-1 text-sm">Mes</label>
-                    <select id="filter-mes" class="p-2 rounded-lg bg-white/20 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <select id="filter-mes" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
                 </div>
                 <div class="flex flex-col">
                     <label for="filter-carrera" class="font-semibold mb-1 text-sm">Carrera</label>
-                    <select id="filter-carrera" class="p-2 rounded-lg bg-white/20 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <select id="filter-carrera" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
                 </div>
                 <div class="flex flex-col">
                     <label for="filter-modalidad" class="font-semibold mb-1 text-sm">Modalidad</label>
-                    <select id="filter-modalidad" class="p-2 rounded-lg bg-white/20 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <select id="filter-modalidad" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
                 </div>
                 <button id="reset-filters-btn" class="w-full px-4 py-2 bg-amber-500 text-white font-semibold rounded-lg shadow-md hover:bg-amber-600 transition-all">Limpiar Filtros</button>
             </div>
         </div>
 
-        <!-- Gráficos -->
+        <!-- Gráficos con efecto glaseado -->
         <main id="dashboard-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-             <!-- Reordered Charts -->
-            <div class="p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
+            <div class="p-6 glass-effect rounded-2xl shadow-lg">
                 <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Asesora</h3>
                 <div class="chart-container"><canvas id="asesora-chart"></canvas></div>
             </div>
-            <div class="p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg border border-white/20">
+            <div class="p-6 glass-effect rounded-2xl shadow-lg">
                 <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Carrera</h3>
                 <div class="chart-container"><canvas id="carrera-chart"></canvas></div>
             </div>
-            <div class="p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg lg:col-span-2 border border-white/20">
+            <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2">
                 <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Modalidad</h3>
                 <div class="chart-container"><canvas id="modalidad-chart"></canvas></div>
             </div>
-             <div class="p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg lg:col-span-2 border border-white/20">
+             <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2">
                 <h3 class="text-xl font-bold mb-4 text-center">Línea de Tiempo de Inscriptos (por Día)</h3>
                 <div class="chart-container"><canvas id="timeline-chart"></canvas></div>
             </div>
         </main>
         
-        <!-- Controles de Asesoras -->
-        <div class="mt-8 p-6 bg-black/20 backdrop-blur-md rounded-2xl shadow-lg max-w-2xl mx-auto border border-white/20">
+        <!-- Controles de Asesoras con efecto glaseado -->
+        <div class="mt-8 p-6 glass-effect rounded-2xl shadow-lg max-w-2xl mx-auto">
             <h3 class="text-xl font-semibold mb-4 text-center">Gestión de Asesoras</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-                <input type="text" id="new-advisor-name" placeholder="Añadir nueva asesora" class="w-full px-4 py-2 rounded-lg bg-white/20 placeholder-white/60 text-white border-2 border-transparent focus:border-white focus:outline-none">
+                <input type="text" id="new-advisor-name" placeholder="Añadir nueva asesora" class="w-full px-4 py-2 rounded-lg bg-black/50 placeholder-white/60 text-white border-2 border-transparent focus:border-white focus:outline-none">
                 <button id="add-advisor-btn" class="w-full px-6 py-2 bg-white text-blue-600 font-semibold rounded-lg shadow-md hover:bg-gray-200 transition-all">Agregar Asesora</button>
             </div>
             <h4 class="text-lg font-semibold mb-2 text-center border-t border-white/20 pt-4 mt-4">Colores de Asesoras</h4>
             <div id="asesora-colors-container" class="space-y-2"></div>
         </div>
-
 
         <div class="mt-8 text-center" id="action-buttons">
              <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all">
@@ -142,13 +148,16 @@
             };
             const asesoraData = {
                 'Kiara': { color: '#b388c2' },
-                'Belen': { color: '#f4c01e' }
+                'Belen': { color: '#f4c01e' },
+                'Laura': { color: '#a3e635' }, // Verde Limón
+                'Jeremias': { color: '#fca5a5' }, // Rojo Claro
+                'Jeremías': { color: '#fca5a5' }  // Versión con tilde por si acaso
             };
             const colorPalette = ['#38bdf8', '#fb923c', '#4ade80', '#c084fc', '#f87171', '#fbbf24', '#2dd4bf'];
             let colorIndex = 0;
             let fullData = [];
             let chartInstances = {};
-            let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' }; // Track current filters for toggle
+            let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
             Chart.register(ChartDataLabels);
 
             const showMessage = (msg, isError = false) => {
@@ -170,16 +179,15 @@
                 
                 const timestamp = row[timestampKey] || '';
                 const dateParts = timestamp.toLowerCase().split(' de ');
-                let monthIndex = -1;
                 let day = NaN;
                 let dateObject = null;
                 let monthName = 'Desconocido';
 
                 if (dateParts.length === 2) {
                     day = parseInt(dateParts[0], 10);
-                    monthIndex = monthMap[dateParts[1].trim()];
+                    const monthIndex = monthMap[dateParts[1].trim()];
                     if (!isNaN(day) && monthIndex !== undefined) {
-                        const year = new Date().getFullYear(); // Assume current year if not specified
+                        const year = new Date().getFullYear();
                         dateObject = new Date(year, monthIndex - 1, day);
                         monthName = monthNameMap[monthIndex];
                     }
@@ -196,7 +204,7 @@
                     mes: monthName,
                     carrera: row[careerKey] || 'N/A',
                     modalidad: modality,
-                    fecha: dateObject // Store the date object
+                    fecha: dateObject
                 };
             };
             
@@ -233,7 +241,7 @@
 
                 for (const key in filters) {
                     const select = document.getElementById(`filter-${key}`);
-                    const currentValue = currentFilters[key]; // Restore previous filter value if exists
+                    const currentValue = currentFilters[key];
                     select.innerHTML = '<option value="todos">Todos</option>';
                     [...filters[key]].sort().forEach(value => { select.innerHTML += `<option value="${value}">${value}</option>`; });
                     select.value = currentValue || 'todos';
@@ -242,7 +250,7 @@
             };
 
             const applyFiltersAndRender = () => {
-                currentFilters = { // Update current filters state
+                currentFilters = {
                     asesora: document.getElementById('filter-asesora').value,
                     mes: document.getElementById('filter-mes').value,
                     carrera: document.getElementById('filter-carrera').value,
@@ -258,20 +266,18 @@
                 const carreraCounts = data.reduce((acc, row) => { acc[row.carrera] = (acc[row.carrera] || 0) + 1; return acc; }, {});
                 const modalidadCounts = data.reduce((acc, row) => { acc[row.modalidad] = (acc[row.modalidad] || 0) + 1; return acc; }, {});
                 
-                // Timeline data preparation
                 const timelineCounts = data.reduce((acc, row) => {
                     if (row.fecha) {
-                        const dateString = row.fecha.toISOString().split('T')[0]; // YYYY-MM-DD
+                        const dateString = row.fecha.toISOString().split('T')[0];
                         acc[dateString] = (acc[dateString] || 0) + 1;
                     }
                     return acc;
                 }, {});
-                const sortedDates = Object.keys(timelineCounts).sort((a, b) => new Date(a) - new Date(b)); // Sort dates chronologically
+                const sortedDates = Object.keys(timelineCounts).sort((a, b) => new Date(a) - new Date(b));
                 const timelineLabels = sortedDates;
                 const timelineData = sortedDates.map(date => timelineCounts[date]);
 
-
-                updateChart('timeline-chart', 'line', timelineLabels, timelineData, ['#fbbf24']); // Timeline chart
+                updateChart('timeline-chart', 'line', timelineLabels, timelineData, ['#fbbf24']);
                 updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
                 updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
                 updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), ['#fb923c', '#4ade80', '#c084fc']);
@@ -286,59 +292,101 @@
                 if (chartId === 'asesora-chart') { filterKey = 'asesora'; filterSelectId = 'filter-asesora'; }
                 else if (chartId === 'carrera-chart') { filterKey = 'carrera'; filterSelectId = 'filter-carrera'; }
                 else if (chartId === 'modalidad-chart') { filterKey = 'modalidad'; filterSelectId = 'filter-modalidad'; }
-                 // No filtering interaction for timeline chart
 
                 if (filterKey && filterSelectId) {
                     const select = document.getElementById(filterSelectId);
-                    // Toggle logic
                     if (currentFilters[filterKey] === clickedLabel) {
-                         select.value = 'todos'; // Deselect if clicked again
+                         select.value = 'todos';
                     } else {
-                         select.value = clickedLabel; // Select
+                         select.value = clickedLabel;
                     }
                     applyFiltersAndRender();
                 }
             };
 
             const updateChart = (chartId, type, labels, data, colors) => {
-                const ctx = document.getElementById(chartId).getContext('2d');
+                const canvasElement = document.getElementById(chartId);
+                if (!canvasElement) { console.error(`Canvas ${chartId} not found`); return; }
+                const ctx = canvasElement.getContext('2d');
                 if (chartInstances[chartId]) chartInstances[chartId].destroy();
                 
                 const isTimeline = chartId === 'timeline-chart';
+                const isBar = type === 'bar';
+
+                // Configuración para Big Typography (Nombre dentro de la barra) y Valor normal
+                const datalabelsConfig = isBar ? {
+                    labels: {
+                        // Etiqueta del valor (Número)
+                        value: {
+                            color: '#FFF',
+                            anchor: 'end',
+                            align: 'start', // Poner el número dentro de la barra, arriba
+                            offset: -4,
+                            font: { weight: 'bold', size: 18 },
+                            formatter: (value) => value > 0 ? value : '',
+                            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+                        },
+                        // Etiqueta del nombre (Big Typography)
+                        name: {
+                            color: 'rgba(255, 255, 255, 0.25)', // Transparente
+                            anchor: 'start',
+                            align: 'end', // Poner el nombre en la base de la barra
+                            rotation: -90, // Rotar para que quepa verticalmente
+                            font: { weight: '900', size: 22 }, // Grande y grueso
+                            formatter: (value, context) => context.chart.data.labels[context.dataIndex], // Mostrar nombre
+                            textShadow: 'none'
+                        }
+                    }
+                } : {
+                    // Configuración por defecto para otros gráficos (Pie)
+                    color: '#FFF',
+                    anchor: 'center',
+                    align: 'center',
+                    font: { weight: 'bold', size: 16 },
+                    formatter: (value) => value > 0 ? value : '',
+                    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+                    display: !isTimeline
+                };
 
                 const chartOptions = {
                     onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
                         legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } },
-                        datalabels: {
-                            color: 'white',
-                            anchor: type === 'bar' ? 'center' : 'end',
-                            align: type === 'bar' ? 'center' : 'end',
-                            font: { weight: 'bold', size: 16 },
-                            formatter: (value) => value > 0 ? value : '',
-                            textShadow: { color: 'rgba(0,0,0,0.7)', blur: 4, offsetX: 2, offsetY: 2 },
-                            display: !isTimeline // Hide datalabels for timeline
+                        datalabels: datalabelsConfig,
+                        tooltip: {
+                            enabled: true // Mantener tooltips activos
                         }
                     },
                     scales: (type === 'bar' || isTimeline) ? {
-                        y: { ticks: { color: '#fff', beginAtZero: true }, grid: { color: '#ffffff20' } },
+                        y: { 
+                            ticks: { 
+                                color: '#fff', 
+                                beginAtZero: true,
+                                stepSize: 1, // Forzar números enteros
+                                precision: 0 
+                            }, 
+                            grid: { color: '#ffffff20' } 
+                        },
                         x: isTimeline ? { 
                             type: 'time', 
                             time: { unit: 'day' }, 
                             ticks: { color: '#fff' }, 
                             grid: { color: '#ffffff20' } 
                         } : { 
-                            ticks: { color: '#fff' }, 
+                            ticks: { 
+                                color: '#fff',
+                                // Ocultar etiquetas del eje X en gráficos de barra para dar protagonismo al Big Typography
+                                display: !isBar 
+                            }, 
                             grid: { color: '#ffffff20' } 
                         }
                     } : {}
                 };
                 
-                // Specific config for line chart
                  if (isTimeline) {
-                     chartOptions.elements = { point: { radius: 3 } }; // Show points
-                     chartOptions.plugins.datalabels.display = false; // Ensure datalabels off for line
+                     chartOptions.elements = { point: { radius: 4, hoverRadius: 6 } }; 
+                     chartOptions.plugins.datalabels.display = false;
                  }
 
                 chartInstances[chartId] = new Chart(ctx, {
@@ -348,10 +396,10 @@
                         datasets: [{ 
                             label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', 
                             data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data,
-                            backgroundColor: isTimeline ? colors[0] : colors, // Line uses single color
+                            backgroundColor: isTimeline ? colors[0] : colors,
                             borderColor: isTimeline ? colors[0] : '#ffffff50',
                             borderWidth: isTimeline ? 2 : 1,
-                            tension: 0.1 // Slight curve for timeline
+                            tension: 0.1 
                         }]
                     },
                     options: chartOptions
@@ -382,10 +430,6 @@
                     });
                 } catch (error) {
                     showMessage(error.message, true);
-                     // Render with empty data if fetch fails initially
-                    fullData = [];
-                    populateFilters([]);
-                    applyFiltersAndRender();
                 }
             };
             
@@ -399,7 +443,7 @@
                 colorIndex++;
                 newAdvisorNameInput.value = '';
                 renderAdvisorColorPickers();
-                // No need to call applyFiltersAndRender here, just update the picker list
+                applyFiltersAndRender();
             };
             
             document.getElementById('reset-filters-btn').addEventListener('click', () => {
@@ -417,4 +461,3 @@
     </script>
 </body>
 </html>
-
