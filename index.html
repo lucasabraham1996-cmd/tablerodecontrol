@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Inscriptos</title>
+    
+    <!-- Configuración de Íconos de la Aplicación -->
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/8899/8899687.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8899/8899687.png">
+    <meta name="msapplication-TileImage" content="https://cdn-icons-png.flaticon.com/512/8899/8899687.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -216,6 +222,7 @@
                     monthName = dateObject.toLocaleString('es-ES', { month: 'long' });
                     monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
                 }
+
                 let modality = 'No especificada';
                 const rawMod = modalityRaw.slice(-1).toUpperCase();
                 if (rawMod === 'P') modality = 'Presencial'; else if (rawMod === 'S') modality = 'Semipresencial'; else if (rawMod === 'D') modality = 'A Distancia';
@@ -286,7 +293,8 @@
             const closeModal = () => { modal.classList.add('opacity-0'); modal.firstElementChild.classList.add('scale-95'); setTimeout(() => modal.classList.add('hidden'), 300); };
             closeModalBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             const showDayDetails = (dateString, dayData) => {
-                 const [year, month, day] = dateString.split('-').map(Number); const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                 const [year, month, day] = dateString.split('-').map(Number);
+                 const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1); modalContent.innerHTML = '';
                 if (dayData.length === 0) { modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>'; } else {
                     const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
