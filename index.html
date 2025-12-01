@@ -20,11 +20,20 @@
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+            /* Fusión de degradé animado con imagen de fondo */
+            background-image: 
+                linear-gradient(-45deg, rgba(238, 119, 82, 0.95), rgba(231, 60, 126, 0.95), rgba(35, 166, 213, 0.95), rgba(35, 213, 171, 0.95)),
+                url('https://i.postimg.cc/dtDHVQ1X/image.png');
+            background-size: 400% 400%, cover; 
+            background-position: 0% 50%, center center;
+            background-repeat: no-repeat, no-repeat;
+            background-attachment: fixed, fixed;
+            background-blend-mode: multiply; 
         }
         @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% { background-position: 0% 50%, center center; }
+            50% { background-position: 100% 50%, center center; }
+            100% { background-position: 0% 50%, center center; }
         }
         .chart-container {
             position: relative;
@@ -45,10 +54,10 @@
         }
         /* Glassmorphism Effect */
         .glass-effect {
-            background-color: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
         .color-picker {
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
@@ -63,108 +72,140 @@
         .nav-tab {
             cursor: pointer;
             transition: all 0.3s ease;
-            opacity: 0.7;
-            border-bottom: 2px solid transparent;
+            opacity: 0.6;
+            border-bottom: 3px solid transparent;
+            padding-bottom: 0.5rem;
+        }
+        .nav-tab:hover {
+            opacity: 0.9;
         }
         .nav-tab.active {
             opacity: 1;
             border-bottom-color: #fff;
-            font-weight: bold;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
         .remarketing-banner {
-            background: linear-gradient(90deg, rgba(239, 68, 68, 0.8), rgba(245, 158, 11, 0.8));
-            border: 1px solid rgba(255,255,255,0.3);
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.9), rgba(245, 158, 11, 0.9));
+            border: 1px solid rgba(255,255,255,0.4);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Modal Styles */
+        #detail-modal {
+            transition: opacity 0.3s ease;
+        }
+        #detail-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #detail-modal:not(.hidden) {
+            opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
-<body class="text-white min-h-screen">
-    <div id="main-container" class="container mx-auto p-4 md:p-8">
-        <!-- Encabezado con efecto glaseado -->
-        <header class="flex flex-col items-center justify-center text-center mb-6 glass-effect rounded-2xl shadow-lg p-4">
-            <div class="flex flex-col sm:flex-row items-center mb-4">
-                <img src="https://i.ibb.co/4nqvFQGM/logo.png" alt="Logo" class="h-12 w-auto mb-4 sm:mb-0 sm:mr-6" onerror="this.style.display='none'">
-                <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold">Tablero de control de inscriptos - Marzo 2026</h1>
+<body class="text-white">
+    <div id="main-container" class="container mx-auto p-4 md:p-8 relative">
+        <!-- Encabezado -->
+        <header class="flex flex-col items-center justify-center text-center mb-6 glass-effect rounded-2xl shadow-lg p-6 relative">
+            <div class="flex flex-col md:flex-row items-center justify-between w-full mb-4 relative">
+                <div class="hidden md:block w-32"></div> 
+                <div class="flex flex-col sm:flex-row items-center justify-center">
+                    <img src="https://i.ibb.co/4nqvFQGM/logo.png" alt="Logo" class="h-14 w-auto mb-4 sm:mb-0 sm:mr-6 filter drop-shadow-lg" onerror="this.style.display='none'">
+                    <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Tablero de control de inscriptos <span class="block text-lg font-medium opacity-80 mt-1">Marzo 2026</span></h1>
+                </div>
+                <div class="w-32"></div>
             </div>
-            
-            <!-- Navegación de Pestañas -->
-            <div class="flex space-x-8 text-lg w-full justify-center border-t border-white/20 pt-4">
-                <div id="tab-general" class="nav-tab active pb-2">General</div>
-                <div id="tab-remarketing" class="nav-tab pb-2">Remarketing</div>
+            <div class="flex space-x-12 text-xl w-full justify-center border-t border-white/10 pt-4 mt-2">
+                <div id="tab-general" class="nav-tab active">General</div>
+                <div id="tab-remarketing" class="nav-tab">Remarketing</div>
             </div>
         </header>
 
-        <!-- Banner de Remarketing (Oculto por defecto) -->
-        <div id="remarketing-info" class="hidden mb-6 p-4 rounded-xl shadow-lg text-center remarketing-banner backdrop-blur-md">
-            <p class="text-lg font-bold">📢 Acción de Remarketing</p>
-            <p class="text-sm opacity-90">Datos correspondientes a la acción realizada el 26, 27 y 28 de noviembre.</p>
+        <!-- Banner de Remarketing -->
+        <div id="remarketing-info" class="hidden mb-6 p-4 rounded-xl shadow-lg text-center remarketing-banner backdrop-blur-md animate-pulse">
+            <p class="text-xl font-bold mb-1">📢 Acción de Remarketing</p>
+            <p class="text-white/90">Datos filtrados exclusivamente de la acción realizada el 26, 27 y 28 de noviembre.</p>
         </div>
 
-        <!-- KPI con efecto glaseado -->
-        <div class="mb-8 p-6 glass-effect rounded-2xl shadow-lg max-w-sm mx-auto text-center">
-            <h3 id="kpi-title" class="text-lg font-semibold text-white/80">Total de Inscriptos (General)</h3>
-            <p id="total-inscriptos" class="text-5xl sm:text-6xl font-extrabold">0</p>
+        <!-- KPI -->
+        <div class="mb-8 p-8 glass-effect rounded-2xl shadow-xl max-w-md mx-auto text-center transform hover:scale-105 transition-transform duration-300">
+            <h3 id="kpi-title" class="text-xl font-semibold text-white/90 mb-2 uppercase tracking-wide">Total de Inscriptos (General)</h3>
+            <p id="total-inscriptos" class="text-7xl font-extrabold text-white filter drop-shadow-lg" style="text-shadow: 0px 4px 10px rgba(0,0,0,0.5);">0</p>
         </div>
 
-        <!-- Filtros con efecto glaseado -->
+        <!-- Filtros -->
         <div class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div class="flex flex-col">
-                    <label for="filter-asesora" class="font-semibold mb-1 text-sm">Asesora</label>
-                    <select id="filter-asesora" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <label for="filter-asesora" class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Asesora</label>
+                    <select id="filter-asesora" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:border-white focus:ring-1 focus:ring-white focus:outline-none transition-colors hover:bg-black/60"></select>
                 </div>
                 <div class="flex flex-col">
-                    <label for="filter-mes" class="font-semibold mb-1 text-sm">Mes</label>
-                    <select id="filter-mes" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <label for="filter-mes" class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Mes</label>
+                    <select id="filter-mes" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:border-white focus:ring-1 focus:ring-white focus:outline-none transition-colors hover:bg-black/60"></select>
                 </div>
                 <div class="flex flex-col">
-                    <label for="filter-carrera" class="font-semibold mb-1 text-sm">Carrera</label>
-                    <select id="filter-carrera" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <label for="filter-carrera" class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Carrera</label>
+                    <select id="filter-carrera" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:border-white focus:ring-1 focus:ring-white focus:outline-none transition-colors hover:bg-black/60"></select>
                 </div>
                 <div class="flex flex-col">
-                    <label for="filter-modalidad" class="font-semibold mb-1 text-sm">Modalidad</label>
-                    <select id="filter-modalidad" class="p-2 rounded-lg bg-black/50 text-white border-2 border-transparent focus:border-white focus:outline-none"></select>
+                    <label for="filter-modalidad" class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Modalidad</label>
+                    <select id="filter-modalidad" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:border-white focus:ring-1 focus:ring-white focus:outline-none transition-colors hover:bg-black/60"></select>
                 </div>
-                <button id="reset-filters-btn" class="w-full px-4 py-2 bg-amber-500 text-white font-semibold rounded-lg shadow-md hover:bg-amber-600 transition-all">Limpiar Filtros</button>
+                <button id="reset-filters-btn" class="w-full px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-lg shadow-lg transition-all transform active:scale-95 uppercase tracking-wider text-sm backdrop-blur-sm">
+                    Limpiar Filtros
+                </button>
             </div>
         </div>
 
-        <!-- Gráficos con efecto glaseado -->
+        <!-- Gráficos -->
         <main id="dashboard-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="p-6 glass-effect rounded-2xl shadow-lg">
-                <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Asesora</h3>
+                <h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Asesora</h3>
                 <div class="chart-container"><canvas id="asesora-chart"></canvas></div>
             </div>
             <div class="p-6 glass-effect rounded-2xl shadow-lg">
-                <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Carrera</h3>
+                <h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Carrera</h3>
                 <div class="chart-container"><canvas id="carrera-chart"></canvas></div>
             </div>
             <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2">
-                <h3 class="text-xl font-bold mb-4 text-center">Inscriptos por Modalidad</h3>
+                <h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Modalidad</h3>
                 <div class="chart-container"><canvas id="modalidad-chart"></canvas></div>
             </div>
              <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2">
-                <h3 class="text-xl font-bold mb-4 text-center">Línea de Tiempo de Inscriptos (por Día)</h3>
+                <h3 class="text-xl font-bold mb-6 text-center text-white/90">Línea de Tiempo de Inscriptos (por Día)</h3>
                 <div class="chart-container"><canvas id="timeline-chart"></canvas></div>
             </div>
         </main>
-        
-        <!-- Controles de Asesoras con efecto glaseado -->
-        <div class="mt-8 p-6 glass-effect rounded-2xl shadow-lg max-w-2xl mx-auto">
-            <h3 class="text-xl font-semibold mb-4 text-center">Gestión de Asesoras</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-                <input type="text" id="new-advisor-name" placeholder="Añadir nueva asesora" class="w-full px-4 py-2 rounded-lg bg-black/50 placeholder-white/60 text-white border-2 border-transparent focus:border-white focus:outline-none">
-                <button id="add-advisor-btn" class="w-full px-6 py-2 bg-white text-blue-600 font-semibold rounded-lg shadow-md hover:bg-gray-200 transition-all">Agregar Asesora</button>
-            </div>
-            <h4 class="text-lg font-semibold mb-2 text-center border-t border-white/20 pt-4 mt-4">Colores de Asesoras</h4>
-            <div id="asesora-colors-container" class="space-y-2"></div>
-        </div>
 
-        <div class="mt-8 text-center" id="action-buttons">
-             <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all">
+        <div class="mt-12 text-center pb-8" id="action-buttons">
+             <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all mr-4">
                 Actualizar Datos
             </button>
+             <button id="copy-html-btn" class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-all">
+                Copiar Widget HTML
+            </button>
         </div>
-        <div id="message-container" class="text-center mt-4"></div>
+        <div id="message-container" class="text-center mt-4 fixed bottom-4 right-4 z-50"></div>
+    </div>
+
+    <!-- Modal de Detalles -->
+    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+        <div class="glass-effect bg-gray-900/90 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl border border-white/20 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <h3 id="modal-date-title" class="text-2xl font-bold text-white">Detalle del Día</h3>
+                <button id="close-modal-btn" class="text-white/70 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="modal-content" class="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                <!-- Contenido dinámico aquí -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -178,87 +219,88 @@
                 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }
             };
             const asesoraData = {
-                'Kiara': { color: '#b388c2' },
-                'Belen': { color: '#f4c01e' },
-                'Laura': { color: '#a3e635' },
-                'Jeremias': { color: '#fca5a5' },
-                'Jeremías': { color: '#fca5a5' }
+                'Kiara': { color: '#b388c2' }, 'Belen': { color: '#f4c01e' },
+                'Laura': { color: '#a3e635' }, 'Jeremias': { color: '#fca5a5' }, 'Jeremías': { color: '#fca5a5' }
             };
             const colorPalette = ['#38bdf8', '#fb923c', '#4ade80', '#c084fc', '#f87171', '#fbbf24', '#2dd4bf'];
             let colorIndex = 0;
-            let fullData = []; // Stores all data loaded from CSV
-            let currentView = 'general'; // 'general' or 'remarketing'
+            let fullData = [];
             let chartInstances = {};
             let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
+            let currentView = 'general';
+
+            const preloadedData = window.preloadedData || null;
+
             Chart.register(ChartDataLabels);
 
             const showMessage = (msg, isError = false) => {
                 const container = document.getElementById('message-container');
-                container.innerHTML = `<p class="${isError ? 'text-red-300 bg-red-900/50' : 'text-green-300 bg-green-900/50'} p-4 rounded-lg inline-block">${msg}</p>`;
+                container.innerHTML = `<div class="${isError ? 'bg-red-500/90' : 'bg-green-500/90'} text-white px-6 py-3 rounded-lg shadow-xl backdrop-blur-md border border-white/20 transition-all duration-500 transform translate-y-0">${msg}</div>`;
+                setTimeout(() => { container.innerHTML = ''; }, 3000);
             };
 
             const normalizeString = (str = '') => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
-            const parseRow = (row, headers) => {
-                // headers is array of normalized strings
-                const advisorKey = Object.keys(row)[headers.indexOf('asesora')];
-                const timestampKey = Object.keys(row)[headers.indexOf('marca temporal')];
-                const careerKey = Object.keys(row)[headers.indexOf('carrera')];
-                const modalityKey = Object.keys(row)[headers.indexOf('modalidad')];
-                // Remarketing is column I, index 8.
-                const remarketingKey = Object.keys(row)[8]; 
-
-                const monthMap = { 'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6, 'julio': 7, 'agosto': 8, 'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12 };
-                const monthNameMap = { 1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre' };
-                
-                const timestamp = row[timestampKey] || '';
-                const dateParts = timestamp.toLowerCase().split(' de ');
-                let day = NaN;
-                let dateObject = null;
-                let monthName = 'Desconocido';
-
-                if (dateParts.length === 2) {
-                    day = parseInt(dateParts[0], 10);
-                    const monthIndex = monthMap[dateParts[1].trim()];
-                    if (!isNaN(day) && monthIndex !== undefined) {
-                        const year = new Date().getFullYear();
-                        dateObject = new Date(year, monthIndex - 1, day);
-                        monthName = monthNameMap[monthIndex];
+            const parseDate = (dateStr) => {
+                if (!dateStr) return null;
+                const partsDe = dateStr.toLowerCase().split(' de ');
+                const monthMap = { 'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11 };
+                if (partsDe.length === 2) {
+                    const day = parseInt(partsDe[0], 10);
+                    const month = monthMap[partsDe[1].trim()];
+                    if (!isNaN(day) && month !== undefined) {
+                        const year = new Date().getFullYear(); 
+                        return new Date(year, month, day);
                     }
                 }
-                
+                const d = new Date(dateStr);
+                if (!isNaN(d.getTime())) return d;
+                const partsSlash = dateStr.split('/');
+                if(partsSlash.length >= 2) {
+                    const day = parseInt(partsSlash[0], 10);
+                    const month = parseInt(partsSlash[1], 10) - 1;
+                    const year = partsSlash.length === 3 ? parseInt(partsSlash[2], 10) : new Date().getFullYear();
+                    if(!isNaN(day) && !isNaN(month)) return new Date(year, month, day);
+                }
+                return null;
+            };
+
+            const parseRow = (row, headers) => {
+                const getVal = (key) => {
+                    const index = headers.indexOf(key);
+                    return index !== -1 ? Object.values(row)[index] : '';
+                };
+
+                const advisor = getVal('asesora') || 'N/A';
+                const timestamp = getVal('marca temporal');
+                const career = getVal('carrera') || 'N/A';
+                const modalityRaw = getVal('modalidad') || '';
+                const remarketingVal = Object.values(row)[8] || '';
+
+                const dateObject = parseDate(timestamp);
+                let monthName = 'Desconocido';
+
+                if (dateObject) {
+                    monthName = dateObject.toLocaleString('es-ES', { month: 'long' });
+                    monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                }
+
                 let modality = 'No especificada';
-                const rawModality = (row[modalityKey] || '').slice(-1).toUpperCase();
-                if (rawModality === 'P') modality = 'Presencial';
-                if (rawModality === 'S') modality = 'Semipresencial';
-                if (rawModality === 'D') modality = 'A Distancia';
-                
-                // Check remarketing column
-                const isRemarketing = (row[remarketingKey] || '').toLowerCase().includes('x');
+                const rawMod = modalityRaw.slice(-1).toUpperCase();
+                if (rawMod === 'P') modality = 'Presencial';
+                else if (rawMod === 'S') modality = 'Semipresencial';
+                else if (rawMod === 'D') modality = 'A Distancia';
+
+                const isRemarketing = remarketingVal.toLowerCase().includes('x');
 
                 return {
-                    asesora: row[advisorKey] || 'N/A',
+                    asesora: advisor,
                     mes: monthName,
-                    carrera: row[careerKey] || 'N/A',
+                    carrera: career,
                     modalidad: modality,
                     fecha: dateObject,
                     isRemarketing: isRemarketing
                 };
-            };
-            
-            const renderAdvisorColorPickers = () => {
-                const container = document.getElementById('asesora-colors-container');
-                container.innerHTML = '';
-                Object.keys(asesoraData).sort().forEach(asesora => {
-                    const pickerHtml = `<div class="flex justify-between items-center p-2 rounded-lg hover:bg-white/10"><label for="color-${asesora}" class="text-white/90 font-semibold">${asesora}</label><input type="color" id="color-${asesora}" value="${asesoraData[asesora].color}" data-asesora="${asesora}" class="color-picker"></div>`;
-                    container.insertAdjacentHTML('beforeend', pickerHtml);
-                });
-                container.querySelectorAll('.color-picker').forEach(picker => {
-                    picker.addEventListener('change', e => {
-                        asesoraData[e.target.dataset.asesora].color = e.target.value;
-                        applyFiltersAndRender();
-                    });
-                });
             };
 
             const populateFilters = (data) => {
@@ -281,10 +323,14 @@
                     const select = document.getElementById(`filter-${key}`);
                     const currentValue = currentFilters[key];
                     select.innerHTML = '<option value="todos">Todos</option>';
-                    [...filters[key]].sort().forEach(value => { select.innerHTML += `<option value="${value}">${value}</option>`; });
+                    [...filters[key]].sort().forEach(value => { 
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = value;
+                        select.appendChild(option);
+                    });
                     select.value = currentValue || 'todos';
                 }
-                renderAdvisorColorPickers();
             };
 
             const applyFiltersAndRender = () => {
@@ -295,7 +341,6 @@
                     modalidad: document.getElementById('filter-modalidad').value,
                 };
 
-                // Filter based on view (General vs Remarketing) AND Dropdowns
                 const activeData = fullData.filter(row => {
                     const viewMatch = currentView === 'general' ? true : row.isRemarketing;
                     const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
@@ -303,6 +348,80 @@
                 });
 
                 renderDashboard(activeData);
+            };
+
+            const hexToRgba = (hex, alpha) => {
+                let r=0, g=0, b=0;
+                if(hex.startsWith('#')) hex = hex.slice(1);
+                if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+                if(hex.length === 6){
+                    r = parseInt(hex.substring(0,2), 16);
+                    g = parseInt(hex.substring(2,4), 16);
+                    b = parseInt(hex.substring(4,6), 16);
+                }
+                return `rgba(${r},${g},${b},${alpha})`;
+            };
+            
+            // --- Modal Logic ---
+            const modal = document.getElementById('detail-modal');
+            const modalTitle = document.getElementById('modal-date-title');
+            const modalContent = document.getElementById('modal-content');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            const openModal = () => modal.classList.remove('hidden');
+            const closeModal = () => modal.classList.add('hidden');
+            closeModalBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+            const showDayDetails = (dateString, dayData) => {
+                // Parse dateString back to Date object for nice formatting in title
+                // dateString comes from timeline labels which are YYYY-MM-DD
+                const [year, month, day] = dateString.split('-').map(Number);
+                // Note: month is 1-based in string, but Date constructor uses 0-based month
+                const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
+                modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1);
+                modalContent.innerHTML = '';
+
+                if (dayData.length === 0) {
+                    modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>';
+                } else {
+                    // Group by Career
+                    const grouped = dayData.reduce((acc, curr) => {
+                        if (!acc[curr.carrera]) acc[curr.carrera] = {};
+                        if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0;
+                        acc[curr.carrera][curr.modalidad]++;
+                        return acc;
+                    }, {});
+
+                    Object.keys(grouped).sort().forEach(carrera => {
+                        const careerColor = careerData[carrera] ? careerData[carrera].color : '#ffffff';
+                        const modalities = grouped[carrera];
+                        const totalCareer = Object.values(modalities).reduce((a, b) => a + b, 0);
+
+                        let html = `
+                            <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                                <div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2">
+                                    <h4 class="font-bold text-lg" style="color: ${careerColor}">${careerData[carrera]?.name || carrera} (${carrera})</h4>
+                                    <span class="bg-white/20 px-2 py-1 rounded text-sm font-bold">${totalCareer}</span>
+                                </div>
+                                <ul class="space-y-2">
+                        `;
+                        
+                        Object.keys(modalities).forEach(mod => {
+                            html += `
+                                <li class="flex justify-between text-sm text-white/80 pl-2 border-l-2 border-white/20">
+                                    <span>${mod}</span>
+                                    <span class="font-semibold text-white">${modalities[mod]}</span>
+                                </li>
+                            `;
+                        });
+                        
+                        html += `</ul></div>`;
+                        modalContent.insertAdjacentHTML('beforeend', html);
+                    });
+                }
+                openModal();
             };
 
             const renderDashboard = (data) => {
@@ -313,24 +432,66 @@
                 
                 const timelineCounts = data.reduce((acc, row) => {
                     if (row.fecha) {
-                        const dateString = row.fecha.toISOString().split('T')[0];
+                        const dateString = row.fecha.toLocaleDateString('en-CA'); // YYYY-MM-DD local
                         acc[dateString] = (acc[dateString] || 0) + 1;
                     }
                     return acc;
                 }, {});
-                const sortedDates = Object.keys(timelineCounts).sort((a, b) => new Date(a) - new Date(b));
+                const sortedDates = Object.keys(timelineCounts).sort();
                 const timelineLabels = sortedDates;
                 const timelineData = sortedDates.map(date => timelineCounts[date]);
+
+                const selectedCareerCode = document.getElementById('filter-carrera').value;
+                let modalityColors;
+                if (selectedCareerCode !== 'todos' && careerData[selectedCareerCode]) {
+                    const baseColor = careerData[selectedCareerCode].color;
+                    const modColorMap = {
+                        'Presencial': hexToRgba(baseColor, 1),
+                        'Semipresencial': hexToRgba(baseColor, 0.7),
+                        'A Distancia': hexToRgba(baseColor, 0.4)
+                    };
+                    modalityColors = Object.keys(modalidadCounts).map(mod => modColorMap[mod] || '#94a3b8');
+                } else {
+                    const defaultModColors = { 'Presencial': '#fb923c', 'Semipresencial': '#4ade80', 'A Distancia': '#c084fc' };
+                    modalityColors = Object.keys(modalidadCounts).map(mod => defaultModColors[mod] || '#94a3b8');
+                }
 
                 updateChart('timeline-chart', 'line', timelineLabels, timelineData, ['#fbbf24']);
                 updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
                 updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
-                updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), ['#fb923c', '#4ade80', '#c084fc']);
+                updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), modalityColors);
             };
             
             const handleChartClick = (evt, elements, chartId, labels) => {
                 if (elements.length === 0) return;
-                const clickedLabel = labels[elements[0].index];
+                const index = elements[0].index;
+                const clickedLabel = labels[index];
+
+                // Specific Logic for Timeline: Open Modal
+                if (chartId === 'timeline-chart') {
+                    // We need to filter the CURRENT view/filtered data, not the full raw data
+                    // to respect currently applied filters (like 'Asesora: Kiara').
+                    // Actually, usually detail drill-down shows details for the *data visible in the chart*.
+                    // The chart data comes from `renderDashboard`, which receives `activeData`.
+                    // But here we don't have direct access to `activeData` easily unless we store it globally or re-filter.
+                    // Re-filtering `fullData` with `currentFilters` + `currentView` is the safest way to get the context.
+                    
+                    const activeData = fullData.filter(row => {
+                        const viewMatch = currentView === 'general' ? true : row.isRemarketing;
+                        const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
+                        return viewMatch && dropdownMatch;
+                    });
+
+                    // Filter activeData for the specific day clicked
+                    const dayData = activeData.filter(row => {
+                        if (!row.fecha) return false;
+                        return row.fecha.toLocaleDateString('en-CA') === clickedLabel;
+                    });
+
+                    showDayDetails(clickedLabel, dayData);
+                    return; // Don't proceed to filter logic
+                }
+
                 let filterKey = null;
                 let filterSelectId = null;
 
@@ -351,50 +512,50 @@
 
             const updateChart = (chartId, type, labels, data, colors) => {
                 const canvasElement = document.getElementById(chartId);
-                if (!canvasElement) { console.error(`Canvas ${chartId} not found`); return; }
+                if (!canvasElement) return;
                 const ctx = canvasElement.getContext('2d');
                 if (chartInstances[chartId]) chartInstances[chartId].destroy();
                 
                 const isTimeline = chartId === 'timeline-chart';
                 const isBar = type === 'bar';
-                const total = data.reduce((a, b) => a + b, 0); // Calculate total for percentage
+                const isPie = type === 'pie';
+                const total = data.reduce((a, b) => a + b, 0);
 
-                const datalabelsConfig = isBar ? {
+                const datalabelsConfig = isBar || isPie ? {
                     labels: {
                         value: {
                             color: '#FFF',
-                            anchor: 'end',
-                            align: 'start',
-                            offset: -4,
+                            anchor: isPie ? 'center' : 'end',
+                            align: isPie ? 'center' : 'start',
+                            offset: isPie ? 0 : -4,
                             font: { weight: 'bold', size: 18 },
                             formatter: (value) => {
                                 const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                                return value > 0 ? `${value} (${percentage}%)` : '';
+                                return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); 
                             },
                             textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
                         },
                         name: {
-                            color: 'rgba(255, 255, 255, 0.25)',
-                            anchor: 'start',
-                            align: 'end',
-                            rotation: -90,
-                            font: { weight: '900', size: 22 },
-                            formatter: (value, context) => context.chart.data.labels[context.dataIndex],
-                            textShadow: 'none'
+                            color: isPie ? '#FFF' : 'rgba(255, 255, 255, 0.25)',
+                            anchor: isPie ? 'center' : 'start',
+                            align: isPie ? 'center' : 'end',
+                            rotation: isPie ? 0 : -90,
+                            font: { weight: '900', size: isPie ? 14 : 22 },
+                            formatter: (value, context) => {
+                                const label = context.chart.data.labels[context.dataIndex];
+                                const val = context.chart.data.datasets[0].data[context.dataIndex];
+                                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                                if (isPie) {
+                                    const labelMap = { 'Presencial': 'Presencial', 'Semipresencial': 'Semi', 'A Distancia': 'Distancia' };
+                                    const shortLabel = labelMap[label] || label;
+                                    return val > 0 ? `${shortLabel}\n${val} (${pct}%)` : '';
+                                }
+                                return label; 
+                            },
+                            textShadow: isPie ? '2px 2px 4px rgba(0, 0, 0, 0.8)' : 'none'
                         }
                     }
-                } : {
-                    color: '#FFF',
-                    anchor: 'center',
-                    align: 'center',
-                    font: { weight: 'bold', size: 16 },
-                    formatter: (value) => {
-                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                        return value > 0 ? `${value}\n(${percentage}%)` : '';
-                    },
-                    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-                    display: !isTimeline
-                };
+                } : { display: false };
 
                 const chartOptions = {
                     onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
@@ -405,8 +566,24 @@
                         tooltip: { enabled: true }
                     },
                     scales: (type === 'bar' || isTimeline) ? {
-                        y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } },
-                        x: isTimeline ? { type: 'time', time: { unit: 'day' }, ticks: { color: '#fff' }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } }
+                        y: { 
+                            ticks: { 
+                                color: '#fff', 
+                                beginAtZero: true,
+                                stepSize: 1, 
+                                precision: 0 
+                            }, 
+                            grid: { color: '#ffffff20' } 
+                        },
+                        x: isTimeline ? { 
+                            type: 'time', 
+                            time: { unit: 'day', displayFormats: { day: 'dd/MM' } }, 
+                            ticks: { color: '#fff' }, 
+                            grid: { color: '#ffffff20' } 
+                        } : { 
+                            ticks: { color: '#fff', display: !isBar }, 
+                            grid: { color: '#ffffff20' } 
+                        }
                     } : {}
                 };
                 
@@ -434,11 +611,31 @@
             
             const initializeDashboard = (data) => {
                 const validData = data.filter(row => !Object.values(row).some(value => value === '#N/A'));
-                // Determine headers from first valid row or data[0] if exists
-                const headers = Object.keys(data[0] || {}).map(h => normalizeString(h));
-                fullData = validData.map(row => parseRow(row, headers));
+                
+                if (validData.length === 0) {
+                    // Fallback data logic preserved for stability
+                    const fallback = [
+                        {'asesora': 'Kiara', 'marca temporal': '14 de Octubre', 'carrera': 'MKT', 'modalidad': 'Semipresencial'},
+                        {'asesora': 'Kiara', 'marca temporal': '14 de Octubre', 'carrera': 'GI', 'modalidad': 'Presencial'},
+                        {'asesora': 'Kiara', 'marca temporal': '15 de Octubre', 'carrera': 'AE', 'modalidad': 'Semipresencial'},
+                        {'asesora': 'Kiara', 'marca temporal': '15 de Octubre', 'carrera': 'AE', 'modalidad': 'Semipresencial'},
+                        {'asesora': 'Belen', 'marca temporal': '15 de Octubre', 'carrera': 'RH', 'modalidad': 'Presencial'},
+                        {'asesora': 'Kiara', 'marca temporal': '16 de Octubre', 'carrera': 'AE', 'modalidad': 'Semipresencial'},
+                        {'asesora': 'Kiara', 'marca temporal': '16 de Octubre', 'carrera': 'MKT', 'modalidad': 'Semipresencial'},
+                        {'asesora': 'Belen', 'marca temporal': '17 de Octubre', 'carrera': 'HYS', 'modalidad': 'Semipresencial'},
+                        {'asesora': 'Belen', 'marca temporal': '17 de Octubre', 'carrera': 'HYS', 'modalidad': 'Semipresencial'},
+                        {'asesora': 'Kiara', 'marca temporal': '21 de Octubre', 'carrera': 'HYS', 'modalidad': 'Semipresencial'}
+                    ];
+                    const headers = Object.keys(fallback[0]);
+                    fullData = fallback.map(row => parseRow(row, headers));
+                    showMessage('Mostrando datos de respaldo (Conexión fallida).', true);
+                } else {
+                    const headers = Object.keys(validData[0]).map(h => normalizeString(h));
+                    fullData = validData.map(row => parseRow(row, headers));
+                }
+                
                 populateFilters(fullData);
-                applyFiltersAndRender();
+                switchView(currentView);
             };
 
             const fetchData = async () => {
@@ -458,19 +655,8 @@
                     });
                 } catch (error) {
                     showMessage(error.message, true);
+                    initializeDashboard([]); // Trigger fallback
                 }
-            };
-            
-            const handleAddAdvisor = () => {
-                const name = newAdvisorNameInput.value.trim();
-                if (!name || asesoraData[name]) {
-                    alert(name ? 'Esa asesora ya existe.' : 'Por favor, ingresa un nombre.');
-                    return;
-                }
-                asesoraData[name] = { color: colorPalette[colorIndex % colorPalette.length] };
-                colorIndex++;
-                newAdvisorNameInput.value = '';
-                renderAdvisorColorPickers();
             };
             
             const switchView = (view) => {
@@ -493,6 +679,32 @@
                 }
                 applyFiltersAndRender();
             };
+            
+            const copyHtmlWidget = () => {
+                const containerClone = document.getElementById('main-container').cloneNode(true);
+                containerClone.querySelector('#copy-html-btn').remove(); 
+                
+                const dataInjection = `window.preloadedData = ${JSON.stringify(fullData)};`;
+                
+                const scriptContent = document.querySelector('script').textContent;
+                const modifiedScript = scriptContent.replace(
+                    'let fullData = [];', 
+                    'let fullData = window.preloadedData || [];'
+                ).replace(
+                    'fetchData();',
+                    'if(window.preloadedData && window.preloadedData.length > 0) { initializeDashboard([]); } else { fetchData(); }'
+                );
+
+                const fullHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Dashboard de Inscriptos</title><script src="https://cdn.tailwindcss.com"><\/script><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"><\/script><script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script><script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"><\/script><script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"><\/script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>${document.querySelector('style').textContent}<\/style></head><body class="text-white min-h-screen"><script>${dataInjection}<\/script>${containerClone.outerHTML}<script>document.addEventListener('DOMContentLoaded', () => { ${modifiedScript.replace("document.addEventListener('DOMContentLoaded', () => {", "")} );<\/script></body></html>`;
+                
+                const ta = document.createElement("textarea");
+                ta.value = fullHtml;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                alert('¡Widget copiado al portapapeles! Listo para pegar en tu gestor de tareas.');
+            };
 
             document.getElementById('tab-general').addEventListener('click', () => switchView('general'));
             document.getElementById('tab-remarketing').addEventListener('click', () => switchView('remarketing'));
@@ -505,9 +717,16 @@
                 document.getElementById(id).addEventListener('change', applyFiltersAndRender);
             });
             document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
-            document.getElementById('add-advisor-btn').addEventListener('click', handleAddAdvisor);
+            document.getElementById('copy-html-btn').addEventListener('click', copyHtmlWidget);
             
-            fetchData();
+            // Check for preloaded data
+            if (preloadedData && preloadedData.length > 0) {
+                fullData = preloadedData;
+                populateFilters(fullData);
+                switchView(currentView);
+            } else {
+                fetchData();
+            }
         });
     </script>
 </body>
