@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Inscriptos</title>
-    
-    <!-- Configuración de Íconos de la Aplicación -->
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/8899/8899687.png">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8899/8899687.png">
-    <meta name="msapplication-TileImage" content="https://cdn-icons-png.flaticon.com/512/8899/8899687.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -129,7 +123,6 @@
 
         <div class="mt-12 text-center pb-8" id="action-buttons">
              <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all mr-4">Actualizar Datos</button>
-             <button id="copy-html-btn" class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-all">Copiar Widget HTML</button>
         </div>
         <div id="message-container" class="text-center mt-4 fixed bottom-4 right-4 z-50"></div>
     </div>
@@ -150,20 +143,23 @@
             // --- CONFIGURACIÓN ---
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?gid=0&single=true&output=csv';
             
-            // DATOS DE RESPALDO (MOCK DATA)
+            // FECHAS REMARKETING (YYYY-MM-DD) - CORREGIDO A 2025
+            const REMARKETING_DATES = ['2025-11-26', '2025-11-27', '2025-11-28'];
+
+            // MOCK DATA - ACTUALIZADO A 2025 PARA PRUEBAS
             const MOCK_DATA = [
-                {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2024', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2024', 'carrera': 'GI', 'modalidad': 'Presencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '15 de octubre de 2024', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '15 de octubre de 2024', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Belen', 'marca temporal': '15 de octubre de 2024', 'carrera': 'RH', 'modalidad': 'Presencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '16 de octubre de 2024', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '16 de octubre de 2024', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Belen', 'marca temporal': '17 de octubre de 2024', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Belen', 'marca temporal': '17 de octubre de 2024', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '21 de octubre de 2024', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2024', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'remarketing': 'x'},
-                {'asesora': 'Kiara', 'marca temporal': '27 de noviembre de 2024', 'carrera': 'DW', 'modalidad': 'A Distancia', 'remarketing': 'X'}
+                {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'remarketing': ''},
+                {'asesora': 'Kiara', 'marca temporal': '15 de octubre de 2025', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Kiara', 'marca temporal': '15 de octubre de 2025', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Belen', 'marca temporal': '15 de octubre de 2025', 'carrera': 'RH', 'modalidad': 'Presencial', 'remarketing': ''},
+                {'asesora': 'Kiara', 'marca temporal': '16 de octubre de 2025', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Kiara', 'marca temporal': '16 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Belen', 'marca temporal': '17 de octubre de 2025', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Belen', 'marca temporal': '17 de octubre de 2025', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Kiara', 'marca temporal': '21 de octubre de 2025', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
+                {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'remarketing': 'x'},
+                {'asesora': 'Kiara', 'marca temporal': '27 de noviembre de 2025', 'carrera': 'DW', 'modalidad': 'A Distancia', 'remarketing': 'X'}
             ];
 
             const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
@@ -190,7 +186,7 @@
                 if (!dateStr) return null;
                 const partsDe = dateStr.toLowerCase().split(' de ');
                 const monthMap = { 'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11 };
-                if (partsDe.length === 2 || partsDe.length === 3) {
+                if (partsDe.length >= 2) {
                     const day = parseInt(partsDe[0], 10);
                     const month = monthMap[partsDe[1].trim()];
                     let year = new Date().getFullYear();
@@ -222,7 +218,6 @@
                     monthName = dateObject.toLocaleString('es-ES', { month: 'long' });
                     monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
                 }
-
                 let modality = 'No especificada';
                 const rawMod = modalityRaw.slice(-1).toUpperCase();
                 if (rawMod === 'P') modality = 'Presencial'; else if (rawMod === 'S') modality = 'Semipresencial'; else if (rawMod === 'D') modality = 'A Distancia';
@@ -241,9 +236,10 @@
                 });
                 for (const key in filters) {
                     const select = document.getElementById(`filter-${key}`);
+                    const currentValue = currentFilters[key];
                     select.innerHTML = '<option value="todos">Todos</option>';
                     [...filters[key]].sort().forEach(value => { const option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
-                    select.value = currentFilters[key] || 'todos';
+                    select.value = currentValue || 'todos';
                 }
             };
 
@@ -264,14 +260,25 @@
                 const asesoraCounts = data.reduce((acc, row) => { acc[row.asesora] = (acc[row.asesora] || 0) + 1; return acc; }, {});
                 const carreraCounts = data.reduce((acc, row) => { acc[row.carrera] = (acc[row.carrera] || 0) + 1; return acc; }, {});
                 const modalidadCounts = data.reduce((acc, row) => { acc[row.modalidad] = (acc[row.modalidad] || 0) + 1; return acc; }, {});
-                const timelineCounts = data.reduce((acc, row) => { if (row.fecha) { const dateString = row.fecha.toLocaleDateString('en-CA'); acc[dateString] = (acc[dateString] || 0) + 1; } return acc; }, {});
-                const sortedDates = Object.keys(timelineCounts).sort();
+                
+                const timelineCounts = data.reduce((acc, row) => {
+                    if (row.fecha) {
+                        const dateString = row.fecha.toLocaleDateString('en-CA');
+                        acc[dateString] = (acc[dateString] || 0) + 1;
+                    }
+                    return acc;
+                }, {});
+
+                const today = new Date().toLocaleDateString('en-CA');
+                const sortedDates = Object.keys(timelineCounts).filter(d => d <= today).sort();
                 const timelineLabels = sortedDates;
                 const timelineData = sortedDates.map(date => timelineCounts[date]);
+
                 const selectedCareerCode = document.getElementById('filter-carrera').value;
                 let modalityColors;
                 if (selectedCareerCode !== 'todos' && careerData[selectedCareerCode]) { const baseColor = careerData[selectedCareerCode].color; modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': hexToRgba(baseColor, 1), 'Semipresencial': hexToRgba(baseColor, 0.7), 'A Distancia': hexToRgba(baseColor, 0.4) }[mod] || '#94a3b8')); } 
                 else { modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': '#fb923c', 'Semipresencial': '#4ade80', 'A Distancia': '#c084fc' }[mod] || '#94a3b8')); }
+                
                 updateChart('timeline-chart', 'line', timelineLabels, timelineData, ['#fbbf24']);
                 updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
                 updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
@@ -282,10 +289,69 @@
                 const canvasElement = document.getElementById(chartId); if (!canvasElement) return;
                 const ctx = canvasElement.getContext('2d'); if (chartInstances[chartId]) chartInstances[chartId].destroy();
                 const isTimeline = chartId === 'timeline-chart'; const isBar = type === 'bar'; const isPie = type === 'pie'; const total = data.reduce((a, b) => a + b, 0);
-                const datalabelsConfig = isBar || isPie ? { labels: { value: { color: '#FFF', anchor: isPie ? 'center' : 'end', align: isPie ? 'center' : 'start', offset: isPie ? 0 : -4, font: { weight: 'bold', size: 18 }, formatter: (value) => { const percentage = total > 0 ? Math.round((value / total) * 100) : 0; return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); }, textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', }, name: { color: isPie ? '#FFF' : 'rgba(255, 255, 255, 0.25)', anchor: isPie ? 'center' : 'start', align: isPie ? 'center' : 'end', rotation: isPie ? 0 : -90, font: { weight: '900', size: isPie ? 14 : 22 }, formatter: (value, context) => { const label = context.chart.data.labels[context.dataIndex]; const val = context.chart.data.datasets[0].data[context.dataIndex]; const pct = total > 0 ? Math.round((val / total) * 100) : 0; if (isPie) { const labelMap = { 'Presencial': 'Presencial', 'Semipresencial': 'Semi', 'A Distancia': 'Distancia' }; const shortLabel = labelMap[label] || label; return val > 0 ? `${shortLabel}\n${val} (${pct}%)` : ''; } return label; }, textShadow: isPie ? '2px 2px 4px rgba(0, 0, 0, 0.8)' : 'none' } } } : { display: false };
-                const chartOptions = { onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels), responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, datalabels: datalabelsConfig, tooltip: { enabled: true } }, scales: (type === 'bar' || isTimeline) ? { y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, x: isTimeline ? { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd/MM' } }, ticks: { color: '#fff' }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } } : {} };
-                if (isTimeline) { chartOptions.elements = { point: { radius: 6, hoverRadius: 8, hitRadius: 20 } }; } // Bigger points for clicking
-                chartInstances[chartId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }] }, options: chartOptions });
+                
+                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#ec4899', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
+                let segmentConfig = {};
+                if (isTimeline) {
+                    segmentConfig = {
+                        borderColor: ctx => {
+                            const p0 = ctx.p0;
+                            if (p0 && p0.parsed) {
+                                const dateStr = labels[p0.$context.dataIndex]; 
+                                if (dateStr) {
+                                    const month = dateStr.split('-')[1]; 
+                                    return monthColors[month] || '#fbbf24';
+                                }
+                            }
+                            return '#fbbf24';
+                        }
+                    };
+                }
+
+                const datalabelsConfig = isTimeline ? {
+                     display: (context) => REMARKETING_DATES.includes(context.chart.data.labels[context.dataIndex]),
+                     align: 'start',
+                     anchor: 'start',
+                     offset: 12,
+                     font: { size: 24 },
+                     formatter: () => '🔥'
+                } : {
+                    labels: {
+                        value: { color: '#FFF', anchor: isPie ? 'center' : 'end', align: isPie ? 'center' : 'start', offset: isPie ? 0 : -4, font: { weight: 'bold', size: 18 }, formatter: (value) => { const percentage = total > 0 ? Math.round((value / total) * 100) : 0; return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); }, textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', },
+                        name: { color: isPie ? '#FFF' : 'rgba(255, 255, 255, 0.25)', anchor: isPie ? 'center' : 'start', align: isPie ? 'center' : 'end', rotation: isPie ? 0 : -90, font: { weight: '900', size: isPie ? 14 : 22 }, formatter: (value, context) => { const label = context.chart.data.labels[context.dataIndex]; const val = context.chart.data.datasets[0].data[context.dataIndex]; const pct = total > 0 ? Math.round((val / total) * 100) : 0; if (isPie) { const labelMap = { 'Presencial': 'Presencial', 'Semipresencial': 'Semi', 'A Distancia': 'Distancia' }; const shortLabel = labelMap[label] || label; return val > 0 ? `${shortLabel}\n${val} (${pct}%)` : ''; } return label; }, textShadow: isPie ? '2px 2px 4px rgba(0, 0, 0, 0.8)' : 'none' }
+                    }
+                };
+
+                const chartOptions = {
+                    onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, datalabels: datalabelsConfig, tooltip: { enabled: true } },
+                    scales: (type === 'bar' || isTimeline) ? { y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, x: isTimeline ? { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd\nMMM' }, tooltipFormat: 'dd/MM/yyyy' }, ticks: { color: '#fff', source: 'data', autoSkip: false, maxRotation: 90 }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } } : {}
+                };
+                
+                let datasetsConfig = [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }];
+                
+                if (isTimeline) {
+                    chartOptions.elements = { point: { radius: 4, hoverRadius: 6 } };
+                    datasetsConfig = [{
+                        label: 'Inscriptos',
+                        data: data.map((count, index) => ({ x: labels[index], y: count })),
+                        borderWidth: 3,
+                        segment: segmentConfig, 
+                        tension: 0.3,
+                        pointBackgroundColor: (ctx) => {
+                            const date = labels[ctx.dataIndex];
+                            return REMARKETING_DATES.includes(date) ? '#ef4444' : '#fbbf24';
+                        },
+                        pointRadius: (ctx) => {
+                            const date = labels[ctx.dataIndex];
+                            return REMARKETING_DATES.includes(date) ? 8 : 4;
+                        },
+                        pointBorderColor: '#fff'
+                    }];
+                }
+
+                chartInstances[chartId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasetsConfig }, options: chartOptions });
             };
             
             const modal = document.getElementById('detail-modal'); const modalTitle = document.getElementById('modal-date-title'); const modalContent = document.getElementById('modal-content'); const closeModalBtn = document.getElementById('close-modal-btn');
@@ -293,8 +359,7 @@
             const closeModal = () => { modal.classList.add('opacity-0'); modal.firstElementChild.classList.add('scale-95'); setTimeout(() => modal.classList.add('hidden'), 300); };
             closeModalBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             const showDayDetails = (dateString, dayData) => {
-                 const [year, month, day] = dateString.split('-').map(Number);
-                 const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                 const [year, month, day] = dateString.split('-').map(Number); const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1); modalContent.innerHTML = '';
                 if (dayData.length === 0) { modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>'; } else {
                     const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
@@ -340,20 +405,11 @@
                 if (view === 'remarketing') { tabRemarketing.classList.add('active'); remarketingInfo.classList.remove('hidden'); kpiTitle.innerText = "Total de Inscriptos (Remarketing)"; applyFiltersAndRender(); } 
                 else { tabGeneral.classList.add('active'); kpiTitle.innerText = "Total de Inscriptos (General)"; applyFiltersAndRender(); }
             };
-            
-            const copyHtmlWidget = () => {
-                const containerClone = document.getElementById('main-container').cloneNode(true); containerClone.querySelector('#copy-html-btn').remove(); containerClone.querySelector('#error-info').classList.add('hidden'); 
-                const dataInjection = `window.preloadedData = ${JSON.stringify(fullData)};`;
-                const scriptContent = document.querySelector('script').textContent;
-                const modifiedScript = scriptContent.replace('let fullData = [];', 'let fullData = window.preloadedData || [];').replace('fetchData();', 'if(window.preloadedData && window.preloadedData.length > 0) { initializeDashboard(window.preloadedData); } else { fetchData(); }');
-                const fullHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Dashboard</title><script src="https://cdn.tailwindcss.com"><\/script><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"><\/script><script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script><script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"><\/script><script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"><\/script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>${document.querySelector('style').textContent}<\/style></head><body class="text-white min-h-screen"><script>${dataInjection}<\/script>${containerClone.outerHTML}<script>document.addEventListener('DOMContentLoaded', () => { ${modifiedScript.replace("document.addEventListener('DOMContentLoaded', () => {", "")} );<\/script></body></html>`;
-                const ta = document.createElement("textarea"); ta.value = fullHtml; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('¡Widget copiado!');
-            };
 
             document.getElementById('tab-general').addEventListener('click', () => switchView('general')); document.getElementById('tab-remarketing').addEventListener('click', () => switchView('remarketing'));
             document.getElementById('reset-filters-btn').addEventListener('click', () => { ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); applyFiltersAndRender(); });
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad'].forEach(id => document.getElementById(id).addEventListener('change', applyFiltersAndRender));
-            document.getElementById('refresh-data-btn').addEventListener('click', fetchData); document.getElementById('copy-html-btn').addEventListener('click', copyHtmlWidget);
+            document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
             
             if (preloadedData && preloadedData.length > 0) { fullData = preloadedData; populateFilters(fullData); switchView(currentView); } else { fetchData(); }
         });
