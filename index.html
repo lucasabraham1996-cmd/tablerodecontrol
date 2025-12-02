@@ -69,6 +69,34 @@
             background: rgba(220, 38, 38, 0.9);
             border-left: 4px solid #fca5a5;
         }
+        
+        /* Estilos para Objetivos */
+        .goal-card {
+            transition: transform 0.3s ease;
+        }
+        .goal-card:hover {
+            transform: translateY(-5px);
+        }
+        .goal-success {
+            border: 2px solid #4ade80;
+            background: rgba(34, 197, 94, 0.2);
+        }
+        .goal-fail {
+            border: 2px solid #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+        }
+        .progress-bar-bg {
+            background: rgba(255,255,255,0.1);
+            border-radius: 999px;
+            height: 12px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 1s ease-in-out;
+        }
+
         canvas { cursor: pointer; }
     </style>
 </head>
@@ -83,12 +111,13 @@
             <div class="flex flex-wrap justify-center gap-8 text-xl w-full border-t border-white/10 pt-4 mt-2">
                 <div id="tab-general" class="nav-tab active">General</div>
                 <div id="tab-remarketing" class="nav-tab">Remarketing</div>
+                <div id="tab-objetivos" class="nav-tab">Objetivos</div>
             </div>
         </header>
 
         <div id="error-info" class="hidden mb-6 p-4 rounded-xl shadow-lg error-banner backdrop-blur-md">
-            <p class="font-bold">⚠️ Modo de Datos Local / Respaldo</p>
-            <p class="text-sm">No se pudo conectar en tiempo real con Google Sheets. Se muestran los datos internos cargados.</p>
+            <p class="font-bold">⚠️ Aviso</p>
+            <p class="text-sm">No se pudo conectar en tiempo real con la hoja de cálculo. Se muestran los datos de ejemplo.</p>
         </div>
 
         <div id="remarketing-info" class="hidden mb-6 p-4 rounded-xl shadow-lg text-center remarketing-banner backdrop-blur-md animate-pulse">
@@ -96,7 +125,7 @@
             <p class="text-white/90">Datos filtrados de la acción del 26, 27 y 28 de noviembre.</p>
         </div>
 
-        <!-- VISTA PRINCIPAL -->
+        <!-- VISTA PRINCIPAL (General y Remarketing comparten esta estructura) -->
         <div id="view-main">
             <div class="mb-8 p-8 glass-effect rounded-2xl shadow-xl max-w-md mx-auto text-center transform hover:scale-105 transition-transform duration-300">
                 <h3 id="kpi-title" class="text-xl font-semibold text-white/90 mb-2 uppercase tracking-wide">Total de Inscriptos (General)</h3>
@@ -121,8 +150,26 @@
             </main>
         </div>
 
+        <!-- VISTA OBJETIVOS -->
+        <div id="view-objetivos" class="hidden w-full">
+            <div class="mb-10 flex justify-center">
+                <div class="glass-effect p-6 rounded-2xl inline-flex flex-col items-center gap-2">
+                    <label for="obj-month-filter" class="font-bold uppercase tracking-wider text-white/90 text-lg">Seleccionar Mes de Objetivo:</label>
+                    <select id="obj-month-filter" class="p-3 rounded-lg bg-black/50 text-white border border-white/30 font-bold focus:outline-none text-xl text-center w-64">
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="objetivos-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <!-- Las tarjetas de objetivos se inyectan aquí -->
+            </div>
+        </div>
+
         <div class="mt-12 text-center pb-8" id="action-buttons">
-             <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all mr-4">Actualizar Datos</button>
+             <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all">Actualizar Datos</button>
         </div>
         <div id="message-container" class="text-center mt-4 fixed bottom-4 right-4 z-50"></div>
     </div>
@@ -142,24 +189,26 @@
         document.addEventListener('DOMContentLoaded', () => {
             // --- CONFIGURACIÓN ---
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?gid=0&single=true&output=csv';
-            
-            // FECHAS REMARKETING (YYYY-MM-DD) - CORREGIDO A 2025
             const REMARKETING_DATES = ['2025-11-26', '2025-11-27', '2025-11-28'];
 
-            // MOCK DATA - ACTUALIZADO A 2025 PARA PRUEBAS
+            const goalsConfig = {
+                '10': { 'Belen': 18, 'Kiara': 18 }, // Octubre
+                '11': { 'Belen': 65, 'Kiara': 65, 'Jeremias': 30, 'Laura': 30 }, // Noviembre
+                '12': { 'Belen': 75, 'Kiara': 75, 'Jeremias': 75, 'Laura': 75 } // Diciembre
+            };
+
+            // DATOS DE RESPALDO ROBUSTOS (Para evitar Ceros)
             const MOCK_DATA = [
                 {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': ''},
                 {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'remarketing': ''},
                 {'asesora': 'Kiara', 'marca temporal': '15 de octubre de 2025', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '15 de octubre de 2025', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
                 {'asesora': 'Belen', 'marca temporal': '15 de octubre de 2025', 'carrera': 'RH', 'modalidad': 'Presencial', 'remarketing': ''},
                 {'asesora': 'Kiara', 'marca temporal': '16 de octubre de 2025', 'carrera': 'AE', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '16 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': ''},
                 {'asesora': 'Belen', 'marca temporal': '17 de octubre de 2025', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Belen', 'marca temporal': '17 de octubre de 2025', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
-                {'asesora': 'Kiara', 'marca temporal': '21 de octubre de 2025', 'carrera': 'HYS', 'modalidad': 'Semipresencial', 'remarketing': ''},
                 {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'remarketing': 'x'},
-                {'asesora': 'Kiara', 'marca temporal': '27 de noviembre de 2025', 'carrera': 'DW', 'modalidad': 'A Distancia', 'remarketing': 'X'}
+                {'asesora': 'Kiara', 'marca temporal': '27 de noviembre de 2025', 'carrera': 'DW', 'modalidad': 'A Distancia', 'remarketing': 'X'},
+                {'asesora': 'Laura', 'marca temporal': '28 de noviembre de 2025', 'carrera': 'GI', 'modalidad': 'Semipresencial', 'remarketing': 'X'},
+                {'asesora': 'Jeremias', 'marca temporal': '28 de noviembre de 2025', 'carrera': 'CDEIA', 'modalidad': 'Semipresencial', 'remarketing': 'x'}
             ];
 
             const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
@@ -170,7 +219,6 @@
             let chartInstances = {};
             let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
             let currentView = 'general';
-            const preloadedData = window.preloadedData || null;
 
             Chart.register(ChartDataLabels);
 
@@ -204,7 +252,7 @@
                 const timestampIdx = findIdx(['marca temporal', 'fecha']);
                 const careerIdx = findIdx(['carrera']);
                 const modalityIdx = findIdx(['modalidad']);
-                const remarketingIdx = 8; 
+                const remarketingIdx = 8; // I col
 
                 const advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'N/A';
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
@@ -226,6 +274,43 @@
                 return { asesora: advisor, mes: monthName, carrera: career, modalidad: modality, fecha: dateObject, isRemarketing: isRemarketing };
             };
 
+            const renderObjectives = () => {
+                const container = document.getElementById('objetivos-container');
+                const selectedMonth = document.getElementById('obj-month-filter').value;
+                const currentGoals = goalsConfig[selectedMonth];
+                
+                container.innerHTML = '';
+                if (!currentGoals) {
+                    container.innerHTML = '<p class="text-white text-center col-span-2">No hay objetivos definidos.</p>';
+                    return;
+                }
+
+                const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
+                const monthData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex);
+                const actualCounts = {};
+                monthData.forEach(row => {
+                    const name = normalizeString(row.asesora);
+                    if(!actualCounts[name]) actualCounts[name] = 0;
+                    actualCounts[name]++;
+                });
+
+                Object.keys(currentGoals).forEach(advisorName => {
+                    const goal = currentGoals[advisorName];
+                    const normalizedGoalName = normalizeString(advisorName);
+                    const matchKey = Object.keys(actualCounts).find(k => k.includes(normalizedGoalName) || normalizedGoalName.includes(k));
+                    const actual = matchKey ? actualCounts[matchKey] : 0;
+                    const percentage = Math.min(Math.round((actual / goal) * 100), 100);
+                    const isMet = actual >= goal;
+                    const cardClass = isMet ? 'goal-success' : 'goal-fail';
+                    const icon = isMet ? '🏆 ¡Objetivo Cumplido!' : '❌ Objetivo No Alcanzado';
+                    const iconColor = isMet ? 'text-green-400' : 'text-red-400';
+                    const progressColor = isMet ? 'bg-green-500' : 'bg-red-500';
+
+                    const html = `<div class="glass-effect rounded-2xl p-6 goal-card ${cardClass} flex flex-col justify-between h-full"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-white">${advisorName}</h3><div class="text-right"><span class="block text-sm opacity-70">Objetivo</span><span class="text-2xl font-bold">${goal}</span></div></div><div class="mb-6"><div class="flex justify-between text-sm mb-1"><span>Progreso</span><span class="font-bold">${actual} / ${goal}</span></div><div class="progress-bar-bg w-full bg-black/40"><div class="progress-bar-fill ${progressColor}" style="width: ${percentage}%"></div></div></div><div class="mt-auto border-t border-white/10 pt-4 text-center"><p class="text-lg font-bold ${iconColor}">${icon}</p>${!isMet ? `<p class="text-xs text-white/60 mt-1">Faltan ${goal - actual} inscriptos</p>` : ''}</div></div>`;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            };
+
             const populateFilters = (data) => {
                 const filters = { asesora: new Set(), mes: new Set(), carrera: new Set(), modalidad: new Set() };
                 data.forEach(row => {
@@ -236,10 +321,9 @@
                 });
                 for (const key in filters) {
                     const select = document.getElementById(`filter-${key}`);
-                    const currentValue = currentFilters[key];
                     select.innerHTML = '<option value="todos">Todos</option>';
                     [...filters[key]].sort().forEach(value => { const option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
-                    select.value = currentValue || 'todos';
+                    select.value = currentValue = currentFilters[key] || 'todos';
                 }
             };
 
@@ -260,17 +344,8 @@
                 const asesoraCounts = data.reduce((acc, row) => { acc[row.asesora] = (acc[row.asesora] || 0) + 1; return acc; }, {});
                 const carreraCounts = data.reduce((acc, row) => { acc[row.carrera] = (acc[row.carrera] || 0) + 1; return acc; }, {});
                 const modalidadCounts = data.reduce((acc, row) => { acc[row.modalidad] = (acc[row.modalidad] || 0) + 1; return acc; }, {});
-                
-                const timelineCounts = data.reduce((acc, row) => {
-                    if (row.fecha) {
-                        const dateString = row.fecha.toLocaleDateString('en-CA');
-                        acc[dateString] = (acc[dateString] || 0) + 1;
-                    }
-                    return acc;
-                }, {});
-
-                const today = new Date().toLocaleDateString('en-CA');
-                const sortedDates = Object.keys(timelineCounts).filter(d => d <= today).sort();
+                const timelineCounts = data.reduce((acc, row) => { if (row.fecha) { const dateString = row.fecha.toLocaleDateString('en-CA'); acc[dateString] = (acc[dateString] || 0) + 1; } return acc; }, {});
+                const sortedDates = Object.keys(timelineCounts).filter(d => d <= new Date().toLocaleDateString('en-CA')).sort();
                 const timelineLabels = sortedDates;
                 const timelineData = sortedDates.map(date => timelineCounts[date]);
 
@@ -293,28 +368,12 @@
                 const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#ec4899', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
                 let segmentConfig = {};
                 if (isTimeline) {
-                    segmentConfig = {
-                        borderColor: ctx => {
-                            const p0 = ctx.p0;
-                            if (p0 && p0.parsed) {
-                                const dateStr = labels[p0.$context.dataIndex]; 
-                                if (dateStr) {
-                                    const month = dateStr.split('-')[1]; 
-                                    return monthColors[month] || '#fbbf24';
-                                }
-                            }
-                            return '#fbbf24';
-                        }
-                    };
+                    segmentConfig = { borderColor: ctx => { const p0 = ctx.p0; if (p0 && p0.parsed) { const dateStr = labels[p0.$context.dataIndex]; if (dateStr) { const month = dateStr.split('-')[1]; return monthColors[month] || '#fbbf24'; } } return '#fbbf24'; } };
                 }
 
                 const datalabelsConfig = isTimeline ? {
                      display: (context) => REMARKETING_DATES.includes(context.chart.data.labels[context.dataIndex]),
-                     align: 'start',
-                     anchor: 'start',
-                     offset: 12,
-                     font: { size: 24 },
-                     formatter: () => '🔥'
+                     align: 'start', anchor: 'start', offset: 12, font: { size: 24 }, formatter: () => '🔥'
                 } : {
                     labels: {
                         value: { color: '#FFF', anchor: isPie ? 'center' : 'end', align: isPie ? 'center' : 'start', offset: isPie ? 0 : -4, font: { weight: 'bold', size: 18 }, formatter: (value) => { const percentage = total > 0 ? Math.round((value / total) * 100) : 0; return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); }, textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', },
@@ -322,38 +381,16 @@
                     }
                 };
 
-                const chartOptions = {
-                    onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, datalabels: datalabelsConfig, tooltip: { enabled: true } },
-                    scales: (type === 'bar' || isTimeline) ? { y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, x: isTimeline ? { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd\nMMM' }, tooltipFormat: 'dd/MM/yyyy' }, ticks: { color: '#fff', source: 'data', autoSkip: false, maxRotation: 90 }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } } : {}
-                };
+                const chartOptions = { onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels), responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, datalabels: datalabelsConfig, tooltip: { enabled: true } }, scales: (type === 'bar' || isTimeline) ? { y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, x: isTimeline ? { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd\nMMM' }, tooltipFormat: 'dd/MM/yyyy' }, ticks: { color: '#fff', source: 'data', autoSkip: false, maxRotation: 90 }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } } : {} };
                 
                 let datasetsConfig = [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }];
-                
-                if (isTimeline) {
-                    chartOptions.elements = { point: { radius: 4, hoverRadius: 6 } };
-                    datasetsConfig = [{
-                        label: 'Inscriptos',
-                        data: data.map((count, index) => ({ x: labels[index], y: count })),
-                        borderWidth: 3,
-                        segment: segmentConfig, 
-                        tension: 0.3,
-                        pointBackgroundColor: (ctx) => {
-                            const date = labels[ctx.dataIndex];
-                            return REMARKETING_DATES.includes(date) ? '#ef4444' : '#fbbf24';
-                        },
-                        pointRadius: (ctx) => {
-                            const date = labels[ctx.dataIndex];
-                            return REMARKETING_DATES.includes(date) ? 8 : 4;
-                        },
-                        pointBorderColor: '#fff'
-                    }];
+                if (isTimeline) { 
+                    chartOptions.elements = { point: { radius: 4, hoverRadius: 6 } }; 
+                    datasetsConfig = [{ label: 'Inscriptos', data: data.map((count, index) => ({ x: labels[index], y: count })), borderWidth: 3, segment: segmentConfig, tension: 0.3, pointBackgroundColor: (ctx) => { const date = labels[ctx.dataIndex]; return REMARKETING_DATES.includes(date) ? '#ef4444' : '#fbbf24'; }, pointRadius: (ctx) => { const date = labels[ctx.dataIndex]; return REMARKETING_DATES.includes(date) ? 8 : 4; }, pointBorderColor: '#fff' }];
                 }
-
                 chartInstances[chartId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasetsConfig }, options: chartOptions });
             };
-            
+
             const modal = document.getElementById('detail-modal'); const modalTitle = document.getElementById('modal-date-title'); const modalContent = document.getElementById('modal-content'); const closeModalBtn = document.getElementById('close-modal-btn');
             const openModal = () => { modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modal.firstElementChild.classList.remove('scale-95'); }, 10); };
             const closeModal = () => { modal.classList.add('opacity-0'); modal.firstElementChild.classList.add('scale-95'); setTimeout(() => modal.classList.add('hidden'), 300); };
@@ -385,33 +422,64 @@
 
             const initializeDashboard = (data) => {
                 const validData = data.filter(row => !Object.values(row).some(value => value === '#N/A'));
-                if(validData.length === 0) { document.getElementById('error-info').classList.remove('hidden'); const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h)); fullData = MOCK_DATA.map(row => parseRow(row, headers)); } 
-                else { document.getElementById('error-info').classList.add('hidden'); const headers = Object.keys(validData[0]).map(h => normalizeString(h)); fullData = validData.map(row => parseRow(row, headers)); }
-                populateFilters(fullData); switchView(currentView);
+                if(validData.length === 0) {
+                     document.getElementById('error-info').classList.remove('hidden');
+                     const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h));
+                     fullData = MOCK_DATA.map(row => parseRow(row, headers));
+                } else {
+                    document.getElementById('error-info').classList.add('hidden');
+                    const headers = Object.keys(validData[0]).map(h => normalizeString(h));
+                    fullData = validData.map(row => parseRow(row, headers));
+                }
+                populateFilters(fullData);
+                switchView(currentView);
             };
 
             const fetchData = async () => {
                 showMessage('Actualizando datos...');
                 try {
-                    const response = await fetch(`${googleSheetUrl}&t=${new Date().getTime()}`); if (!response.ok) throw new Error('Error de conexión'); const csvText = await response.text();
-                    Papa.parse(csvText, { header: true, skipEmptyLines: true, transformHeader: h => h.trim(), bom: true, complete: res => { if (res.data.length > 0) { initializeDashboard(res.data); showMessage('Datos actualizados correctamente.'); } else { throw new Error('CSV Vacío'); } }, error: () => { throw new Error('Error CSV'); } });
-                } catch (error) { showMessage('Usando datos de respaldo.', true); initializeDashboard([]); }
+                    const response = await fetch(`${googleSheetUrl}&t=${new Date().getTime()}`);
+                    if (!response.ok) throw new Error('Error de conexión');
+                    const csvText = await response.text();
+                    Papa.parse(csvText, {
+                        header: true, skipEmptyLines: true, transformHeader: h => h.trim(), bom: true,
+                        complete: res => {
+                            if (res.data.length > 0) { initializeDashboard(res.data); showMessage('Datos actualizados correctamente.'); } else { throw new Error('CSV Vacío'); }
+                        },
+                        error: () => { throw new Error('Error CSV'); }
+                    });
+                } catch (error) {
+                    showMessage('Usando datos de respaldo (Falló conexión)', true);
+                    initializeDashboard([]); // Trigger fallback
+                }
             };
             
             const switchView = (view) => {
                 currentView = view;
-                const tabGeneral = document.getElementById('tab-general'); const tabRemarketing = document.getElementById('tab-remarketing'); const remarketingInfo = document.getElementById('remarketing-info'); const kpiTitle = document.getElementById('kpi-title');
-                [tabGeneral, tabRemarketing].forEach(t => t.classList.remove('active')); remarketingInfo.classList.add('hidden');
-                if (view === 'remarketing') { tabRemarketing.classList.add('active'); remarketingInfo.classList.remove('hidden'); kpiTitle.innerText = "Total de Inscriptos (Remarketing)"; applyFiltersAndRender(); } 
-                else { tabGeneral.classList.add('active'); kpiTitle.innerText = "Total de Inscriptos (General)"; applyFiltersAndRender(); }
+                const tabGeneral = document.getElementById('tab-general'); const tabRemarketing = document.getElementById('tab-remarketing'); const tabObjetivos = document.getElementById('tab-objetivos');
+                const remarketingInfo = document.getElementById('remarketing-info'); const kpiTitle = document.getElementById('kpi-title');
+                const viewMain = document.getElementById('view-main'); const viewObjetivos = document.getElementById('view-objetivos');
+
+                [tabGeneral, tabRemarketing, tabObjetivos].forEach(t => t.classList.remove('active'));
+                remarketingInfo.classList.add('hidden'); viewMain.classList.add('hidden'); viewObjetivos.classList.add('hidden');
+
+                if (view === 'remarketing') {
+                    tabRemarketing.classList.add('active'); remarketingInfo.classList.remove('hidden'); viewMain.classList.remove('hidden'); kpiTitle.innerText = "Total de Inscriptos (Remarketing)"; applyFiltersAndRender();
+                } else if (view === 'objetivos') {
+                    tabObjetivos.classList.add('active'); viewObjetivos.classList.remove('hidden'); renderObjectives();
+                } else {
+                    tabGeneral.classList.add('active'); viewMain.classList.remove('hidden'); kpiTitle.innerText = "Total de Inscriptos (General)"; applyFiltersAndRender();
+                }
             };
 
-            document.getElementById('tab-general').addEventListener('click', () => switchView('general')); document.getElementById('tab-remarketing').addEventListener('click', () => switchView('remarketing'));
+            document.getElementById('tab-general').addEventListener('click', () => switchView('general')); document.getElementById('tab-remarketing').addEventListener('click', () => switchView('remarketing')); document.getElementById('tab-objetivos').addEventListener('click', () => switchView('objetivos'));
+            document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
+
             document.getElementById('reset-filters-btn').addEventListener('click', () => { ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); applyFiltersAndRender(); });
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad'].forEach(id => document.getElementById(id).addEventListener('change', applyFiltersAndRender));
             document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
             
-            if (preloadedData && preloadedData.length > 0) { fullData = preloadedData; populateFilters(fullData); switchView(currentView); } else { fetchData(); }
+            fetchData();
         });
     </script>
 </body>
