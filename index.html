@@ -121,6 +121,7 @@
             position: relative;
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer; /* Cursor de mano para indicar click */
         }
         .goal-card-modern:hover {
             transform: translateY(-5px);
@@ -242,9 +243,9 @@
 
     <!-- Modal de Detalles -->
     <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
-        <div class="glass-effect bg-gray-900/90 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl border border-white/20 transform transition-all scale-95 duration-300">
+        <div class="glass-effect bg-gray-900/90 rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl border border-white/20 transform transition-all scale-95 duration-300">
             <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                <h3 id="modal-date-title" class="text-2xl font-bold text-white">Detalle del Día</h3>
+                <h3 id="modal-date-title" class="text-2xl font-bold text-white">Detalle</h3>
                 <button id="close-modal-btn" class="text-white/70 hover:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <div id="modal-content" class="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar space-y-4"></div>
@@ -253,18 +254,17 @@
 
     <script>
         window.openPromotion = null;
+        window.showAdvisorDetails = null; // Exponer la función para el click en objetivos
         let fullData = [];
         let chartInstances = {};
         let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
         let currentView = 'general';
         let activeActionType = null;
-        // Almacenar instancias de gráficos de objetivos para poder destruirlos al actualizar
         let objectiveChartInstances = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?output=csv';
             
-            // Definiendo las fechas de las acciones aquí para que estén disponibles para todas las funciones
             const ACTION_DATES = {
                 'remarketing': ['2025-11-26', '2025-11-27', '2025-11-28'],
                 'empresas': ['2025-12-11', '2025-12-12'],
@@ -272,7 +272,6 @@
                 'carnaval': ['2026-02-25', '2026-02-26', '2026-02-27']
             };
 
-            // Mapas de fecha -> unicode de icono fontawesome
             const DATE_TO_ICON = {
                 '2025-11-26': '\uf0a1', '2025-11-27': '\uf0a1', '2025-11-28': '\uf0a1',
                 '2025-12-11': '\uf2b5', '2025-12-12': '\uf2b5',
@@ -289,17 +288,17 @@
             const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
             const asesoraData = { 'Kiara': { color: '#c084fc' }, 'Belen': { color: '#fbbf24' }, 'Laura': { color: '#bef264' }, 'Jeremias': { color: '#fca5a5' }, 'Jeremías': { color: '#fca5a5' } };
             
+            // Mock data actualizado con campos de alumno
             const MOCK_DATA = [
-                {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''},
-                {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'remarketing': 'x', 'colJ': '', 'colK': '', 'colL': ''},
-                {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'remarketing': '', 'colJ': 'x', 'colK': '', 'colL': ''},
-                {'asesora': 'Jeremias', 'marca temporal': '22 de diciembre de 2025', 'carrera': 'AE', 'modalidad': 'A Distancia', 'remarketing': '', 'colJ': '', 'colK': 'x', 'colL': ''},
-                {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'}
+                {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'matricula': '1001', 'apellido': 'Perez', 'nombre': 'Juan', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''},
+                {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'matricula': '1002', 'apellido': 'Gomez', 'nombre': 'Maria', 'remarketing': 'x', 'colJ': '', 'colK': '', 'colL': ''},
+                {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'matricula': '1003', 'apellido': 'Lopez', 'nombre': 'Carlos', 'remarketing': '', 'colJ': 'x', 'colK': '', 'colL': ''},
+                {'asesora': 'Jeremias', 'marca temporal': '22 de diciembre de 2025', 'carrera': 'AE', 'modalidad': 'A Distancia', 'matricula': '1004', 'apellido': 'Diaz', 'nombre': 'Ana', 'remarketing': '', 'colJ': '', 'colK': 'x', 'colL': ''},
+                {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'}
             ];
 
             Chart.register(ChartDataLabels);
 
-            // --- Funciones Auxiliares ---
             const showMessage = (msg, isError = false) => {
                 const container = document.getElementById('message-container');
                 container.innerHTML = `<div class="${isError ? 'bg-red-500/90' : 'bg-green-500/90'} text-white px-6 py-3 rounded-lg shadow-xl backdrop-blur-md border border-white/20 transition-all duration-500 transform translate-y-0">${msg}</div>`;
@@ -349,17 +348,35 @@
                 const careerIdx = findIdx(['carrera']);
                 const modalityIdx = findIdx(['modalidad']);
                 
+                // Indices de acciones
                 const remarketingIdxRaw = findIdx(['remarketing']); 
                 const remarketingIdx = remarketingIdxRaw !== -1 ? remarketingIdxRaw : 8;
                 const empresasIdx = 9; 
                 const navidadIdx = 10; 
                 const carnavalIdx = 11; 
 
+                // Indices de Alumno
+                const matriculaIdx = findIdx(['matricula', 'legajo', 'dni', 'documento']);
+                const apellidoIdx = findIdx(['apellido']);
+                const nombreIdx = findIdx(['nombre']);
+                const alumnoIdx = findIdx(['alumno', 'estudiante', 'nombre y apellido']); // Fallback por si están juntos
+
                 const advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'N/A';
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
                 const career = careerIdx !== -1 ? Object.values(row)[careerIdx] : 'N/A';
                 const modalityRaw = modalityIdx !== -1 ? Object.values(row)[modalityIdx] : '';
                 
+                // Datos Alumno
+                let matricula = matriculaIdx !== -1 ? Object.values(row)[matriculaIdx] : '-';
+                let apellido = apellidoIdx !== -1 ? Object.values(row)[apellidoIdx] : '';
+                let nombre = nombreIdx !== -1 ? Object.values(row)[nombreIdx] : '';
+                
+                // Si no hay apellido/nombre separados, intentar sacar de campo combinado
+                if ((!apellido || !nombre) && alumnoIdx !== -1) {
+                    const nombreCompleto = Object.values(row)[alumnoIdx] || '';
+                    apellido = nombreCompleto; // Simplificación si viene todo junto
+                }
+
                 const vals = Object.values(row);
                 const remarketingVal = vals[remarketingIdx] || '';
                 const empresasVal = vals[empresasIdx] || '';
@@ -381,10 +398,19 @@
                 const isNavidad = navidadVal && navidadVal.toLowerCase().includes('x');
                 const isCarnaval = carnavalVal && carnavalVal.toLowerCase().includes('x');
 
-                return { asesora: advisor, mes: monthName, carrera: career, modalidad: modality, fecha: dateObject, isRemarketing, isEmpresas, isNavidad, isCarnaval };
+                return { 
+                    asesora: advisor, 
+                    mes: monthName, 
+                    carrera: career, 
+                    modalidad: modality, 
+                    fecha: dateObject, 
+                    matricula, 
+                    apellido, 
+                    nombre,
+                    isRemarketing, isEmpresas, isNavidad, isCarnaval 
+                };
             };
 
-            // --- Funciones UI ---
             const openModal = () => { 
                 const modal = document.getElementById('detail-modal');
                 modal.classList.remove('hidden'); 
@@ -401,6 +427,67 @@
                 modal.firstElementChild.classList.remove('scale-100'); 
                 modal.firstElementChild.classList.add('scale-100'); 
                 setTimeout(() => modal.classList.add('hidden'), 300); 
+            };
+
+            // Función para mostrar detalle de inscriptos de un asesor
+            window.showAdvisorDetails = (advisorName) => {
+                const selectedMonth = document.getElementById('obj-month-filter').value;
+                const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
+                
+                const filteredData = fullData.filter(d => {
+                    const isAdvisor = normalizeString(d.asesora).includes(normalizeString(advisorName)) || normalizeString(advisorName).includes(normalizeString(d.asesora));
+                    const isMonth = d.fecha && d.fecha.getMonth() === targetMonthIndex;
+                    return isAdvisor && isMonth;
+                });
+
+                const modalTitle = document.getElementById('modal-date-title'); 
+                const modalContent = document.getElementById('modal-content');
+                
+                // Nombre del mes para el título
+                const dateForMonth = new Date(new Date().getFullYear(), targetMonthIndex, 1);
+                const monthName = dateForMonth.toLocaleString('es-ES', { month: 'long' });
+                const monthCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+                modalTitle.textContent = `${advisorName} - ${monthCap}`;
+                
+                if (filteredData.length === 0) {
+                    modalContent.innerHTML = '<p class="text-white text-center">No hay inscriptos registrados para este asesor en este mes.</p>';
+                } else {
+                    let html = `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-white/90">
+                                <thead class="text-xs uppercase bg-white/10 text-white border-b border-white/20">
+                                    <tr>
+                                        <th class="px-4 py-3">Matrícula</th>
+                                        <th class="px-4 py-3">Apellido y Nombre</th>
+                                        <th class="px-4 py-3">Carrera</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/10">
+                    `;
+                    
+                    filteredData.forEach(row => {
+                        const fullName = `${row.apellido} ${row.nombre}`.trim() || 'Sin Nombre';
+                        const career = careerData[row.carrera] ? careerData[row.carrera].name : row.carrera;
+                        
+                        html += `
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-4 py-3 font-mono">${row.matricula}</td>
+                                <td class="px-4 py-3 font-medium">${fullName}</td>
+                                <td class="px-4 py-3">${career}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-right text-xs text-white/50 mt-2">Total: ${filteredData.length}</p>
+                    `;
+                    modalContent.innerHTML = html;
+                }
+                openModal();
             };
 
             const showDayDetails = (dateString, dayData) => {
@@ -469,7 +556,6 @@
                 const clickedLabel = labels[index];
                 
                 if (chartId === 'timeline-chart') {
-                    // Re-aplicar filtros actuales para obtener el contexto de datos correcto
                     const activeData = fullData.filter(row => { 
                         let viewMatch = true;
                         if (currentView === 'action-detail') {
@@ -605,7 +691,7 @@
                     const canvasId = `obj-chart-${idx}`;
                     
                     const html = `
-                        <div class="goal-card-modern hover:border-[${advisorColor}] border-white/10" id="${cardId}">
+                        <div class="goal-card-modern hover:border-[${advisorColor}] border-white/10" id="${cardId}" onclick="showAdvisorDetails('${advisorName}')">
                             <div class="goal-glow" style="background: radial-gradient(circle, ${advisorColor}40 0%, transparent 70%);"></div>
                             <div class="z-10 flex-1">
                                 <h3 class="text-2xl font-bold text-white mb-1">${advisorName}</h3>
