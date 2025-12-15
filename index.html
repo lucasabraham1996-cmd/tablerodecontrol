@@ -76,7 +76,7 @@
             border-left: 4px solid #fca5a5;
         }
         
-        /* Estilos para Objetivos y Acciones */
+        /* Estilos para Acciones */
         .card-hover {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
@@ -109,25 +109,32 @@
             text-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        .goal-card {
-            transition: transform 0.3s ease;
-        }
-        .goal-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .progress-bar-bg {
-            background: rgba(0,0,0,0.4);
-            border-radius: 999px;
-            height: 12px;
-            overflow: hidden;
+        /* Nuevos Estilos Objetivos Modernos */
+        .goal-card-modern {
+            background: rgba(20, 20, 30, 0.6);
             border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 999px;
-            transition: width 1s ease-in-out;
-            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        .goal-card-modern:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.2);
+        }
+        .goal-glow {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%);
+            top: -20px;
+            right: -20px;
+            pointer-events: none;
         }
 
         canvas { cursor: pointer; }
@@ -246,16 +253,23 @@
 
     <script>
         window.openPromotion = null;
+        let fullData = [];
+        let chartInstances = {};
+        let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
+        let currentView = 'general';
+        let activeActionType = null;
+        // Almacenar instancias de gráficos de objetivos para poder destruirlos al actualizar
+        let objectiveChartInstances = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- CONFIGURACIÓN ---
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?output=csv';
             
-            const ACTION_DATES = {
-                'remarketing': ['2025-11-26', '2025-11-27', '2025-11-28'],
-                'empresas': ['2025-12-11', '2025-12-12'],
-                'navidad': ['2025-12-22', '2025-12-23'],
-                'carnaval': ['2026-02-25', '2026-02-26', '2026-02-27']
+            // Mapas de fecha -> unicode de icono fontawesome
+            const DATE_TO_ICON = {
+                '2025-11-26': '\uf0a1', '2025-11-27': '\uf0a1', '2025-11-28': '\uf0a1',
+                '2025-12-11': '\uf2b5', '2025-12-12': '\uf2b5',
+                '2025-12-22': '\uf06b', '2025-12-23': '\uf06b',
+                '2026-02-25': '\ue630', '2026-02-26': '\ue630', '2026-02-27': '\ue630'
             };
 
             const goalsConfig = {
@@ -264,6 +278,9 @@
                 '12': { 'Belen': 75, 'Kiara': 75, 'Jeremias': 75, 'Laura': 75 }
             };
 
+            const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
+            const asesoraData = { 'Kiara': { color: '#c084fc' }, 'Belen': { color: '#fbbf24' }, 'Laura': { color: '#bef264' }, 'Jeremias': { color: '#fca5a5' }, 'Jeremías': { color: '#fca5a5' } };
+            
             const MOCK_DATA = [
                 {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''},
                 {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'remarketing': 'x', 'colJ': '', 'colK': '', 'colL': ''},
@@ -272,24 +289,9 @@
                 {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'}
             ];
 
-            const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
-            
-            const asesoraData = { 
-                'Kiara': { color: '#c084fc' }, 
-                'Belen': { color: '#fbbf24' }, 
-                'Laura': { color: '#bef264' }, 
-                'Jeremias': { color: '#fca5a5' }, 
-                'Jeremías': { color: '#fca5a5' } 
-            };
-            
-            let fullData = [];
-            let chartInstances = {};
-            let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
-            let currentView = 'general';
-            let activeActionType = null; 
-
             Chart.register(ChartDataLabels);
 
+            // --- Funciones Auxiliares ---
             const showMessage = (msg, isError = false) => {
                 const container = document.getElementById('message-container');
                 container.innerHTML = `<div class="${isError ? 'bg-red-500/90' : 'bg-green-500/90'} text-white px-6 py-3 rounded-lg shadow-xl backdrop-blur-md border border-white/20 transition-all duration-500 transform translate-y-0">${msg}</div>`;
@@ -297,6 +299,14 @@
             };
 
             const normalizeString = (str = '') => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+            const hexToRgba = (hex, alpha) => { 
+                let r=0, g=0, b=0; 
+                if(!hex) return `rgba(255,255,255,${alpha})`;
+                if(hex.startsWith('#')) hex = hex.slice(1); 
+                if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; 
+                if(hex.length === 6){ r = parseInt(hex.substring(0,2), 16); g = parseInt(hex.substring(2,4), 16); b = parseInt(hex.substring(4,6), 16); } 
+                return `rgba(${r},${g},${b},${alpha})`; 
+            };
 
             const parseDate = (dateStr) => {
                 if (!dateStr) return null;
@@ -333,9 +343,9 @@
                 
                 const remarketingIdxRaw = findIdx(['remarketing']); 
                 const remarketingIdx = remarketingIdxRaw !== -1 ? remarketingIdxRaw : 8;
-                const empresasIdx = 9; // Columna J
-                const navidadIdx = 10; // Columna K
-                const carnavalIdx = 11; // Columna L
+                const empresasIdx = 9; 
+                const navidadIdx = 10; 
+                const carnavalIdx = 11; 
 
                 const advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'N/A';
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
@@ -365,182 +375,37 @@
 
                 return { asesora: advisor, mes: monthName, carrera: career, modalidad: modality, fecha: dateObject, isRemarketing, isEmpresas, isNavidad, isCarnaval };
             };
+
+            // --- Funciones UI ---
+            const openModal = () => { 
+                const modal = document.getElementById('detail-modal');
+                modal.classList.remove('hidden'); 
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0'); 
+                    modal.firstElementChild.classList.remove('scale-95'); 
+                    modal.firstElementChild.classList.add('scale-100'); 
+                });
+            };
             
-            const hexToRgba = (hex, alpha) => { 
-                let r=0, g=0, b=0; 
-                if(!hex) return `rgba(255,255,255,${alpha})`;
-                if(hex.startsWith('#')) hex = hex.slice(1); 
-                if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; 
-                if(hex.length === 6){ r = parseInt(hex.substring(0,2), 16); g = parseInt(hex.substring(2,4), 16); b = parseInt(hex.substring(4,6), 16); } 
-                return `rgba(${r},${g},${b},${alpha})`; 
+            const closeModal = () => { 
+                const modal = document.getElementById('detail-modal');
+                modal.classList.add('opacity-0'); 
+                modal.firstElementChild.classList.remove('scale-100'); 
+                modal.firstElementChild.classList.add('scale-100'); 
+                setTimeout(() => modal.classList.add('hidden'), 300); 
             };
 
-            const renderActions = () => {
-                const container = document.getElementById('acciones-grid');
-                container.innerHTML = '';
-
-                // Verificar desbloqueos
-                const hasEmpresasData = fullData.some(r => r.isEmpresas);
-                const hasNavidadData = fullData.some(r => r.isNavidad);
-                const hasCarnavalData = fullData.some(r => r.isCarnaval);
-                const hasRemarketingData = fullData.some(r => r.isRemarketing);
-
-                // --- TARJETA REMARKETING (Color Naranja/Rojo) ---
-                const remarketingCard = `
-                 <div class="glass-effect rounded-2xl p-8 card-hover flex flex-col items-center text-center h-full relative overflow-hidden group" onclick="openPromotion('remarketing')">
-                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                         <i class="fas fa-bullhorn text-9xl text-white"></i>
-                     </div>
-                     <div class="bg-gradient-to-br from-orange-400 to-red-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10">
-                         <i class="fas fa-bullhorn text-3xl text-white"></i>
-                     </div>
-                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Remarketing</h3>
-                     <p class="text-white/70 mb-6 z-10">Noviembre 2025</p>
-                     <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 26, 27 y 28 de noviembre.</p>
-                     <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">Ver Detalles</span>
-                 </div>`;
-                container.insertAdjacentHTML('beforeend', remarketingCard);
-
-                // --- TARJETA EMPRESAS AMIGAS (Color Azul/Índigo) ---
-                const empresasClass = hasEmpresasData ? 'card-hover' : 'card-locked';
-                const empresasClick = hasEmpresasData ? "onclick=\"openPromotion('empresas')\"" : '';
-                const empresasBtn = hasEmpresasData ? 'Ver Detalles' : 'Bloqueado';
+            const showDayDetails = (dateString, dayData) => {
+                const modalTitle = document.getElementById('modal-date-title'); 
+                const modalContent = document.getElementById('modal-content');
+                const [year, month, day] = dateString.split('-').map(Number); 
+                const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1); modalContent.innerHTML = '';
                 
-                const empresasCard = `
-                 <div class="glass-effect rounded-2xl p-8 ${empresasClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${empresasClick}>
-                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                         <i class="fas fa-handshake text-9xl text-white"></i>
-                     </div>
-                     <div class="bg-gradient-to-br from-blue-400 to-indigo-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10">
-                         <i class="fas fa-handshake text-3xl text-white"></i>
-                     </div>
-                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Días Empresas Amigas</h3>
-                     <p class="text-white/70 mb-6 z-10">11 y 12 Diciembre</p>
-                     <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 11 y 12 de diciembre.</p>
-                     <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${empresasBtn}</span>
-                 </div>`;
-                container.insertAdjacentHTML('beforeend', empresasCard);
-
-                // --- TARJETA NAVIDAD (Color Rojo/Verde) ---
-                const navidadClass = hasNavidadData ? 'card-hover' : 'card-locked';
-                const navidadClick = hasNavidadData ? "onclick=\"openPromotion('navidad')\"" : '';
-                const navidadBtn = hasNavidadData ? 'Ver Detalles' : 'Bloqueado';
-                
-                const navidadCard = `
-                 <div class="glass-effect rounded-2xl p-8 ${navidadClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${navidadClick}>
-                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                         <i class="fas fa-gift text-9xl text-white"></i>
-                     </div>
-                     <div class="bg-gradient-to-br from-red-500 to-green-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10 border-2 border-white/20">
-                         <i class="fas fa-gift text-3xl text-white"></i>
-                     </div>
-                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Navideño</h3>
-                     <p class="text-white/70 mb-6 z-10">22 y 23 Diciembre</p>
-                     <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 22 y 23 de diciembre.</p>
-                     <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${navidadBtn}</span>
-                 </div>`;
-                container.insertAdjacentHTML('beforeend', navidadCard);
-
-                 // --- TARJETA CARNAVAL (Color Violeta/Rosa) ---
-                 const carnavalClass = hasCarnavalData ? 'card-hover' : 'card-locked';
-                 const carnavalClick = hasCarnavalData ? "onclick=\"openPromotion('carnaval')\"" : '';
-                 const carnavalBtn = hasCarnavalData ? 'Ver Detalles' : 'Bloqueado';
-                 
-                 const carnavalCard = `
-                  <div class="glass-effect rounded-2xl p-8 ${carnavalClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${carnavalClick}>
-                      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                          <i class="fas fa-masks-theater text-9xl text-white"></i>
-                      </div>
-                      <div class="bg-gradient-to-br from-violet-500 to-pink-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10">
-                          <i class="fas fa-masks-theater text-3xl text-white"></i>
-                      </div>
-                      <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Carnaval</h3>
-                      <p class="text-white/70 mb-6 z-10">25, 26 y 27 Febrero</p>
-                      <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 25, 26 y 27 de febrero.</p>
-                      <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${carnavalBtn}</span>
-                  </div>`;
-                 container.insertAdjacentHTML('beforeend', carnavalCard);
-            };
-
-            const renderObjectives = () => {
-                const container = document.getElementById('objetivos-container');
-                const selectedMonth = document.getElementById('obj-month-filter').value;
-                const currentGoals = goalsConfig[selectedMonth];
-                
-                container.innerHTML = '';
-                if (!currentGoals) {
-                    container.innerHTML = '<p class="text-white text-center col-span-2">No hay objetivos definidos.</p>';
-                    return;
-                }
-
-                const now = new Date();
-                const currentMonthValue = now.getMonth() + 1;
-                const isCurrentMonth = parseInt(selectedMonth) === currentMonthValue;
-
-                const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
-                const monthData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex);
-                const actualCounts = {};
-                monthData.forEach(row => {
-                    const name = normalizeString(row.asesora);
-                    if(!actualCounts[name]) actualCounts[name] = 0;
-                    actualCounts[name]++;
-                });
-
-                Object.keys(currentGoals).forEach(advisorName => {
-                    const goal = currentGoals[advisorName];
-                    const normalizedGoalName = normalizeString(advisorName);
-                    const matchKey = Object.keys(actualCounts).find(k => k.includes(normalizedGoalName) || normalizedGoalName.includes(k));
-                    const actual = matchKey ? actualCounts[matchKey] : 0;
-                    const percentage = Math.min(Math.round((actual / goal) * 100), 100);
-                    const isMet = actual >= goal;
-                    
-                    let icon, iconColor, statusText;
-                    
-                    if (isMet) {
-                        icon = '🏆 ¡Objetivo Cumplido!';
-                        iconColor = 'text-green-400';
-                        statusText = '';
-                    } else if (isCurrentMonth) {
-                        icon = '⏳ En Progreso';
-                        iconColor = 'text-yellow-400';
-                        statusText = `Faltan ${goal - actual}`;
-                    } else {
-                        icon = '❌ Objetivo No Alcanzado';
-                        iconColor = 'text-red-400';
-                        statusText = `Faltaron ${goal - actual}`;
-                    }
-
-                    const borderColor = isMet ? 'border-green-500' : 'border-red-500';
-                    const progressColor = isMet ? 'bg-green-500' : 'bg-red-500'; 
-                    const advisorKey = Object.keys(asesoraData).find(k => k.includes(advisorName) || advisorName.includes(k));
-                    const advisorColor = advisorKey ? asesoraData[advisorKey].color : '#ffffff';
-                    const gradientBg = `linear-gradient(135deg, ${hexToRgba(advisorColor, 0.4)} 0%, ${hexToRgba(advisorColor, 0.1)} 100%)`;
-
-                    const html = `
-                        <div class="rounded-2xl p-6 goal-card ${borderColor} border-2 flex flex-col justify-between h-full backdrop-blur-md" style="background: ${gradientBg}; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-2xl font-bold text-white drop-shadow-md tracking-wide" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${advisorName}</h3>
-                                <div class="text-right">
-                                    <span class="block text-sm text-white/80 font-medium uppercase tracking-wider">Objetivo</span>
-                                    <span class="text-2xl font-bold text-white drop-shadow-sm">${goal}</span>
-                                </div>
-                            </div>
-                            <div class="mb-6">
-                                <div class="flex justify-between text-sm mb-1 text-white font-medium">
-                                    <span>Progreso</span>
-                                    <span>${actual} / ${goal}</span>
-                                </div>
-                                <div class="progress-bar-bg w-full">
-                                    <div class="progress-bar-fill ${progressColor} shadow-lg" style="width: ${percentage}%"></div>
-                                </div>
-                            </div>
-                            <div class="mt-auto border-t border-white/20 pt-4 text-center">
-                                <p class="text-lg font-bold ${iconColor} drop-shadow-md">${icon}</p>
-                                ${!isMet ? `<p class="text-xs text-white/90 mt-1 font-semibold">${statusText} inscriptos</p>` : ''}
-                            </div>
-                        </div>`;
-                    container.insertAdjacentHTML('beforeend', html);
-                });
+                if (dayData.length === 0) { modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>'; } else {
+                    const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
+                    Object.keys(grouped).sort().forEach(carrera => { const careerColor = careerData[carrera] ? careerData[carrera].color : '#ffffff'; const modalities = grouped[carrera]; const totalCareer = Object.values(modalities).reduce((a, b) => a + b, 0); let html = `<div class="bg-white/5 rounded-xl p-4 border border-white/10"><div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2"><h4 class="font-bold text-lg" style="color: ${careerColor}">${careerData[carrera]?.name || carrera} (${carrera})</h4><span class="bg-white/20 px-2 py-1 rounded text-sm font-bold">${totalCareer}</span></div><ul class="space-y-2">`; Object.keys(modalities).forEach(mod => { html += `<li class="flex justify-between text-sm text-white/80 pl-2 border-l-2 border-white/20"><span>${mod}</span><span class="font-semibold text-white">${modalities[mod]}</span></li>`; }); html += `</ul></div>`; modalContent.insertAdjacentHTML('beforeend', html); });
+                } openModal();
             };
 
             const populateFilters = (data) => {
@@ -553,14 +418,29 @@
                 });
                 for (const key in filters) {
                     const select = document.getElementById(`filter-${key}`);
-                    select.innerHTML = '<option value="todos">Todos</option>';
-                    [...filters[key]].sort().forEach(value => { const option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
-                    select.value = currentValue = currentFilters[key] || 'todos';
+                    if (select) {
+                        select.innerHTML = '<option value="todos">Todos</option>';
+                        [...filters[key]].sort().forEach(value => { const option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+                        select.value = currentValue = currentFilters[key] || 'todos';
+                    }
                 }
             };
 
             const applyFiltersAndRender = () => {
-                currentFilters = { asesora: document.getElementById('filter-asesora').value, mes: document.getElementById('filter-mes').value, carrera: document.getElementById('filter-carrera').value, modalidad: document.getElementById('filter-modalidad').value };
+                const filterAsesora = document.getElementById('filter-asesora');
+                const filterMes = document.getElementById('filter-mes');
+                const filterCarrera = document.getElementById('filter-carrera');
+                const filterModalidad = document.getElementById('filter-modalidad');
+
+                if (!filterAsesora || !filterMes || !filterCarrera || !filterModalidad) return;
+
+                currentFilters = { 
+                    asesora: filterAsesora.value, 
+                    mes: filterMes.value, 
+                    carrera: filterCarrera.value, 
+                    modalidad: filterModalidad.value 
+                };
+                
                 const activeData = fullData.filter(row => {
                     let viewMatch = true;
                     if (currentView === 'action-detail') {
@@ -569,11 +449,87 @@
                         else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
                         else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
                     }
-                    
                     const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
                     return viewMatch && dropdownMatch;
                 });
                 renderDashboard(activeData);
+            };
+
+            const handleChartClick = (evt, elements, chartId, labels) => {
+                if (elements.length === 0) return;
+                const index = elements[0].index;
+                const clickedLabel = labels[index];
+                
+                if (chartId === 'timeline-chart') {
+                    // Re-aplicar filtros actuales para obtener el contexto de datos correcto
+                    const activeData = fullData.filter(row => { 
+                        let viewMatch = true;
+                        if (currentView === 'action-detail') {
+                            if (activeActionType === 'remarketing') viewMatch = row.isRemarketing;
+                            else if (activeActionType === 'empresas') viewMatch = row.isEmpresas;
+                            else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
+                            else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
+                        }
+                        const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
+                        return viewMatch && dropdownMatch; 
+                    });
+                    const dayData = activeData.filter(row => row.fecha && row.fecha.toLocaleDateString('en-CA') === clickedLabel);
+                    showDayDetails(clickedLabel, dayData); return;
+                }
+                
+                let filterKey = null; let filterSelectId = null;
+                if (chartId === 'asesora-chart') { filterKey = 'asesora'; filterSelectId = 'filter-asesora'; }
+                else if (chartId === 'carrera-chart') { filterKey = 'carrera'; filterSelectId = 'filter-carrera'; }
+                else if (chartId === 'modalidad-chart') { filterKey = 'modalidad'; filterSelectId = 'filter-modalidad'; }
+                if (filterKey && filterSelectId) { const select = document.getElementById(filterSelectId); if (currentFilters[filterKey] === clickedLabel) { select.value = 'todos'; } else { select.value = clickedLabel; } applyFiltersAndRender(); }
+            };
+
+            const updateChart = (chartId, type, labels, data, colors) => {
+                const canvasElement = document.getElementById(chartId); if (!canvasElement) return;
+                const ctx = canvasElement.getContext('2d'); if (chartInstances[chartId]) chartInstances[chartId].destroy();
+                const isTimeline = chartId === 'timeline-chart'; const isBar = type === 'bar'; const isPie = type === 'pie'; const total = data.reduce((a, b) => a + b, 0);
+                
+                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#ec4899', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
+                let segmentConfig = {};
+                if (isTimeline) {
+                    segmentConfig = { borderColor: ctx => { const p0 = ctx.p0; if (p0 && p0.parsed) { const dateStr = labels[p0.$context.dataIndex]; if (dateStr) { const month = dateStr.split('-')[1]; return monthColors[month] || '#fbbf24'; } } return '#fbbf24'; } };
+                }
+
+                const highlightDates = (currentView === 'action-detail' && activeActionType && ACTION_DATES[activeActionType]) ? ACTION_DATES[activeActionType] : [];
+
+                const datalabelsConfig = isTimeline ? {
+                    display: (context) => {
+                        const date = context.chart.data.labels[context.dataIndex];
+                        return !!DATE_TO_ICON[date];
+                    },
+                    align: 'top', 
+                    anchor: 'center', 
+                    offset: 0, 
+                    font: { 
+                        family: '"Font Awesome 6 Free"', 
+                        weight: 900, 
+                        size: 20 
+                    }, 
+                    color: '#FFF',
+                    formatter: (value, context) => {
+                        const date = context.chart.data.labels[context.dataIndex];
+                        return DATE_TO_ICON[date] || '';
+                    }
+                } : {
+                    labels: {
+                        value: { color: '#FFF', anchor: isPie ? 'center' : 'end', align: isPie ? 'center' : 'start', offset: isPie ? 0 : -4, font: { weight: 'bold', size: 18 }, formatter: (value) => { const percentage = total > 0 ? Math.round((value / total) * 100) : 0; return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); }, textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', },
+                        name: { color: isPie ? '#FFF' : 'rgba(255, 255, 255, 0.25)', anchor: isPie ? 'center' : 'start', align: isPie ? 'center' : 'end', rotation: isPie ? 0 : -90, font: { weight: '900', size: isPie ? 14 : 22 }, formatter: (value, context) => { const label = context.chart.data.labels[context.dataIndex]; const val = context.chart.data.datasets[0].data[context.dataIndex]; const pct = total > 0 ? Math.round((val / total) * 100) : 0; if (isPie) { const labelMap = { 'Presencial': 'Presencial', 'Semipresencial': 'Semi', 'A Distancia': 'Distancia' }; const shortLabel = labelMap[label] || label; return val > 0 ? `${shortLabel}\n${val} (${pct}%)` : ''; } return label; }, textShadow: isPie ? '2px 2px 4px rgba(0, 0, 0, 0.8)' : 'none' }
+                    }
+                };
+
+                const chartOptions = { onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels), responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, datalabels: datalabelsConfig, tooltip: { enabled: true } }, scales: (type === 'bar' || isTimeline) ? { y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, x: isTimeline ? { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd\nMMM' }, tooltipFormat: 'dd/MM/yyyy' }, ticks: { color: '#fff', source: 'data', autoSkip: false, maxRotation: 90 }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } } : {} };
+                
+                let datasetsConfig = [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }];
+                if (isTimeline) { 
+                    chartOptions.elements = { point: { radius: 6, hoverRadius: 8 } }; 
+                    datasetsConfig = [{ label: 'Inscriptos', data: data.map((count, index) => ({ x: labels[index], y: count })), borderWidth: 3, segment: segmentConfig, tension: 0.3, pointBackgroundColor: (ctx) => { const date = labels[ctx.dataIndex]; return DATE_TO_ICON[date] ? '#ef4444' : '#fbbf24'; }, pointRadius: (ctx) => { const date = labels[ctx.dataIndex]; return DATE_TO_ICON[date] ? 10 : 4; }, pointBorderColor: '#fff' }];
+                }
+                chartInstances[chartId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasetsConfig }, options: chartOptions });
             };
 
             const renderDashboard = (data) => {
@@ -597,95 +553,121 @@
                 updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), modalityColors);
             };
 
-            const updateChart = (chartId, type, labels, data, colors) => {
-                const canvasElement = document.getElementById(chartId); if (!canvasElement) return;
-                const ctx = canvasElement.getContext('2d'); if (chartInstances[chartId]) chartInstances[chartId].destroy();
-                const isTimeline = chartId === 'timeline-chart'; const isBar = type === 'bar'; const isPie = type === 'pie'; const total = data.reduce((a, b) => a + b, 0);
+            const renderObjectives = () => {
+                const container = document.getElementById('objetivos-container');
+                const selectedMonth = document.getElementById('obj-month-filter').value;
+                const currentGoals = goalsConfig[selectedMonth];
                 
-                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#ec4899', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
-                let segmentConfig = {};
-                if (isTimeline) {
-                    segmentConfig = { borderColor: ctx => { const p0 = ctx.p0; if (p0 && p0.parsed) { const dateStr = labels[p0.$context.dataIndex]; if (dateStr) { const month = dateStr.split('-')[1]; return monthColors[month] || '#fbbf24'; } } return '#fbbf24'; } };
+                // Limpiar gráficas anteriores
+                objectiveChartInstances.forEach(chart => chart.destroy());
+                objectiveChartInstances = [];
+                container.innerHTML = '';
+
+                if (!currentGoals) {
+                    container.innerHTML = '<p class="text-white text-center col-span-2">No hay objetivos definidos.</p>';
+                    return;
                 }
 
-                // Obtener fechas clave de la acción activa, si hay alguna, para resaltar
-                const highlightDates = (currentView === 'action-detail' && activeActionType && ACTION_DATES[activeActionType]) ? ACTION_DATES[activeActionType] : [];
+                const now = new Date();
+                const currentMonthValue = now.getMonth() + 1;
+                const isCurrentMonth = parseInt(selectedMonth) === currentMonthValue;
+                const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
+                const monthData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex);
+                const actualCounts = {};
+                monthData.forEach(row => { const name = normalizeString(row.asesora); if(!actualCounts[name]) actualCounts[name] = 0; actualCounts[name]++; });
 
-                const datalabelsConfig = isTimeline ? {
-                     display: (context) => highlightDates.includes(context.chart.data.labels[context.dataIndex]),
-                     align: 'start', anchor: 'start', offset: 12, font: { size: 24 }, formatter: () => '🔥'
-                } : {
-                    labels: {
-                        value: { color: '#FFF', anchor: isPie ? 'center' : 'end', align: isPie ? 'center' : 'start', offset: isPie ? 0 : -4, font: { weight: 'bold', size: 18 }, formatter: (value) => { const percentage = total > 0 ? Math.round((value / total) * 100) : 0; return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); }, textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', },
-                        name: { color: isPie ? '#FFF' : 'rgba(255, 255, 255, 0.25)', anchor: isPie ? 'center' : 'start', align: isPie ? 'center' : 'end', rotation: isPie ? 0 : -90, font: { weight: '900', size: isPie ? 14 : 22 }, formatter: (value, context) => { const label = context.chart.data.labels[context.dataIndex]; const val = context.chart.data.datasets[0].data[context.dataIndex]; const pct = total > 0 ? Math.round((val / total) * 100) : 0; if (isPie) { const labelMap = { 'Presencial': 'Presencial', 'Semipresencial': 'Semi', 'A Distancia': 'Distancia' }; const shortLabel = labelMap[label] || label; return val > 0 ? `${shortLabel}\n${val} (${pct}%)` : ''; } return label; }, textShadow: isPie ? '2px 2px 4px rgba(0, 0, 0, 0.8)' : 'none' }
-                    }
-                };
+                // Renderizar Tarjetas
+                Object.keys(currentGoals).forEach((advisorName, idx) => {
+                    const goal = currentGoals[advisorName];
+                    const normalizedGoalName = normalizeString(advisorName);
+                    const matchKey = Object.keys(actualCounts).find(k => k.includes(normalizedGoalName) || normalizedGoalName.includes(k));
+                    const actual = matchKey ? actualCounts[matchKey] : 0;
+                    const percentage = Math.min(Math.round((actual / goal) * 100), 100);
+                    const isMet = actual >= goal;
+                    
+                    const advisorKey = Object.keys(asesoraData).find(k => k.includes(advisorName) || advisorName.includes(k));
+                    const advisorColor = advisorKey ? asesoraData[advisorKey].color : '#ffffff';
+                    const remainingColor = 'rgba(255,255,255,0.1)';
+                    
+                    let statusText = isMet ? '¡Logrado!' : (isCurrentMonth ? 'En curso' : 'No alcanzado');
+                    let statusColor = isMet ? 'text-green-400' : (isCurrentMonth ? 'text-yellow-400' : 'text-red-400');
 
-                const chartOptions = { onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels), responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, datalabels: datalabelsConfig, tooltip: { enabled: true } }, scales: (type === 'bar' || isTimeline) ? { y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, x: isTimeline ? { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd\nMMM' }, tooltipFormat: 'dd/MM/yyyy' }, ticks: { color: '#fff', source: 'data', autoSkip: false, maxRotation: 90 }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } } : {} };
-                
-                let datasetsConfig = [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }];
-                if (isTimeline) { 
-                    chartOptions.elements = { point: { radius: 4, hoverRadius: 6 } }; 
-                    datasetsConfig = [{ label: 'Inscriptos', data: data.map((count, index) => ({ x: labels[index], y: count })), borderWidth: 3, segment: segmentConfig, tension: 0.3, pointBackgroundColor: (ctx) => { const date = labels[ctx.dataIndex]; return highlightDates.includes(date) ? '#ef4444' : '#fbbf24'; }, pointRadius: (ctx) => { const date = labels[ctx.dataIndex]; return highlightDates.includes(date) ? 8 : 4; }, pointBorderColor: '#fff' }];
-                }
-                chartInstances[chartId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasetsConfig }, options: chartOptions });
-            };
+                    // Crear contenedor HTML
+                    const cardId = `obj-card-${idx}`;
+                    const canvasId = `obj-chart-${idx}`;
+                    
+                    const html = `
+                        <div class="goal-card-modern hover:border-[${advisorColor}] border-white/10" id="${cardId}">
+                            <div class="goal-glow" style="background: radial-gradient(circle, ${advisorColor}40 0%, transparent 70%);"></div>
+                            <div class="z-10 flex-1">
+                                <h3 class="text-2xl font-bold text-white mb-1">${advisorName}</h3>
+                                <p class="text-sm text-white/60 mb-4 font-mono uppercase tracking-widest">${statusText}</p>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-4xl font-bold text-white">${actual}</span>
+                                    <span class="text-lg text-white/50">/ ${goal}</span>
+                                </div>
+                            </div>
+                            <div class="z-10 w-24 h-24 relative flex items-center justify-center">
+                                <canvas id="${canvasId}" class="absolute top-0 left-0"></canvas>
+                                <span class="text-sm font-bold text-white">${percentage}%</span>
+                            </div>
+                        </div>`;
+                    container.insertAdjacentHTML('beforeend', html);
 
-            const modal = document.getElementById('detail-modal'); const modalTitle = document.getElementById('modal-date-title'); const modalContent = document.getElementById('modal-content'); const closeModalBtn = document.getElementById('close-modal-btn');
-            
-            const openModal = () => { 
-                modal.classList.remove('hidden'); 
-                requestAnimationFrame(() => {
-                    modal.classList.remove('opacity-0'); 
-                    modal.firstElementChild.classList.remove('scale-95'); 
-                    modal.firstElementChild.classList.add('scale-100'); 
+                    // Inicializar gráfico Doughnut
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Logrado', 'Restante'],
+                            datasets: [{
+                                data: [actual, Math.max(0, goal - actual)],
+                                backgroundColor: [advisorColor, remainingColor],
+                                borderWidth: 0,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '75%',
+                            plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
+                            animation: { animateScale: true, animateRotate: true }
+                        }
+                    });
+                    objectiveChartInstances.push(chart);
                 });
             };
-            
-            const closeModal = () => { 
-                modal.classList.add('opacity-0'); 
-                modal.firstElementChild.classList.remove('scale-100'); 
-                modal.firstElementChild.classList.add('scale-95'); 
-                setTimeout(() => modal.classList.add('hidden'), 300); 
-            };
-            
-            closeModalBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-            
-            const showDayDetails = (dateString, dayData) => {
-                 const [year, month, day] = dateString.split('-').map(Number); const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1); modalContent.innerHTML = '';
-                if (dayData.length === 0) { modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>'; } else {
-                    const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
-                    Object.keys(grouped).sort().forEach(carrera => { const careerColor = careerData[carrera] ? careerData[carrera].color : '#ffffff'; const modalities = grouped[carrera]; const totalCareer = Object.values(modalities).reduce((a, b) => a + b, 0); let html = `<div class="bg-white/5 rounded-xl p-4 border border-white/10"><div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2"><h4 class="font-bold text-lg" style="color: ${careerColor}">${careerData[carrera]?.name || carrera} (${carrera})</h4><span class="bg-white/20 px-2 py-1 rounded text-sm font-bold">${totalCareer}</span></div><ul class="space-y-2">`; Object.keys(modalities).forEach(mod => { html += `<li class="flex justify-between text-sm text-white/80 pl-2 border-l-2 border-white/20"><span>${mod}</span><span class="font-semibold text-white">${modalities[mod]}</span></li>`; }); html += `</ul></div>`; modalContent.insertAdjacentHTML('beforeend', html); });
-                } openModal();
-            };
 
-            const handleChartClick = (evt, elements, chartId, labels) => {
-                if (elements.length === 0) return;
-                const index = elements[0].index;
-                const clickedLabel = labels[index];
-                
-                if (chartId === 'timeline-chart') {
-                    const activeData = fullData.filter(row => { 
-                        let viewMatch = true;
-                        if (currentView === 'action-detail') {
-                            if (activeActionType === 'remarketing') viewMatch = row.isRemarketing;
-                            else if (activeActionType === 'empresas') viewMatch = row.isEmpresas;
-                            else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
-                            else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
-                        }
-                        const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
-                        return viewMatch && dropdownMatch; 
-                    });
-                    const dayData = activeData.filter(row => row.fecha && row.fecha.toLocaleDateString('en-CA') === clickedLabel);
-                    showDayDetails(clickedLabel, dayData); return;
-                }
-                
-                let filterKey = null; let filterSelectId = null;
-                if (chartId === 'asesora-chart') { filterKey = 'asesora'; filterSelectId = 'filter-asesora'; }
-                else if (chartId === 'carrera-chart') { filterKey = 'carrera'; filterSelectId = 'filter-carrera'; }
-                else if (chartId === 'modalidad-chart') { filterKey = 'modalidad'; filterSelectId = 'filter-modalidad'; }
-                if (filterKey && filterSelectId) { const select = document.getElementById(filterSelectId); if (currentFilters[filterKey] === clickedLabel) { select.value = 'todos'; } else { select.value = clickedLabel; } applyFiltersAndRender(); }
+            const renderActions = () => {
+                const container = document.getElementById('acciones-grid');
+                container.innerHTML = '';
+
+                const hasEmpresasData = fullData.some(r => r.isEmpresas);
+                const hasNavidadData = fullData.some(r => r.isNavidad);
+                const hasCarnavalData = fullData.some(r => r.isCarnaval);
+                const hasRemarketingData = fullData.some(r => r.isRemarketing);
+
+                const remarketingCard = `<div class="glass-effect rounded-2xl p-8 card-hover flex flex-col items-center text-center h-full relative overflow-hidden group" onclick="openPromotion('remarketing')"><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-bullhorn text-9xl text-white"></i></div><div class="bg-gradient-to-br from-orange-400 to-red-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-bullhorn text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Remarketing</h3><p class="text-white/70 mb-6 z-10">Noviembre 2025</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 26, 27 y 28 de noviembre.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">Ver Detalles</span></div>`;
+                container.insertAdjacentHTML('beforeend', remarketingCard);
+
+                const empresasClass = hasEmpresasData ? 'card-hover' : 'card-locked';
+                const empresasClick = hasEmpresasData ? "onclick=\"openPromotion('empresas')\"" : '';
+                const empresasBtn = hasEmpresasData ? 'Ver Detalles' : 'Bloqueado';
+                const empresasCard = `<div class="glass-effect rounded-2xl p-8 ${empresasClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${empresasClick}><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-handshake text-9xl text-white"></i></div><div class="bg-gradient-to-br from-blue-400 to-indigo-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-handshake text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Días Empresas Amigas</h3><p class="text-white/70 mb-6 z-10">11 y 12 Diciembre</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 11 y 12 de diciembre.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${empresasBtn}</span></div>`;
+                container.insertAdjacentHTML('beforeend', empresasCard);
+
+                const navidadClass = hasNavidadData ? 'card-hover' : 'card-locked';
+                const navidadClick = hasNavidadData ? "onclick=\"openPromotion('navidad')\"" : '';
+                const navidadBtn = hasNavidadData ? 'Ver Detalles' : 'Bloqueado';
+                const navidadCard = `<div class="glass-effect rounded-2xl p-8 ${navidadClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${navidadClick}><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-gift text-9xl text-white"></i></div><div class="bg-gradient-to-br from-red-500 to-green-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10 border-2 border-white/20"><i class="fas fa-gift text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Navideño</h3><p class="text-white/70 mb-6 z-10">22 y 23 Diciembre</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 22 y 23 de diciembre.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${navidadBtn}</span></div>`;
+                container.insertAdjacentHTML('beforeend', navidadCard);
+
+                 const carnavalClass = hasCarnavalData ? 'card-hover' : 'card-locked';
+                 const carnavalClick = hasCarnavalData ? "onclick=\"openPromotion('carnaval')\"" : '';
+                 const carnavalBtn = hasCarnavalData ? 'Ver Detalles' : 'Bloqueado';
+                 const carnavalCard = `<div class="glass-effect rounded-2xl p-8 ${carnavalClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${carnavalClick}><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-masks-theater text-9xl text-white"></i></div><div class="bg-gradient-to-br from-violet-500 to-pink-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-masks-theater text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Carnaval</h3><p class="text-white/70 mb-6 z-10">25, 26 y 27 Febrero</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 25, 26 y 27 de febrero.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${carnavalBtn}</span></div>`;
+                 container.insertAdjacentHTML('beforeend', carnavalCard);
             };
 
             const initializeDashboard = (data) => {
@@ -700,10 +682,8 @@
                     fullData = validData.map(row => parseRow(row, headers));
                 }
                 populateFilters(fullData);
-                // Si la vista actual es Acciones, re-renderizar para actualizar estados de bloqueo
-                if (currentView === 'acciones') {
-                    renderActions();
-                }
+                if (currentView === 'acciones') renderActions();
+                if (currentView === 'objetivos') renderObjectives();
                 applyFiltersAndRender();
             };
 
@@ -756,32 +736,21 @@
                     viewMain.classList.remove('hidden'); 
                     promoNav.classList.remove('hidden');
                     
-                    // Configurar títulos según la acción
                     let title = "Detalle de Acción";
                     let subtitle = "";
-                    if (activeActionType === 'remarketing') {
-                        title = "Remarketing Noviembre";
-                        subtitle = "Acción del 26, 27 y 28 de noviembre.";
-                    } else if (activeActionType === 'empresas') {
-                        title = "Días Empresas Amigas";
-                        subtitle = "Acción del 11 y 12 de diciembre.";
-                    } else if (activeActionType === 'navidad') {
-                        title = "Descuento Navideño";
-                        subtitle = "Acción del 22 y 23 de diciembre.";
-                    } else if (activeActionType === 'carnaval') {
-                        title = "Descuento Carnaval";
-                        subtitle = "Acción del 25, 26 y 27 de febrero.";
-                    }
+                    if (activeActionType === 'remarketing') { title = "Remarketing Noviembre"; subtitle = "Acción del 26, 27 y 28 de noviembre."; }
+                    else if (activeActionType === 'empresas') { title = "Días Empresas Amigas"; subtitle = "Acción del 11 y 12 de diciembre."; }
+                    else if (activeActionType === 'navidad') { title = "Descuento Navideño"; subtitle = "Acción del 22 y 23 de diciembre."; }
+                    else if (activeActionType === 'carnaval') { title = "Descuento Carnaval"; subtitle = "Acción del 25, 26 y 27 de febrero."; }
                     
-                    actionTitle.innerText = `📢 ${title}`;
-                    actionSubtitle.innerText = subtitle;
+                    document.getElementById('action-title').innerText = `📢 ${title}`;
+                    document.getElementById('action-subtitle').innerText = subtitle;
                     kpiTitle.innerText = `Total de Inscriptos (${title})`;
-                    
                     applyFiltersAndRender();
                 } else if (view === 'acciones') {
                     tabAcciones.classList.add('active');
                     viewAcciones.classList.remove('hidden');
-                    renderActions(); // Re-renderizar tarjetas para actualizar bloqueos
+                    renderActions();
                 } else if (view === 'objetivos') {
                     tabObjetivos.classList.add('active'); 
                     viewObjetivos.classList.remove('hidden'); 
@@ -794,25 +763,23 @@
                 }
             };
 
-            // Set default month
             const currentMonthStr = String(new Date().getMonth() + 1);
             const monthSelect = document.getElementById('obj-month-filter');
-            if(monthSelect.querySelector(`option[value="${currentMonthStr}"]`)){
-                monthSelect.value = currentMonthStr;
-            }
+            if(monthSelect.querySelector(`option[value="${currentMonthStr}"]`)){ monthSelect.value = currentMonthStr; }
 
             document.getElementById('tab-general').addEventListener('click', () => switchView('general')); 
             document.getElementById('tab-objetivos').addEventListener('click', () => switchView('objetivos'));
             document.getElementById('tab-acciones').addEventListener('click', () => switchView('acciones'));
             
             document.getElementById('back-to-promos-btn').addEventListener('click', () => switchView('acciones'));
-
             document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
-
             document.getElementById('reset-filters-btn').addEventListener('click', () => { ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); applyFiltersAndRender(); });
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad'].forEach(id => document.getElementById(id).addEventListener('change', applyFiltersAndRender));
             document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
             
+            document.getElementById('detail-modal').addEventListener('click', (e) => { if (e.target.id === 'detail-modal') closeModal(); });
+            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+
             fetchData();
         });
     </script>
