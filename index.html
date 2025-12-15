@@ -264,6 +264,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?output=csv';
             
+            // Definiendo las fechas de las acciones aquí para que estén disponibles para todas las funciones
+            const ACTION_DATES = {
+                'remarketing': ['2025-11-26', '2025-11-27', '2025-11-28'],
+                'empresas': ['2025-12-11', '2025-12-12'],
+                'navidad': ['2025-12-22', '2025-12-23'],
+                'carnaval': ['2026-02-25', '2026-02-26', '2026-02-27']
+            };
+
             // Mapas de fecha -> unicode de icono fontawesome
             const DATE_TO_ICON = {
                 '2025-11-26': '\uf0a1', '2025-11-27': '\uf0a1', '2025-11-28': '\uf0a1',
