@@ -43,7 +43,12 @@
             .chart-container { height: 350px; }
         }
         
-        select, option { background: rgba(40, 43, 54, 0.9); color: white; }
+        select, option, input[type="date"] { background: rgba(40, 43, 54, 0.9); color: white; }
+        /* Ajuste para el icono del calendario en inputs de fecha */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
         
         .glass-effect {
             background-color: rgba(0, 0, 0, 0.25);
@@ -196,12 +201,19 @@
             </div>
 
             <div class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                <!-- Se ajusta la grilla para acomodar los nuevos filtros de fecha -->
+                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
+                    <!-- Filtros de Fecha -->
+                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Desde</label><input type="date" id="filter-date-start" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
+                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
+                    
+                    <!-- Filtros Originales -->
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Asesora</label><select id="filter-asesora" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Mes</label><select id="filter-mes" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Carrera</label><select id="filter-carrera" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Modalidad</label><select id="filter-modalidad" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
-                    <button id="reset-filters-btn" class="w-full px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-lg shadow-lg transition-all uppercase tracking-wider text-sm backdrop-blur-sm">Limpiar Filtros</button>
+                    
+                    <button id="reset-filters-btn" class="w-full px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-lg shadow-lg transition-all uppercase tracking-wider text-sm backdrop-blur-sm">Limpiar</button>
                 </div>
             </div>
 
@@ -526,6 +538,8 @@
                 const filterMes = document.getElementById('filter-mes');
                 const filterCarrera = document.getElementById('filter-carrera');
                 const filterModalidad = document.getElementById('filter-modalidad');
+                const filterDateStart = document.getElementById('filter-date-start');
+                const filterDateEnd = document.getElementById('filter-date-end');
 
                 if (!filterAsesora || !filterMes || !filterCarrera || !filterModalidad) return;
 
@@ -535,6 +549,27 @@
                     carrera: filterCarrera.value, 
                     modalidad: filterModalidad.value 
                 };
+
+                // Procesamiento de fechas
+                // Input date value es "YYYY-MM-DD" string.
+                // Parseamos con split para crear fecha local exacta sin problemas de zona horaria UTC
+                const startStr = filterDateStart.value;
+                const endStr = filterDateEnd.value;
+
+                let startDate = null;
+                let endDate = null;
+
+                if (startStr) {
+                    const [sy, sm, sd] = startStr.split('-').map(Number);
+                    startDate = new Date(sy, sm - 1, sd); // Mes es 0-indexado
+                    startDate.setHours(0, 0, 0, 0); // Inicio del día
+                }
+
+                if (endStr) {
+                    const [ey, em, ed] = endStr.split('-').map(Number);
+                    endDate = new Date(ey, em - 1, ed);
+                    endDate.setHours(23, 59, 59, 999); // Final del día
+                }
                 
                 const activeData = fullData.filter(row => {
                     let viewMatch = true;
@@ -544,8 +579,20 @@
                         else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
                         else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
                     }
+                    
                     const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
-                    return viewMatch && dropdownMatch;
+                    
+                    // Lógica de filtro de fecha
+                    let dateMatch = true;
+                    if (row.fecha) {
+                        if (startDate && row.fecha < startDate) dateMatch = false;
+                        if (endDate && row.fecha > endDate) dateMatch = false;
+                    } else if (startDate || endDate) {
+                        // Si hay filtro de fecha pero la fila no tiene fecha, la excluimos
+                        dateMatch = false;
+                    }
+
+                    return viewMatch && dropdownMatch && dateMatch;
                 });
                 renderDashboard(activeData);
             };
@@ -556,6 +603,29 @@
                 const clickedLabel = labels[index];
                 
                 if (chartId === 'timeline-chart') {
+                    // Re-aplicar filtros actuales para obtener el contexto de datos correcto
+                    // Usamos la misma logica de applyFiltersAndRender pero sin llamar a renderDashboard
+                    const filterAsesora = document.getElementById('filter-asesora').value;
+                    const filterMes = document.getElementById('filter-mes').value;
+                    const filterCarrera = document.getElementById('filter-carrera').value;
+                    const filterModalidad = document.getElementById('filter-modalidad').value;
+                    const filterDateStart = document.getElementById('filter-date-start').value;
+                    const filterDateEnd = document.getElementById('filter-date-end').value;
+
+                    let startDate = null;
+                    let endDate = null;
+
+                    if (filterDateStart) {
+                        const [sy, sm, sd] = filterDateStart.split('-').map(Number);
+                        startDate = new Date(sy, sm - 1, sd);
+                        startDate.setHours(0, 0, 0, 0);
+                    }
+                    if (filterDateEnd) {
+                        const [ey, em, ed] = filterDateEnd.split('-').map(Number);
+                        endDate = new Date(ey, em - 1, ed);
+                        endDate.setHours(23, 59, 59, 999);
+                    }
+
                     const activeData = fullData.filter(row => { 
                         let viewMatch = true;
                         if (currentView === 'action-detail') {
@@ -564,8 +634,24 @@
                             else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
                             else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
                         }
-                        const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
-                        return viewMatch && dropdownMatch; 
+                        
+                        // Dropdown check
+                        const dropdownMatch = 
+                            (filterAsesora === 'todos' || row.asesora === filterAsesora) &&
+                            (filterMes === 'todos' || row.mes === filterMes) &&
+                            (filterCarrera === 'todos' || row.carrera === filterCarrera) &&
+                            (filterModalidad === 'todos' || row.modalidad === filterModalidad);
+
+                        // Date check
+                        let dateMatch = true;
+                        if (row.fecha) {
+                            if (startDate && row.fecha < startDate) dateMatch = false;
+                            if (endDate && row.fecha > endDate) dateMatch = false;
+                        } else if (startDate || endDate) {
+                            dateMatch = false;
+                        }
+
+                        return viewMatch && dropdownMatch && dateMatch; 
                     });
                     const dayData = activeData.filter(row => row.fecha && row.fecha.toLocaleDateString('en-CA') === clickedLabel);
                     showDayDetails(clickedLabel, dayData); return;
@@ -867,8 +953,21 @@
             
             document.getElementById('back-to-promos-btn').addEventListener('click', () => switchView('acciones'));
             document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
-            document.getElementById('reset-filters-btn').addEventListener('click', () => { ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); applyFiltersAndRender(); });
-            ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad'].forEach(id => document.getElementById(id).addEventListener('change', applyFiltersAndRender));
+            
+            // Event listeners para resetear filtros (ahora incluye fechas)
+            document.getElementById('reset-filters-btn').addEventListener('click', () => { 
+                ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); 
+                document.getElementById('filter-date-start').value = '';
+                document.getElementById('filter-date-end').value = '';
+                applyFiltersAndRender(); 
+            });
+            
+            // Event listeners para cambios en filtros (dropdowns y dates)
+            ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener('change', applyFiltersAndRender);
+            });
+
             document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
             
             document.getElementById('detail-modal').addEventListener('click', (e) => { if (e.target.id === 'detail-modal') closeModal(); });
