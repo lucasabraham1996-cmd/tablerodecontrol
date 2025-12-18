@@ -7,14 +7,21 @@
     <!-- Favicon solicitado -->
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/5581/5581393.png" type="image/png">
     
+    <script type="text/javascript" src="https://gc.kes.v2.scr.kaspersky-labs.com/7EA5E9BB-55E1-4C31-9C21-4943DDFED2E4/main.js?attr=VilkRQkWakSaPwrdyT_zI5QFKPDN2IvP-5KD5MYyqUElbfVFjtPVqOB0lLHAAgKfJZ9LZYG_pfCKcF97FiHnJyI6Uryo05Apxl8gfdGCUgw" charset="UTF-8"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
+    
+    <!-- LIBRERIAS PARA GENERAR PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -143,6 +150,26 @@
             pointer-events: none;
         }
 
+        /* Estilos Tabla Empresas */
+        .ranking-row {
+            transition: background-color 0.2s;
+        }
+        .ranking-row:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .ranking-bar-bg {
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 9999px;
+            height: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .ranking-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 1s ease-out;
+        }
+
         canvas { cursor: pointer; }
         
         .custom-scrollbar::-webkit-scrollbar {
@@ -181,10 +208,14 @@
             <p class="text-sm">No se pudo conectar en tiempo real con la hoja de cálculo. Se muestran los datos de ejemplo.</p>
         </div>
 
-        <!-- Banner de navegación interna para Acciones -->
-        <div id="promo-nav-banner" class="hidden mb-6 flex items-center justify-between">
+        <!-- Banner de navegación interna para Acciones con BOTÓN PDF -->
+        <div id="promo-nav-banner" class="hidden mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <button id="back-to-promos-btn" class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white font-semibold transition-colors backdrop-blur-sm border border-white/20">
                 <i class="fas fa-arrow-left"></i> Volver a Acciones
+            </button>
+            
+            <button id="download-report-btn" class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold transition-all shadow-lg border border-white/20 backdrop-blur-md">
+                <i class="fas fa-file-pdf"></i> Descargar Informe PDF
             </button>
         </div>
 
@@ -193,21 +224,20 @@
             <p id="action-subtitle" class="text-white/90">Datos filtrados.</p>
         </div>
 
-        <!-- VISTA PRINCIPAL (General y Detalles de Acciones comparten esta estructura) -->
+        <!-- VISTA PRINCIPAL -->
         <div id="view-main">
-            <div class="mb-8 p-8 glass-effect rounded-2xl shadow-xl max-w-md mx-auto text-center transform hover:scale-105 transition-transform duration-300">
+            <!-- KPI Total -->
+            <div id="kpi-container-export" class="mb-6 p-6 glass-effect rounded-2xl shadow-xl max-w-md mx-auto text-center transform hover:scale-105 transition-transform duration-300">
                 <h3 id="kpi-title" class="text-xl font-semibold text-white/90 mb-2 uppercase tracking-wide">Total de Inscriptos (General)</h3>
                 <p id="total-inscriptos" class="text-7xl font-extrabold text-white filter drop-shadow-lg" style="text-shadow: 0px 4px 10px rgba(0,0,0,0.5);">0</p>
             </div>
 
+            <!-- Filtros -->
             <div class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
-                <!-- Se ajusta la grilla para acomodar los nuevos filtros de fecha -->
                 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
-                    <!-- Filtros de Fecha -->
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Desde</label><input type="date" id="filter-date-start" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
                     
-                    <!-- Filtros Originales -->
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Asesora</label><select id="filter-asesora" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Mes</label><select id="filter-mes" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Carrera</label><select id="filter-carrera" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
@@ -217,6 +247,29 @@
                 </div>
             </div>
 
+            <!-- SECCIÓN RANKING EMPRESAS (NUEVO) -->
+            <div id="empresas-ranking-section" class="hidden mb-8 glass-effect rounded-2xl p-6 shadow-lg">
+                <h3 class="text-2xl font-bold mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
+                    <i class="fas fa-trophy text-yellow-400"></i> Ranking de Empresas
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-white/90">
+                        <thead class="text-xs uppercase bg-white/10 text-white/80">
+                            <tr>
+                                <th class="px-4 py-3 w-16 text-center">#</th>
+                                <th class="px-4 py-3">Empresa</th>
+                                <th class="px-4 py-3 w-32 text-center">Inscriptos</th>
+                                <th class="px-4 py-3 w-1/3">Participación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empresas-ranking-body" class="divide-y divide-white/5 text-sm">
+                            <!-- JS inyectará filas aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
             <main id="dashboard-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Asesora</h3><div class="chart-container"><canvas id="asesora-chart"></canvas></div></div>
                 <div class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Carrera</h3><div class="chart-container"><canvas id="carrera-chart"></canvas></div></div>
@@ -240,11 +293,9 @@
             <div id="objetivos-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8 max-w-5xl mx-auto"></div>
         </div>
 
-        <!-- VISTA ACCIONES (Grilla de tarjetas) -->
+        <!-- VISTA ACCIONES -->
         <div id="view-acciones" class="hidden w-full">
-             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto" id="acciones-grid">
-                 <!-- Las tarjetas se generan dinámicamente en JS para manejar el bloqueo -->
-             </div>
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto" id="acciones-grid"></div>
         </div>
 
         <div class="mt-12 text-center pb-8" id="action-buttons">
@@ -266,7 +317,7 @@
 
     <script>
         window.openPromotion = null;
-        window.showAdvisorDetails = null; // Exponer la función para el click en objetivos
+        window.showAdvisorDetails = null;
         let fullData = [];
         let chartInstances = {};
         let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
@@ -300,13 +351,13 @@
             const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
             const asesoraData = { 'Kiara': { color: '#c084fc' }, 'Belen': { color: '#fbbf24' }, 'Laura': { color: '#bef264' }, 'Jeremias': { color: '#fca5a5' }, 'Jeremías': { color: '#fca5a5' } };
             
-            // Mock data actualizado con campos de alumno
             const MOCK_DATA = [
                 {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'matricula': '1001', 'apellido': 'Perez', 'nombre': 'Juan', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''},
                 {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'matricula': '1002', 'apellido': 'Gomez', 'nombre': 'Maria', 'remarketing': 'x', 'colJ': '', 'colK': '', 'colL': ''},
-                {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'matricula': '1003', 'apellido': 'Lopez', 'nombre': 'Carlos', 'remarketing': '', 'colJ': 'x', 'colK': '', 'colL': ''},
+                {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'matricula': '1003', 'apellido': 'Lopez', 'nombre': 'Carlos', 'remarketing': '', 'colJ': 'Coca Cola', 'colK': '', 'colL': ''},
                 {'asesora': 'Jeremias', 'marca temporal': '22 de diciembre de 2025', 'carrera': 'AE', 'modalidad': 'A Distancia', 'matricula': '1004', 'apellido': 'Diaz', 'nombre': 'Ana', 'remarketing': '', 'colJ': '', 'colK': 'x', 'colL': ''},
-                {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'}
+                {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'},
+                {'asesora': 'Belen', 'marca temporal': '12 de diciembre de 2025', 'carrera': 'MKT', 'modalidad': 'A Distancia', 'matricula': '1006', 'apellido': 'Sosa', 'nombre': 'Pedro', 'remarketing': '', 'colJ': 'Arcor', 'colK': '', 'colL': ''}
             ];
 
             Chart.register(ChartDataLabels);
@@ -360,38 +411,40 @@
                 const careerIdx = findIdx(['carrera']);
                 const modalityIdx = findIdx(['modalidad']);
                 
-                // Indices de acciones
                 const remarketingIdxRaw = findIdx(['remarketing']); 
                 const remarketingIdx = remarketingIdxRaw !== -1 ? remarketingIdxRaw : 8;
                 const empresasIdx = 9; 
                 const navidadIdx = 10; 
                 const carnavalIdx = 11; 
 
-                // Indices de Alumno
                 const matriculaIdx = findIdx(['matricula', 'legajo', 'dni', 'documento']);
                 const apellidoIdx = findIdx(['apellido']);
                 const nombreIdx = findIdx(['nombre']);
-                const alumnoIdx = findIdx(['alumno', 'estudiante', 'nombre y apellido']); // Fallback por si están juntos
+                const alumnoIdx = findIdx(['alumno', 'estudiante', 'nombre y apellido']);
 
                 const advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'N/A';
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
                 const career = careerIdx !== -1 ? Object.values(row)[careerIdx] : 'N/A';
                 const modalityRaw = modalityIdx !== -1 ? Object.values(row)[modalityIdx] : '';
                 
-                // Datos Alumno
                 let matricula = matriculaIdx !== -1 ? Object.values(row)[matriculaIdx] : '-';
                 let apellido = apellidoIdx !== -1 ? Object.values(row)[apellidoIdx] : '';
                 let nombre = nombreIdx !== -1 ? Object.values(row)[nombreIdx] : '';
                 
-                // Si no hay apellido/nombre separados, intentar sacar de campo combinado
                 if ((!apellido || !nombre) && alumnoIdx !== -1) {
                     const nombreCompleto = Object.values(row)[alumnoIdx] || '';
-                    apellido = nombreCompleto; // Simplificación si viene todo junto
+                    apellido = nombreCompleto;
                 }
 
                 const vals = Object.values(row);
                 const remarketingVal = vals[remarketingIdx] || '';
+                
+                // --- CAMBIO: LEER NOMBRE EMPRESA DE COLUMNA J ---
                 const empresasVal = vals[empresasIdx] || '';
+                const empresaNombre = empresasVal.trim();
+                const isEmpresas = empresaNombre.length > 0; // Si hay texto, cuenta como empresa
+                // -----------------------------------------------
+
                 const navidadVal = vals[navidadIdx] || '';
                 const carnavalVal = vals[carnavalIdx] || '';
 
@@ -406,7 +459,7 @@
                 if (rawMod === 'P') modality = 'Presencial'; else if (rawMod === 'S') modality = 'Semipresencial'; else if (rawMod === 'D') modality = 'A Distancia';
                 
                 const isRemarketing = remarketingVal && remarketingVal.toLowerCase().includes('x');
-                const isEmpresas = empresasVal && empresasVal.toLowerCase().includes('x');
+                // isEmpresas ya definido arriba
                 const isNavidad = navidadVal && navidadVal.toLowerCase().includes('x');
                 const isCarnaval = carnavalVal && carnavalVal.toLowerCase().includes('x');
 
@@ -419,10 +472,65 @@
                     matricula, 
                     apellido, 
                     nombre,
-                    isRemarketing, isEmpresas, isNavidad, isCarnaval 
+                    isRemarketing, 
+                    isEmpresas, 
+                    empresaNombre, // Guardamos el nombre
+                    isNavidad, 
+                    isCarnaval 
                 };
             };
 
+            const renderEmpresasTable = (data) => {
+                const tbody = document.getElementById('empresas-ranking-body');
+                tbody.innerHTML = '';
+                
+                // Contar empresas (solo de los datos filtrados que sean 'isEmpresas')
+                const counts = {};
+                data.forEach(row => {
+                    if (row.isEmpresas && row.empresaNombre) {
+                        // Limpiar un poco el nombre por si acaso (mayusculas/espacios)
+                        const name = row.empresaNombre.trim();
+                        // Ignorar si es solo una 'x' por error de legacy, o tratar 'x' como "Sin especificar"
+                        const displayName = (name.toLowerCase() === 'x') ? 'Empresa S/D' : name;
+                        counts[displayName] = (counts[displayName] || 0) + 1;
+                    }
+                });
+
+                if (Object.keys(counts).length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-3 text-center text-white/50">No hay datos de empresas registradas.</td></tr>';
+                    return;
+                }
+
+                // Convertir a array y ordenar
+                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                const maxVal = sorted[0][1]; // Para la barra de progreso
+
+                sorted.forEach(([empresa, count], index) => {
+                    const percentage = Math.round((count / maxVal) * 100);
+                    
+                    let medal = '';
+                    if (index === 0) medal = '<i class="fas fa-medal text-yellow-400"></i>';
+                    else if (index === 1) medal = '<i class="fas fa-medal text-gray-300"></i>';
+                    else if (index === 2) medal = '<i class="fas fa-medal text-orange-400"></i>';
+                    else medal = `<span class="text-white/50 font-mono">#${index + 1}</span>`;
+
+                    const rowHtml = `
+                        <tr class="ranking-row border-b border-white/5 last:border-0">
+                            <td class="px-4 py-3 text-center text-lg">${medal}</td>
+                            <td class="px-4 py-3 font-semibold text-white/90">${empresa}</td>
+                            <td class="px-4 py-3 text-center font-bold text-white">${count}</td>
+                            <td class="px-4 py-3 align-middle">
+                                <div class="ranking-bar-bg">
+                                    <div class="ranking-bar-fill bg-gradient-to-r from-blue-400 to-indigo-500" style="width: ${percentage}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', rowHtml);
+                });
+            };
+
+            // ... [Funciones openModal, closeModal, showAdvisorDetails, showDayDetails, populateFilters igual que antes] ...
             const openModal = () => { 
                 const modal = document.getElementById('detail-modal');
                 modal.classList.remove('hidden'); 
@@ -441,7 +549,6 @@
                 setTimeout(() => modal.classList.add('hidden'), 300); 
             };
 
-            // Función para mostrar detalle de inscriptos de un asesor
             window.showAdvisorDetails = (advisorName) => {
                 const selectedMonth = document.getElementById('obj-month-filter').value;
                 const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
@@ -455,7 +562,6 @@
                 const modalTitle = document.getElementById('modal-date-title'); 
                 const modalContent = document.getElementById('modal-content');
                 
-                // Nombre del mes para el título
                 const dateForMonth = new Date(new Date().getFullYear(), targetMonthIndex, 1);
                 const monthName = dateForMonth.toLocaleString('es-ES', { month: 'long' });
                 const monthCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
@@ -477,11 +583,9 @@
                                 </thead>
                                 <tbody class="divide-y divide-white/10">
                     `;
-                    
                     filteredData.forEach(row => {
                         const fullName = `${row.apellido} ${row.nombre}`.trim() || 'Sin Nombre';
                         const career = careerData[row.carrera] ? careerData[row.carrera].name : row.carrera;
-                        
                         html += `
                             <tr class="hover:bg-white/5 transition-colors">
                                 <td class="px-4 py-3 font-mono">${row.matricula}</td>
@@ -490,13 +594,7 @@
                             </tr>
                         `;
                     });
-                    
-                    html += `
-                                </tbody>
-                            </table>
-                        </div>
-                        <p class="text-right text-xs text-white/50 mt-2">Total: ${filteredData.length}</p>
-                    `;
+                    html += `</tbody></table></div><p class="text-right text-xs text-white/50 mt-2">Total: ${filteredData.length}</p>`;
                     modalContent.innerHTML = html;
                 }
                 openModal();
@@ -508,7 +606,6 @@
                 const [year, month, day] = dateString.split('-').map(Number); 
                 const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1); modalContent.innerHTML = '';
-                
                 if (dayData.length === 0) { modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>'; } else {
                     const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
                     Object.keys(grouped).sort().forEach(carrera => { const careerColor = careerData[carrera] ? careerData[carrera].color : '#ffffff'; const modalities = grouped[carrera]; const totalCareer = Object.values(modalities).reduce((a, b) => a + b, 0); let html = `<div class="bg-white/5 rounded-xl p-4 border border-white/10"><div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2"><h4 class="font-bold text-lg" style="color: ${careerColor}">${careerData[carrera]?.name || carrera} (${carrera})</h4><span class="bg-white/20 px-2 py-1 rounded text-sm font-bold">${totalCareer}</span></div><ul class="space-y-2">`; Object.keys(modalities).forEach(mod => { html += `<li class="flex justify-between text-sm text-white/80 pl-2 border-l-2 border-white/20"><span>${mod}</span><span class="font-semibold text-white">${modalities[mod]}</span></li>`; }); html += `</ul></div>`; modalContent.insertAdjacentHTML('beforeend', html); });
@@ -540,6 +637,7 @@
                 const filterModalidad = document.getElementById('filter-modalidad');
                 const filterDateStart = document.getElementById('filter-date-start');
                 const filterDateEnd = document.getElementById('filter-date-end');
+                const empresasSection = document.getElementById('empresas-ranking-section');
 
                 if (!filterAsesora || !filterMes || !filterCarrera || !filterModalidad) return;
 
@@ -550,26 +648,11 @@
                     modalidad: filterModalidad.value 
                 };
 
-                // Procesamiento de fechas
-                // Input date value es "YYYY-MM-DD" string.
-                // Parseamos con split para crear fecha local exacta sin problemas de zona horaria UTC
                 const startStr = filterDateStart.value;
                 const endStr = filterDateEnd.value;
-
-                let startDate = null;
-                let endDate = null;
-
-                if (startStr) {
-                    const [sy, sm, sd] = startStr.split('-').map(Number);
-                    startDate = new Date(sy, sm - 1, sd); // Mes es 0-indexado
-                    startDate.setHours(0, 0, 0, 0); // Inicio del día
-                }
-
-                if (endStr) {
-                    const [ey, em, ed] = endStr.split('-').map(Number);
-                    endDate = new Date(ey, em - 1, ed);
-                    endDate.setHours(23, 59, 59, 999); // Final del día
-                }
+                let startDate = null, endDate = null;
+                if (startStr) { const [sy, sm, sd] = startStr.split('-').map(Number); startDate = new Date(sy, sm - 1, sd); startDate.setHours(0, 0, 0, 0); }
+                if (endStr) { const [ey, em, ed] = endStr.split('-').map(Number); endDate = new Date(ey, em - 1, ed); endDate.setHours(23, 59, 59, 999); }
                 
                 const activeData = fullData.filter(row => {
                     let viewMatch = true;
@@ -579,21 +662,23 @@
                         else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
                         else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
                     }
-                    
                     const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
-                    
-                    // Lógica de filtro de fecha
                     let dateMatch = true;
                     if (row.fecha) {
                         if (startDate && row.fecha < startDate) dateMatch = false;
                         if (endDate && row.fecha > endDate) dateMatch = false;
-                    } else if (startDate || endDate) {
-                        // Si hay filtro de fecha pero la fila no tiene fecha, la excluimos
-                        dateMatch = false;
-                    }
-
+                    } else if (startDate || endDate) { dateMatch = false; }
                     return viewMatch && dropdownMatch && dateMatch;
                 });
+                
+                // Mostrar/Ocultar y renderizar Tabla de Empresas
+                if (currentView === 'action-detail' && activeActionType === 'empresas') {
+                    empresasSection.classList.remove('hidden');
+                    renderEmpresasTable(activeData);
+                } else {
+                    empresasSection.classList.add('hidden');
+                }
+
                 renderDashboard(activeData);
             };
 
@@ -603,8 +688,7 @@
                 const clickedLabel = labels[index];
                 
                 if (chartId === 'timeline-chart') {
-                    // Re-aplicar filtros actuales para obtener el contexto de datos correcto
-                    // Usamos la misma logica de applyFiltersAndRender pero sin llamar a renderDashboard
+                    // Logic for timeline drilldown (same as before)
                     const filterAsesora = document.getElementById('filter-asesora').value;
                     const filterMes = document.getElementById('filter-mes').value;
                     const filterCarrera = document.getElementById('filter-carrera').value;
@@ -635,14 +719,12 @@
                             else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
                         }
                         
-                        // Dropdown check
                         const dropdownMatch = 
                             (filterAsesora === 'todos' || row.asesora === filterAsesora) &&
                             (filterMes === 'todos' || row.mes === filterMes) &&
                             (filterCarrera === 'todos' || row.carrera === filterCarrera) &&
                             (filterModalidad === 'todos' || row.modalidad === filterModalidad);
 
-                        // Date check
                         let dateMatch = true;
                         if (row.fecha) {
                             if (startDate && row.fecha < startDate) dateMatch = false;
@@ -738,7 +820,6 @@
                 const selectedMonth = document.getElementById('obj-month-filter').value;
                 const currentGoals = goalsConfig[selectedMonth];
                 
-                // Limpiar gráficas anteriores
                 objectiveChartInstances.forEach(chart => chart.destroy());
                 objectiveChartInstances = [];
                 container.innerHTML = '';
@@ -756,7 +837,6 @@
                 const actualCounts = {};
                 monthData.forEach(row => { const name = normalizeString(row.asesora); if(!actualCounts[name]) actualCounts[name] = 0; actualCounts[name]++; });
 
-                // Renderizar Tarjetas
                 Object.keys(currentGoals).forEach((advisorName, idx) => {
                     const goal = currentGoals[advisorName];
                     const normalizedGoalName = normalizeString(advisorName);
@@ -770,9 +850,7 @@
                     const remainingColor = 'rgba(255,255,255,0.1)';
                     
                     let statusText = isMet ? '¡Logrado!' : (isCurrentMonth ? 'En curso' : 'No alcanzado');
-                    let statusColor = isMet ? 'text-green-400' : (isCurrentMonth ? 'text-yellow-400' : 'text-red-400');
-
-                    // Crear contenedor HTML
+                    
                     const cardId = `obj-card-${idx}`;
                     const canvasId = `obj-chart-${idx}`;
                     
@@ -794,7 +872,6 @@
                         </div>`;
                     container.insertAdjacentHTML('beforeend', html);
 
-                    // Inicializar gráfico Doughnut
                     const ctx = document.getElementById(canvasId).getContext('2d');
                     const chart = new Chart(ctx, {
                         type: 'doughnut',
@@ -826,8 +903,7 @@
                 const hasEmpresasData = fullData.some(r => r.isEmpresas);
                 const hasNavidadData = fullData.some(r => r.isNavidad);
                 const hasCarnavalData = fullData.some(r => r.isCarnaval);
-                const hasRemarketingData = fullData.some(r => r.isRemarketing);
-
+                
                 const remarketingCard = `<div class="glass-effect rounded-2xl p-8 card-hover flex flex-col items-center text-center h-full relative overflow-hidden group" onclick="openPromotion('remarketing')"><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-bullhorn text-9xl text-white"></i></div><div class="bg-gradient-to-br from-orange-400 to-red-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-bullhorn text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Remarketing</h3><p class="text-white/70 mb-6 z-10">Noviembre 2025</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 26, 27 y 28 de noviembre.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">Ver Detalles</span></div>`;
                 container.insertAdjacentHTML('beforeend', remarketingCard);
 
@@ -852,9 +928,9 @@
 
             const initializeDashboard = (data) => {
                 const validData = data.filter(row => !Object.values(row).some(value => value === '#N/A'));
-                if(validData.length === 0) {
-                     document.getElementById('error-info').classList.remove('hidden');
-                     const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h));
+                if(validData.length === 0) { 
+                     document.getElementById('error-info').classList.remove('hidden'); 
+                     const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h)); 
                      fullData = MOCK_DATA.map(row => parseRow(row, headers));
                 } else {
                     document.getElementById('error-info').classList.add('hidden');
@@ -896,8 +972,6 @@
                 currentView = view;
                 const tabGeneral = document.getElementById('tab-general'); const tabObjetivos = document.getElementById('tab-objetivos'); const tabAcciones = document.getElementById('tab-acciones');
                 const actionInfo = document.getElementById('action-info'); 
-                const actionTitle = document.getElementById('action-title');
-                const actionSubtitle = document.getElementById('action-subtitle');
                 const kpiTitle = document.getElementById('kpi-title');
                 const viewMain = document.getElementById('view-main'); const viewObjetivos = document.getElementById('view-objetivos'); const viewAcciones = document.getElementById('view-acciones');
                 const promoNav = document.getElementById('promo-nav-banner');
@@ -954,15 +1028,13 @@
             document.getElementById('back-to-promos-btn').addEventListener('click', () => switchView('acciones'));
             document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
             
-            // Event listeners para resetear filtros (ahora incluye fechas)
             document.getElementById('reset-filters-btn').addEventListener('click', () => { 
-                ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); 
-                document.getElementById('filter-date-start').value = '';
-                document.getElementById('filter-date-end').value = '';
-                applyFiltersAndRender(); 
+                 ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); 
+                 document.getElementById('filter-date-start').value = '';
+                 document.getElementById('filter-date-end').value = '';
+                 applyFiltersAndRender(); 
             });
             
-            // Event listeners para cambios en filtros (dropdowns y dates)
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.addEventListener('change', applyFiltersAndRender);
@@ -972,6 +1044,74 @@
             
             document.getElementById('detail-modal').addEventListener('click', (e) => { if (e.target.id === 'detail-modal') closeModal(); });
             document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+            
+            // ==========================================
+            // LOGICA PARA GENERAR PDF
+            // ==========================================
+            document.getElementById('download-report-btn').addEventListener('click', async () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                showMessage('Generando PDF... por favor espere.', false);
+
+                try {
+                    const headerElement = document.getElementById('action-info'); 
+                    const kpiElement = document.getElementById('kpi-container-export');
+                    const empresasElement = document.getElementById('empresas-ranking-section'); // Nuevo
+                    const chartsElement = document.getElementById('dashboard-container'); 
+
+                    let currentY = 10; 
+
+                    const addElementToPdf = async (element) => {
+                        // Ignorar elementos ocultos (como la tabla si no es "empresas")
+                        if(!element || element.classList.contains('hidden')) return;
+                        
+                        const canvas = await html2canvas(element, {
+                            scale: 2, 
+                            backgroundColor: null, 
+                            logging: false,
+                            useCORS: true
+                        });
+                        
+                        const imgData = canvas.toDataURL('image/png');
+                        const imgProps = doc.getImageProperties(imgData);
+                        const pdfWidth = pageWidth - 20; 
+                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                        if (currentY + pdfHeight > pageHeight - 10) {
+                            doc.addPage();
+                            doc.setFillColor(31, 41, 55); 
+                            doc.rect(0, 0, pageWidth, pageHeight, 'F');
+                            currentY = 10;
+                        }
+
+                        doc.addImage(imgData, 'PNG', 10, currentY, pdfWidth, pdfHeight);
+                        // REDUCIDO ESPACIO ENTRE ELEMENTOS
+                        currentY += pdfHeight + 2; 
+                    };
+                    
+                    doc.setFillColor(31, 41, 55); 
+                    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+                    await addElementToPdf(headerElement);
+                    await addElementToPdf(kpiElement);
+                    await addElementToPdf(empresasElement); // Inyectar tabla si existe
+                    await addElementToPdf(chartsElement);
+                    
+                    doc.setFontSize(10);
+                    doc.setTextColor(200, 200, 200);
+                    doc.text(`Generado el: ${new Date().toLocaleDateString()} - Dashboard Inscriptos`, 10, pageHeight - 10);
+
+                    doc.save(`Reporte_Accion_${activeActionType || 'General'}.pdf`);
+                    showMessage('PDF Descargado con éxito.');
+
+                } catch (error) {
+                    console.error(error);
+                    showMessage('Error al generar PDF.', true);
+                }
+            });
 
             fetchData();
         });
