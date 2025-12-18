@@ -51,7 +51,6 @@
         }
         
         select, option, input[type="date"] { background: rgba(40, 43, 54, 0.9); color: white; }
-        /* Ajuste para el icono del calendario en inputs de fecha */
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
             cursor: pointer;
@@ -196,7 +195,7 @@
                 <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Tablero de control de inscriptos <span class="block text-lg font-medium opacity-80 mt-1">Marzo 2026</span></h1>
             </div>
             
-            <div class="flex flex-wrap justify-center gap-8 text-xl w-full border-t border-white/10 pt-4 mt-2">
+            <div id="main-nav-tabs" class="flex flex-wrap justify-center gap-8 text-xl w-full border-t border-white/10 pt-4 mt-2">
                 <div id="tab-general" class="nav-tab active">General</div>
                 <div id="tab-objetivos" class="nav-tab">Objetivos</div>
                 <div id="tab-acciones" class="nav-tab">Acciones</div>
@@ -232,8 +231,8 @@
                 <p id="total-inscriptos" class="text-7xl font-extrabold text-white filter drop-shadow-lg" style="text-shadow: 0px 4px 10px rgba(0,0,0,0.5);">0</p>
             </div>
 
-            <!-- Filtros -->
-            <div class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
+            <!-- Filtros (Estos se ocultarán al imprimir si así se prefiere, pero dejaremos visibles para que sea "idéntico") -->
+            <div id="filters-container" class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
                 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Desde</label><input type="date" id="filter-date-start" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
@@ -247,10 +246,10 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN RANKING EMPRESAS (NUEVO) -->
+            <!-- SECCIÓN RANKING EMPRESAS (Visible en Pantalla) -->
             <div id="empresas-ranking-section" class="hidden mb-8 glass-effect rounded-2xl p-6 shadow-lg">
                 <h3 class="text-2xl font-bold mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
-                    <i class="fas fa-trophy text-yellow-400"></i> Ranking de Empresas
+                    <i class="fas fa-trophy text-yellow-400"></i> Inscriptos por empresa amiga:
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-white/90">
@@ -439,11 +438,9 @@
                 const vals = Object.values(row);
                 const remarketingVal = vals[remarketingIdx] || '';
                 
-                // --- CAMBIO: LEER NOMBRE EMPRESA DE COLUMNA J ---
                 const empresasVal = vals[empresasIdx] || '';
                 const empresaNombre = empresasVal.trim();
-                const isEmpresas = empresaNombre.length > 0; // Si hay texto, cuenta como empresa
-                // -----------------------------------------------
+                const isEmpresas = empresaNombre.length > 0;
 
                 const navidadVal = vals[navidadIdx] || '';
                 const carnavalVal = vals[carnavalIdx] || '';
@@ -459,7 +456,6 @@
                 if (rawMod === 'P') modality = 'Presencial'; else if (rawMod === 'S') modality = 'Semipresencial'; else if (rawMod === 'D') modality = 'A Distancia';
                 
                 const isRemarketing = remarketingVal && remarketingVal.toLowerCase().includes('x');
-                // isEmpresas ya definido arriba
                 const isNavidad = navidadVal && navidadVal.toLowerCase().includes('x');
                 const isCarnaval = carnavalVal && carnavalVal.toLowerCase().includes('x');
 
@@ -474,7 +470,7 @@
                     nombre,
                     isRemarketing, 
                     isEmpresas, 
-                    empresaNombre, // Guardamos el nombre
+                    empresaNombre,
                     isNavidad, 
                     isCarnaval 
                 };
@@ -484,13 +480,10 @@
                 const tbody = document.getElementById('empresas-ranking-body');
                 tbody.innerHTML = '';
                 
-                // Contar empresas (solo de los datos filtrados que sean 'isEmpresas')
                 const counts = {};
                 data.forEach(row => {
                     if (row.isEmpresas && row.empresaNombre) {
-                        // Limpiar un poco el nombre por si acaso (mayusculas/espacios)
                         const name = row.empresaNombre.trim();
-                        // Ignorar si es solo una 'x' por error de legacy, o tratar 'x' como "Sin especificar"
                         const displayName = (name.toLowerCase() === 'x') ? 'Empresa S/D' : name;
                         counts[displayName] = (counts[displayName] || 0) + 1;
                     }
@@ -501,13 +494,12 @@
                     return;
                 }
 
-                // Convertir a array y ordenar
-                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-                const maxVal = sorted[0][1]; // Para la barra de progreso
+                // Top 10 para evitar scroll infinito en PDF
+                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                const maxVal = sorted[0][1];
 
                 sorted.forEach(([empresa, count], index) => {
                     const percentage = Math.round((count / maxVal) * 100);
-                    
                     let medal = '';
                     if (index === 0) medal = '<i class="fas fa-medal text-yellow-400"></i>';
                     else if (index === 1) medal = '<i class="fas fa-medal text-gray-300"></i>';
@@ -516,10 +508,12 @@
 
                     const rowHtml = `
                         <tr class="ranking-row border-b border-white/5 last:border-0">
-                            <td class="px-4 py-3 text-center text-lg">${medal}</td>
-                            <td class="px-4 py-3 font-semibold text-white/90">${empresa}</td>
-                            <td class="px-4 py-3 text-center font-bold text-white">${count}</td>
-                            <td class="px-4 py-3 align-middle">
+                            <td class="px-4 py-2 text-center text-lg w-16 align-middle">${medal}</td>
+                            <td class="px-4 py-2 font-semibold text-white/90 align-middle">
+                                <div class="truncate max-w-[200px]" title="${empresa}">${empresa}</div>
+                            </td>
+                            <td class="px-4 py-2 text-center font-bold text-white w-24 align-middle">${count}</td>
+                            <td class="px-4 py-2 align-middle w-1/3">
                                 <div class="ranking-bar-bg">
                                     <div class="ranking-bar-fill bg-gradient-to-r from-blue-400 to-indigo-500" style="width: ${percentage}%"></div>
                                 </div>
@@ -530,7 +524,6 @@
                 });
             };
 
-            // ... [Funciones openModal, closeModal, showAdvisorDetails, showDayDetails, populateFilters igual que antes] ...
             const openModal = () => { 
                 const modal = document.getElementById('detail-modal');
                 modal.classList.remove('hidden'); 
@@ -671,7 +664,6 @@
                     return viewMatch && dropdownMatch && dateMatch;
                 });
                 
-                // Mostrar/Ocultar y renderizar Tabla de Empresas
                 if (currentView === 'action-detail' && activeActionType === 'empresas') {
                     empresasSection.classList.remove('hidden');
                     renderEmpresasTable(activeData);
@@ -688,7 +680,6 @@
                 const clickedLabel = labels[index];
                 
                 if (chartId === 'timeline-chart') {
-                    // Logic for timeline drilldown (same as before)
                     const filterAsesora = document.getElementById('filter-asesora').value;
                     const filterMes = document.getElementById('filter-mes').value;
                     const filterCarrera = document.getElementById('filter-carrera').value;
@@ -1046,71 +1037,66 @@
             document.getElementById('close-modal-btn').addEventListener('click', closeModal);
             
             // ==========================================
-            // LOGICA PARA GENERAR PDF
+            // NUEVA LOGICA PDF: "IDÉNTICO A PANTALLA"
             // ==========================================
             document.getElementById('download-report-btn').addEventListener('click', async () => {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
+                
+                showMessage('Capturando pantalla...', false);
 
-                showMessage('Generando PDF... por favor espere.', false);
-
-                try {
-                    const headerElement = document.getElementById('action-info'); 
-                    const kpiElement = document.getElementById('kpi-container-export');
-                    const empresasElement = document.getElementById('empresas-ranking-section'); // Nuevo
-                    const chartsElement = document.getElementById('dashboard-container'); 
-
-                    let currentY = 10; 
-
-                    const addElementToPdf = async (element) => {
-                        // Ignorar elementos ocultos (como la tabla si no es "empresas")
-                        if(!element || element.classList.contains('hidden')) return;
-                        
-                        const canvas = await html2canvas(element, {
-                            scale: 2, 
-                            backgroundColor: null, 
-                            logging: false,
-                            useCORS: true
-                        });
-                        
-                        const imgData = canvas.toDataURL('image/png');
-                        const imgProps = doc.getImageProperties(imgData);
-                        const pdfWidth = pageWidth - 20; 
-                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-                        if (currentY + pdfHeight > pageHeight - 10) {
-                            doc.addPage();
-                            doc.setFillColor(31, 41, 55); 
-                            doc.rect(0, 0, pageWidth, pageHeight, 'F');
-                            currentY = 10;
+                // Elementos a capturar (El Contenedor Principal)
+                const source = document.getElementById('main-container');
+                
+                // Configurar html2canvas
+                // ignoreElements: Función para ocultar botones y tabs durante la captura
+                const canvas = await html2canvas(source, {
+                    scale: 2, // Alta calidad
+                    useCORS: true,
+                    logging: false,
+                    ignoreElements: (element) => {
+                        const id = element.id;
+                        // Ocultar botones de navegación y tabs
+                        if (id === 'promo-nav-banner' || 
+                            id === 'action-buttons' || 
+                            id === 'main-nav-tabs' ||
+                            id === 'message-container') {
+                            return true;
                         }
+                        // Ocultar filtros si el usuario prefiere (opcional, aquí los dejo visibles para que sea 'idéntico')
+                        return false;
+                    }
+                });
 
-                        doc.addImage(imgData, 'PNG', 10, currentY, pdfWidth, pdfHeight);
-                        // REDUCIDO ESPACIO ENTRE ELEMENTOS
-                        currentY += pdfHeight + 2; 
-                    };
-                    
-                    doc.setFillColor(31, 41, 55); 
-                    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+                const imgData = canvas.toDataURL('image/png');
+                const imgProps = doc = new jsPDF('p', 'mm', 'a4'); // Hoja A4 Vertical
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = doc.internal.pageSize.getHeight();
+                
+                // Propiedades de la imagen capturada
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
 
-                    await addElementToPdf(headerElement);
-                    await addElementToPdf(kpiElement);
-                    await addElementToPdf(empresasElement); // Inyectar tabla si existe
-                    await addElementToPdf(chartsElement);
-                    
-                    doc.setFontSize(10);
-                    doc.setTextColor(200, 200, 200);
-                    doc.text(`Generado el: ${new Date().toLocaleDateString()} - Dashboard Inscriptos`, 10, pageHeight - 10);
+                // Calcular ratio para que el ancho coincida con el ancho del PDF
+                const ratio = pdfWidth / imgWidth;
+                const finalHeight = imgHeight * ratio;
 
-                    doc.save(`Reporte_Accion_${activeActionType || 'General'}.pdf`);
-                    showMessage('PDF Descargado con éxito.');
+                let heightLeft = finalHeight;
+                let position = 0;
 
-                } catch (error) {
-                    console.error(error);
-                    showMessage('Error al generar PDF.', true);
+                // Primera página
+                doc.addImage(imgData, 'PNG', 0, position, pdfWidth, finalHeight);
+                heightLeft -= pdfHeight;
+
+                // Si el contenido es más largo que una hoja, agregar páginas
+                while (heightLeft >= 0) {
+                    position = heightLeft - finalHeight; // Subir la imagen para mostrar la parte siguiente
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, finalHeight);
+                    heightLeft -= pdfHeight;
                 }
+
+                doc.save(`Reporte_${activeActionType || 'General'}_${new Date().toISOString().slice(0,10)}.pdf`);
+                showMessage('PDF Descargado exitosamente.');
             });
 
             fetchData();
