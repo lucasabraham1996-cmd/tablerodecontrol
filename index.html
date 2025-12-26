@@ -7,13 +7,17 @@
     <!-- Favicon solicitado -->
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/5581/5581393.png" type="image/png">
     
-    <script type="text/javascript" src="https://gc.kes.v2.scr.kaspersky-labs.com/7EA5E9BB-55E1-4C31-9C21-4943DDFED2E4/main.js?attr=VilkRQkWakSaPwrdyT_zI5QFKPDN2IvP-5KD5MYyqUElbfVFjtPVqOB0lLHAAgKfJZ9LZYG_pfCKcF97FiHnJyI6Uryo05Apxl8gfdGCUgw" charset="UTF-8"></script>
+    <script type="text/javascript" src="https://gc.kes.v2.scr.kaspersky-labs.com/7EA5E9BB-55E1-4C31-9C21-4943DDFED2E4/main.js?attr=HLj9qQV7QLde4PWhI9Nd1v09hqNrsVJmJ556bm2a8ZdaHk_VS3t7F6yrLb5hY2fw5fucpPluhfJZfJjZSzIiHPVyIIMOWF10_kAVgKViGsQ" charset="UTF-8"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
     
+    <!-- LIBRERIA CONFETTI -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <!-- LIBRERIAS PARA GENERAR PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -120,7 +124,27 @@
             text-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        /* Nuevos Estilos Objetivos Modernos */
+        /* Badge Moderno para conteo */
+        .count-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            font-weight: 800;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 30;
+            font-size: 1.1rem;
+            border: 2px solid rgba(0,0,0,0.1);
+        }
+
+        /* Estilos Objetivos Modernos */
         .goal-card-modern {
             background: rgba(20, 20, 30, 0.6);
             border: 1px solid rgba(255,255,255,0.1);
@@ -132,13 +156,29 @@
             position: relative;
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer; /* Cursor de mano para indicar click */
+            cursor: pointer;
         }
         .goal-card-modern:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0,0,0,0.4);
             border-color: rgba(255,255,255,0.2);
         }
+        
+        /* Estados de Objetivos */
+        .goal-met {
+            border: 2px solid #fbbf24; /* Amber 400 */
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+            background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(251, 191, 36, 0.1));
+        }
+        .goal-failed {
+            border: 1px solid #ef4444; /* Red 500 */
+            background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(239, 68, 68, 0.1));
+        }
+        .goal-inprogress {
+            border: 1px solid #3b82f6; /* Blue 500 */
+            background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(59, 130, 246, 0.1));
+        }
+
         .goal-glow {
             position: absolute;
             width: 100px;
@@ -227,11 +267,11 @@
         <div id="view-main">
             <!-- KPI Total -->
             <div id="kpi-container-export" class="mb-6 p-6 glass-effect rounded-2xl shadow-xl max-w-md mx-auto text-center transform hover:scale-105 transition-transform duration-300">
-                <h3 id="kpi-title" class="text-xl font-semibold text-white/90 mb-2 uppercase tracking-wide">Total de Inscriptos (General)</h3>
-                <p id="total-inscriptos" class="text-7xl font-extrabold text-white filter drop-shadow-lg" style="text-shadow: 0px 4px 10px rgba(0,0,0,0.5);">0</p>
+                <h3 id="kpi-title" class="text-xl font-semibold text-white/90 mb-4 uppercase tracking-wide">Total de Inscriptos (General)</h3>
+                <p id="total-inscriptos" class="text-7xl font-extrabold text-white filter drop-shadow-lg leading-tight pb-2" style="text-shadow: 0px 4px 10px rgba(0,0,0,0.5);">0</p>
             </div>
 
-            <!-- Filtros (Estos se ocultarán al imprimir si así se prefiere, pero dejaremos visibles para que sea "idéntico") -->
+            <!-- Filtros (Se ocultarán en PDF) -->
             <div id="filters-container" class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
                 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Desde</label><input type="date" id="filter-date-start" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
@@ -270,7 +310,7 @@
 
             <!-- Gráficos -->
             <main id="dashboard-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Asesora</h3><div class="chart-container"><canvas id="asesora-chart"></canvas></div></div>
+                <div id="card-asesora-chart" class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Asesora</h3><div class="chart-container"><canvas id="asesora-chart"></canvas></div></div>
                 <div class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Carrera</h3><div class="chart-container"><canvas id="carrera-chart"></canvas></div></div>
                 <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Modalidad</h3><div class="chart-container"><canvas id="modalidad-chart"></canvas></div></div>
                 <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Línea de Tiempo de Inscriptos (por Día)</h3><div class="chart-container"><canvas id="timeline-chart"></canvas></div></div>
@@ -279,13 +319,23 @@
 
         <!-- VISTA OBJETIVOS -->
         <div id="view-objetivos" class="hidden w-full">
-            <div class="mb-10 flex justify-center">
+            <div class="mb-10 flex flex-col md:flex-row justify-center gap-6">
+                <!-- Filtro Mes -->
                 <div class="glass-effect p-6 rounded-2xl inline-flex flex-col items-center gap-2">
-                    <label for="obj-month-filter" class="font-bold uppercase tracking-wider text-white/90 text-lg">Seleccionar Mes de Objetivo:</label>
+                    <label for="obj-month-filter" class="font-bold uppercase tracking-wider text-white/90 text-sm">Mes</label>
                     <select id="obj-month-filter" class="p-3 rounded-lg bg-black/50 text-white border border-white/30 font-bold focus:outline-none text-xl text-center w-64">
+                        <option value="todos">Todos los meses</option>
                         <option value="10">Octubre</option>
                         <option value="11">Noviembre</option>
                         <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <!-- Filtro Vendedor (Nuevo) -->
+                <div class="glass-effect p-6 rounded-2xl inline-flex flex-col items-center gap-2">
+                    <label for="obj-advisor-filter" class="font-bold uppercase tracking-wider text-white/90 text-sm">Vendedor/Asesora</label>
+                    <select id="obj-advisor-filter" class="p-3 rounded-lg bg-black/50 text-white border border-white/30 font-bold focus:outline-none text-xl text-center w-64">
+                        <!-- Se llena con JS -->
+                        <option value="todos">Todos</option>
                     </select>
                 </div>
             </div>
@@ -293,12 +343,12 @@
         </div>
 
         <!-- VISTA ACCIONES -->
-        <div id="view-acciones" class="hidden w-full">
-             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto" id="acciones-grid"></div>
+        <div id="view-acciones" class="hidden w-full"> 
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto" id="acciones-grid"></div>
         </div>
 
-        <div class="mt-12 text-center pb-8" id="action-buttons">
-             <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all">Actualizar Datos</button>
+        <div class="mt-12 text-center pb-8" id="action-buttons"> 
+            <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all">Actualizar Datos</button>
         </div>
         <div id="message-container" class="text-center mt-4 fixed bottom-4 right-4 z-50"></div>
     </div>
@@ -311,6 +361,19 @@
                 <button id="close-modal-btn" class="text-white/70 hover:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <div id="modal-content" class="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Modal Opciones PDF -->
+    <div id="pdf-options-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
+        <div class="glass-effect bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-white/20 text-center">
+            <h3 class="text-2xl font-bold text-white mb-4">Opciones de Reporte</h3>
+            <p class="text-white/80 mb-8 text-lg">¿Deseas incluir el gráfico de <strong>"Inscriptos por Asesora"</strong> en el PDF?</p>
+            <div class="flex justify-center gap-4">
+                <button id="pdf-btn-yes" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors w-1/3">SÍ</button>
+                <button id="pdf-btn-no" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors w-1/3">NO</button>
+            </div>
+            <button id="pdf-btn-cancel" class="mt-6 text-sm text-white/50 hover:text-white underline">Cancelar</button>
         </div>
     </div>
 
@@ -347,6 +410,8 @@
                 '12': { 'Belen': 75, 'Kiara': 75, 'Jeremias': 75, 'Laura': 75 }
             };
 
+            const monthNames = { '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre' };
+
             const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
             const asesoraData = { 'Kiara': { color: '#c084fc' }, 'Belen': { color: '#fbbf24' }, 'Laura': { color: '#bef264' }, 'Jeremias': { color: '#fca5a5' }, 'Jeremías': { color: '#fca5a5' } };
             
@@ -356,7 +421,8 @@
                 {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'matricula': '1003', 'apellido': 'Lopez', 'nombre': 'Carlos', 'remarketing': '', 'colJ': 'Coca Cola', 'colK': '', 'colL': ''},
                 {'asesora': 'Jeremias', 'marca temporal': '22 de diciembre de 2025', 'carrera': 'AE', 'modalidad': 'A Distancia', 'matricula': '1004', 'apellido': 'Diaz', 'nombre': 'Ana', 'remarketing': '', 'colJ': '', 'colK': 'x', 'colL': ''},
                 {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'},
-                {'asesora': 'Belen', 'marca temporal': '12 de diciembre de 2025', 'carrera': 'MKT', 'modalidad': 'A Distancia', 'matricula': '1006', 'apellido': 'Sosa', 'nombre': 'Pedro', 'remarketing': '', 'colJ': 'Arcor', 'colK': '', 'colL': ''}
+                {'asesora': 'Belen', 'marca temporal': '12 de diciembre de 2025', 'carrera': 'MKT', 'modalidad': 'A Distancia', 'matricula': '1006', 'apellido': 'Sosa', 'nombre': 'Pedro', 'remarketing': '', 'colJ': 'Arcor', 'colK': '', 'colL': ''},
+                {'asesora': 'Laura', 'marca temporal': '15 de noviembre de 2025', 'carrera': 'RH', 'modalidad': 'A Distancia', 'matricula': '1007', 'apellido': 'Martinez', 'nombre': 'Sofia', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''}
             ];
 
             Chart.register(ChartDataLabels);
@@ -467,10 +533,10 @@
                     fecha: dateObject, 
                     matricula, 
                     apellido, 
-                    nombre,
+                    nombre, 
                     isRemarketing, 
                     isEmpresas, 
-                    empresaNombre,
+                    empresaNombre, 
                     isNavidad, 
                     isCarnaval 
                 };
@@ -494,7 +560,6 @@
                     return;
                 }
 
-                // Top 10 para evitar scroll infinito en PDF
                 const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
                 const maxVal = sorted[0][1];
 
@@ -510,7 +575,7 @@
                         <tr class="ranking-row border-b border-white/5 last:border-0">
                             <td class="px-4 py-2 text-center text-lg w-16 align-middle">${medal}</td>
                             <td class="px-4 py-2 font-semibold text-white/90 align-middle">
-                                <div class="truncate max-w-[200px]" title="${empresa}">${empresa}</div>
+                                <div class="whitespace-normal break-words" title="${empresa}">${empresa}</div>
                             </td>
                             <td class="px-4 py-2 text-center font-bold text-white w-24 align-middle">${count}</td>
                             <td class="px-4 py-2 align-middle w-1/3">
@@ -545,6 +610,11 @@
             window.showAdvisorDetails = (advisorName) => {
                 const selectedMonth = document.getElementById('obj-month-filter').value;
                 const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
+                
+                if(isNaN(targetMonthIndex)) {
+                    showMessage('Selecciona un mes específico para ver detalles.', true);
+                    return;
+                }
                 
                 const filteredData = fullData.filter(d => {
                     const isAdvisor = normalizeString(d.asesora).includes(normalizeString(advisorName)) || normalizeString(advisorName).includes(normalizeString(d.asesora));
@@ -607,12 +677,29 @@
 
             const populateFilters = (data) => {
                 const filters = { asesora: new Set(), mes: new Set(), carrera: new Set(), modalidad: new Set() };
+                const advisorSet = new Set();
+
                 data.forEach(row => {
-                    if (row.asesora !== 'N/A') filters.asesora.add(row.asesora);
+                    if (row.asesora !== 'N/A') {
+                        filters.asesora.add(row.asesora);
+                        advisorSet.add(row.asesora);
+                    }
                     if (row.mes !== 'Desconocido') filters.mes.add(row.mes);
                     if (row.carrera !== 'N/A') filters.carrera.add(row.carrera);
                     if (row.modalidad !== 'No especificada') filters.modalidad.add(row.modalidad);
                 });
+
+                const objAdvisorSelect = document.getElementById('obj-advisor-filter');
+                if(objAdvisorSelect) {
+                    objAdvisorSelect.innerHTML = '<option value="todos">Todos</option>';
+                    [...advisorSet].sort().forEach(adv => {
+                        const opt = document.createElement('option');
+                        opt.value = adv;
+                        opt.textContent = adv;
+                        objAdvisorSelect.appendChild(opt);
+                    });
+                }
+
                 for (const key in filters) {
                     const select = document.getElementById(`filter-${key}`);
                     if (select) {
@@ -680,54 +767,8 @@
                 const clickedLabel = labels[index];
                 
                 if (chartId === 'timeline-chart') {
-                    const filterAsesora = document.getElementById('filter-asesora').value;
-                    const filterMes = document.getElementById('filter-mes').value;
-                    const filterCarrera = document.getElementById('filter-carrera').value;
-                    const filterModalidad = document.getElementById('filter-modalidad').value;
-                    const filterDateStart = document.getElementById('filter-date-start').value;
-                    const filterDateEnd = document.getElementById('filter-date-end').value;
-
-                    let startDate = null;
-                    let endDate = null;
-
-                    if (filterDateStart) {
-                        const [sy, sm, sd] = filterDateStart.split('-').map(Number);
-                        startDate = new Date(sy, sm - 1, sd);
-                        startDate.setHours(0, 0, 0, 0);
-                    }
-                    if (filterDateEnd) {
-                        const [ey, em, ed] = filterDateEnd.split('-').map(Number);
-                        endDate = new Date(ey, em - 1, ed);
-                        endDate.setHours(23, 59, 59, 999);
-                    }
-
-                    const activeData = fullData.filter(row => { 
-                        let viewMatch = true;
-                        if (currentView === 'action-detail') {
-                            if (activeActionType === 'remarketing') viewMatch = row.isRemarketing;
-                            else if (activeActionType === 'empresas') viewMatch = row.isEmpresas;
-                            else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
-                            else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
-                        }
-                        
-                        const dropdownMatch = 
-                            (filterAsesora === 'todos' || row.asesora === filterAsesora) &&
-                            (filterMes === 'todos' || row.mes === filterMes) &&
-                            (filterCarrera === 'todos' || row.carrera === filterCarrera) &&
-                            (filterModalidad === 'todos' || row.modalidad === filterModalidad);
-
-                        let dateMatch = true;
-                        if (row.fecha) {
-                            if (startDate && row.fecha < startDate) dateMatch = false;
-                            if (endDate && row.fecha > endDate) dateMatch = false;
-                        } else if (startDate || endDate) {
-                            dateMatch = false;
-                        }
-
-                        return viewMatch && dropdownMatch && dateMatch; 
-                    });
-                    const dayData = activeData.filter(row => row.fecha && row.fecha.toLocaleDateString('en-CA') === clickedLabel);
-                    showDayDetails(clickedLabel, dayData); return;
+                    const activeData = fullData.filter(row => row.fecha && row.fecha.toLocaleDateString('en-CA') === clickedLabel); 
+                    showDayDetails(clickedLabel, activeData); return;
                 }
                 
                 let filterKey = null; let filterSelectId = null;
@@ -748,26 +789,15 @@
                     segmentConfig = { borderColor: ctx => { const p0 = ctx.p0; if (p0 && p0.parsed) { const dateStr = labels[p0.$context.dataIndex]; if (dateStr) { const month = dateStr.split('-')[1]; return monthColors[month] || '#fbbf24'; } } return '#fbbf24'; } };
                 }
 
-                const highlightDates = (currentView === 'action-detail' && activeActionType && ACTION_DATES[activeActionType]) ? ACTION_DATES[activeActionType] : [];
-
                 const datalabelsConfig = isTimeline ? {
                     display: (context) => {
                         const date = context.chart.data.labels[context.dataIndex];
                         return !!DATE_TO_ICON[date];
                     },
-                    align: 'top', 
-                    anchor: 'center', 
-                    offset: 0, 
-                    font: { 
-                        family: '"Font Awesome 6 Free"', 
-                        weight: 900, 
-                        size: 20 
-                    }, 
+                    align: 'top', anchor: 'center', offset: 0, 
+                    font: { family: '"Font Awesome 6 Free"', weight: 900, size: 20 }, 
                     color: '#FFF',
-                    formatter: (value, context) => {
-                        const date = context.chart.data.labels[context.dataIndex];
-                        return DATE_TO_ICON[date] || '';
-                    }
+                    formatter: (value, context) => { const date = context.chart.data.labels[context.dataIndex]; return DATE_TO_ICON[date] || ''; }
                 } : {
                     labels: {
                         value: { color: '#FFF', anchor: isPie ? 'center' : 'end', align: isPie ? 'center' : 'start', offset: isPie ? 0 : -4, font: { weight: 'bold', size: 18 }, formatter: (value) => { const percentage = total > 0 ? Math.round((value / total) * 100) : 0; return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); }, textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', },
@@ -792,15 +822,13 @@
                 const modalidadCounts = data.reduce((acc, row) => { acc[row.modalidad] = (acc[row.modalidad] || 0) + 1; return acc; }, {});
                 const timelineCounts = data.reduce((acc, row) => { if (row.fecha) { const dateString = row.fecha.toLocaleDateString('en-CA'); acc[dateString] = (acc[dateString] || 0) + 1; } return acc; }, {});
                 const sortedDates = Object.keys(timelineCounts).filter(d => d <= new Date().toLocaleDateString('en-CA')).sort();
-                const timelineLabels = sortedDates;
-                const timelineData = sortedDates.map(date => timelineCounts[date]);
-
+                
                 const selectedCareerCode = document.getElementById('filter-carrera').value;
                 let modalityColors;
                 if (selectedCareerCode !== 'todos' && careerData[selectedCareerCode]) { const baseColor = careerData[selectedCareerCode].color; modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': hexToRgba(baseColor, 1), 'Semipresencial': hexToRgba(baseColor, 0.7), 'A Distancia': hexToRgba(baseColor, 0.4) }[mod] || '#94a3b8')); } 
                 else { modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': '#fb923c', 'Semipresencial': '#4ade80', 'A Distancia': '#c084fc' }[mod] || '#94a3b8')); }
                 
-                updateChart('timeline-chart', 'line', timelineLabels, timelineData, ['#fbbf24']);
+                updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24']);
                 updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
                 updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
                 updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), modalityColors);
@@ -809,82 +837,133 @@
             const renderObjectives = () => {
                 const container = document.getElementById('objetivos-container');
                 const selectedMonth = document.getElementById('obj-month-filter').value;
-                const currentGoals = goalsConfig[selectedMonth];
+                const selectedAdvisor = document.getElementById('obj-advisor-filter').value;
                 
                 objectiveChartInstances.forEach(chart => chart.destroy());
                 objectiveChartInstances = [];
                 container.innerHTML = '';
 
-                if (!currentGoals) {
-                    container.innerHTML = '<p class="text-white text-center col-span-2">No hay objetivos definidos.</p>';
-                    return;
-                }
+                let monthsToIterate = [];
+                if (selectedMonth !== 'todos') monthsToIterate = [selectedMonth];
+                else monthsToIterate = ['10', '11', '12'];
+
+                let cardsGenerated = 0;
 
                 const now = new Date();
                 const currentMonthValue = now.getMonth() + 1;
-                const isCurrentMonth = parseInt(selectedMonth) === currentMonthValue;
-                const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
-                const monthData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex);
-                const actualCounts = {};
-                monthData.forEach(row => { const name = normalizeString(row.asesora); if(!actualCounts[name]) actualCounts[name] = 0; actualCounts[name]++; });
 
-                Object.keys(currentGoals).forEach((advisorName, idx) => {
-                    const goal = currentGoals[advisorName];
-                    const normalizedGoalName = normalizeString(advisorName);
-                    const matchKey = Object.keys(actualCounts).find(k => k.includes(normalizedGoalName) || normalizedGoalName.includes(k));
-                    const actual = matchKey ? actualCounts[matchKey] : 0;
-                    const percentage = Math.min(Math.round((actual / goal) * 100), 100);
-                    const isMet = actual >= goal;
-                    
-                    const advisorKey = Object.keys(asesoraData).find(k => k.includes(advisorName) || advisorName.includes(k));
-                    const advisorColor = advisorKey ? asesoraData[advisorKey].color : '#ffffff';
-                    const remainingColor = 'rgba(255,255,255,0.1)';
-                    
-                    let statusText = isMet ? '¡Logrado!' : (isCurrentMonth ? 'En curso' : 'No alcanzado');
-                    
-                    const cardId = `obj-card-${idx}`;
-                    const canvasId = `obj-chart-${idx}`;
-                    
-                    const html = `
-                        <div class="goal-card-modern hover:border-[${advisorColor}] border-white/10" id="${cardId}" onclick="showAdvisorDetails('${advisorName}')">
-                            <div class="goal-glow" style="background: radial-gradient(circle, ${advisorColor}40 0%, transparent 70%);"></div>
-                            <div class="z-10 flex-1">
-                                <h3 class="text-2xl font-bold text-white mb-1">${advisorName}</h3>
-                                <p class="text-sm text-white/60 mb-4 font-mono uppercase tracking-widest">${statusText}</p>
-                                <div class="flex items-baseline gap-2">
-                                    <span class="text-4xl font-bold text-white">${actual}</span>
-                                    <span class="text-lg text-white/50">/ ${goal}</span>
-                                </div>
-                            </div>
-                            <div class="z-10 w-24 h-24 relative flex items-center justify-center">
-                                <canvas id="${canvasId}" class="absolute top-0 left-0"></canvas>
-                                <span class="text-sm font-bold text-white">${percentage}%</span>
-                            </div>
-                        </div>`;
-                    container.insertAdjacentHTML('beforeend', html);
+                monthsToIterate.forEach(monthKey => {
+                    const currentGoals = goalsConfig[monthKey];
+                    if(!currentGoals) return;
 
-                    const ctx = document.getElementById(canvasId).getContext('2d');
-                    const chart = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Logrado', 'Restante'],
-                            datasets: [{
-                                data: [actual, Math.max(0, goal - actual)],
-                                backgroundColor: [advisorColor, remainingColor],
-                                borderWidth: 0,
-                                hoverOffset: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            cutout: '75%',
-                            plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
-                            animation: { animateScale: true, animateRotate: true }
+                    let advisorsToIterate = [];
+                    if (selectedAdvisor !== 'todos') {
+                        if(Object.keys(currentGoals).some(k => normalizeString(k).includes(normalizeString(selectedAdvisor)))) {
+                            advisorsToIterate = [Object.keys(currentGoals).find(k => normalizeString(k).includes(normalizeString(selectedAdvisor)))];
                         }
+                    } else {
+                        advisorsToIterate = Object.keys(currentGoals);
+                    }
+
+                    advisorsToIterate.forEach((advisorName, idx) => {
+                        if(!advisorName) return;
+
+                        const goal = currentGoals[advisorName];
+                        const targetMonthIndex = parseInt(monthKey, 10) - 1;
+                        
+                        const monthData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex);
+                        const normalizedAdvisor = normalizeString(advisorName);
+                        
+                        const actual = monthData.filter(d => normalizeString(d.asesora).includes(normalizedAdvisor) || normalizedAdvisor.includes(normalizeString(d.asesora))).length;
+
+                        const percentage = Math.min(Math.round((actual / goal) * 100), 100);
+                        const isMet = actual >= goal;
+                        
+                        const isPastMonth = parseInt(monthKey) < currentMonthValue;
+                        const isCurrentMonth = parseInt(monthKey) === currentMonthValue;
+                        
+                        let statusText = '';
+                        let cardClass = 'goal-card-modern';
+                        let statusIcon = '';
+
+                        if (isMet) {
+                            statusText = '¡LOGRADO!';
+                            cardClass += ' goal-met';
+                            statusIcon = '<i class="fas fa-trophy text-yellow-300 ml-2 animate-bounce"></i>';
+                            setTimeout(() => confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } }), 200 + (idx * 100));
+                        } else if (isPastMonth) {
+                            statusText = 'No alcanzado';
+                            cardClass += ' goal-failed';
+                            statusIcon = '<i class="fas fa-thumbs-down text-red-400 ml-2 animate-pulse"></i>';
+                        } else {
+                            statusText = 'En curso';
+                            cardClass += ' goal-inprogress';
+                            statusIcon = '<i class="fas fa-running text-blue-300 ml-2"></i>';
+                        }
+
+                        const advisorKey = Object.keys(asesoraData).find(k => k.includes(advisorName) || advisorName.includes(k));
+                        const advisorColor = advisorKey ? asesoraData[advisorKey].color : '#ffffff';
+                        const remainingColor = 'rgba(255,255,255,0.1)';
+                        
+                        const cardId = `obj-card-${monthKey}-${idx}`;
+                        const canvasId = `obj-chart-${monthKey}-${idx}`;
+                        const displayMonthName = monthNames[monthKey] || monthKey;
+
+                        const html = `
+                            <div class="${cardClass}" id="${cardId}" onclick="showAdvisorDetails('${advisorName}')">
+                                <div class="goal-glow" style="background: radial-gradient(circle, ${advisorColor}40 0%, transparent 70%);"></div>
+                                <div class="z-10 flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="text-2xl font-bold text-white mb-0">${advisorName}</h3>
+                                            <p class="text-xs text-white/50 uppercase mb-2">${displayMonthName}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-sm font-bold text-white/90 mb-4 font-mono uppercase tracking-widest flex items-center">
+                                        ${statusText} ${statusIcon}
+                                    </p>
+                                    
+                                    <div class="flex items-baseline gap-2">
+                                        <span class="text-4xl font-bold text-white">${actual}</span>
+                                        <span class="text-lg text-white/50">/ ${goal}</span>
+                                    </div>
+                                </div>
+                                <div class="z-10 w-24 h-24 relative flex items-center justify-center">
+                                    <canvas id="${canvasId}" class="absolute top-0 left-0"></canvas>
+                                    <span class="text-sm font-bold text-white">${percentage}%</span>
+                                </div>
+                            </div>`;
+                        container.insertAdjacentHTML('beforeend', html);
+                        cardsGenerated++;
+
+                        const ctx = document.getElementById(canvasId).getContext('2d');
+                        const chart = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Logrado', 'Restante'],
+                                datasets: [{
+                                    data: [actual, Math.max(0, goal - actual)],
+                                    backgroundColor: [advisorColor, remainingColor],
+                                    borderWidth: 0,
+                                    hoverOffset: 4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '75%',
+                                plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
+                                animation: { animateScale: true, animateRotate: true }
+                            }
+                        });
+                        objectiveChartInstances.push(chart);
                     });
-                    objectiveChartInstances.push(chart);
                 });
+
+                if (cardsGenerated === 0) {
+                    container.innerHTML = '<p class="text-white text-center col-span-2 text-xl opacity-50 py-10">No se encontraron objetivos para los filtros seleccionados.</p>';
+                }
             };
 
             const renderActions = () => {
@@ -894,35 +973,78 @@
                 const hasEmpresasData = fullData.some(r => r.isEmpresas);
                 const hasNavidadData = fullData.some(r => r.isNavidad);
                 const hasCarnavalData = fullData.some(r => r.isCarnaval);
+
+                const remarketingCount = fullData.filter(r => r.isRemarketing).length;
+                const empresasCount = fullData.filter(r => r.isEmpresas).length;
+                const navidadCount = fullData.filter(r => r.isNavidad).length;
+                const carnavalCount = fullData.filter(r => r.isCarnaval).length;
                 
-                const remarketingCard = `<div class="glass-effect rounded-2xl p-8 card-hover flex flex-col items-center text-center h-full relative overflow-hidden group" onclick="openPromotion('remarketing')"><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-bullhorn text-9xl text-white"></i></div><div class="bg-gradient-to-br from-orange-400 to-red-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-bullhorn text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Remarketing</h3><p class="text-white/70 mb-6 z-10">Noviembre 2025</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 26, 27 y 28 de noviembre.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">Ver Detalles</span></div>`;
+                const remarketingCard = `
+                <div class="glass-effect rounded-2xl p-8 card-hover flex flex-col items-center text-center h-full relative overflow-hidden group" onclick="openPromotion('remarketing')">
+                    <div class="count-badge">${remarketingCount}</div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-bullhorn text-9xl text-white"></i></div>
+                    <div class="bg-gradient-to-br from-orange-400 to-red-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-bullhorn text-3xl text-white"></i></div>
+                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Remarketing</h3>
+                    <p class="text-white/70 mb-6 z-10">Noviembre 2025</p>
+                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 26, 27 y 28 de noviembre.</p>
+                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">Ver Detalles</span>
+                </div>`;
                 container.insertAdjacentHTML('beforeend', remarketingCard);
 
                 const empresasClass = hasEmpresasData ? 'card-hover' : 'card-locked';
                 const empresasClick = hasEmpresasData ? "onclick=\"openPromotion('empresas')\"" : '';
                 const empresasBtn = hasEmpresasData ? 'Ver Detalles' : 'Bloqueado';
-                const empresasCard = `<div class="glass-effect rounded-2xl p-8 ${empresasClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${empresasClick}><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-handshake text-9xl text-white"></i></div><div class="bg-gradient-to-br from-blue-400 to-indigo-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-handshake text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Días Empresas Amigas</h3><p class="text-white/70 mb-6 z-10">11 y 12 Diciembre</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 11 y 12 de diciembre.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${empresasBtn}</span></div>`;
+                const empresasCard = `
+                <div class="glass-effect rounded-2xl p-8 ${empresasClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${empresasClick}>
+                    <div class="count-badge">${empresasCount}</div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-handshake text-9xl text-white"></i></div>
+                    <div class="bg-gradient-to-br from-blue-400 to-indigo-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-handshake text-3xl text-white"></i></div>
+                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Días Empresas Amigas</h3>
+                    <p class="text-white/70 mb-6 z-10">11 y 12 Diciembre</p>
+                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 11 y 12 de diciembre.</p>
+                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${empresasBtn}</span>
+                </div>`;
                 container.insertAdjacentHTML('beforeend', empresasCard);
 
                 const navidadClass = hasNavidadData ? 'card-hover' : 'card-locked';
                 const navidadClick = hasNavidadData ? "onclick=\"openPromotion('navidad')\"" : '';
                 const navidadBtn = hasNavidadData ? 'Ver Detalles' : 'Bloqueado';
-                const navidadCard = `<div class="glass-effect rounded-2xl p-8 ${navidadClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${navidadClick}><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-gift text-9xl text-white"></i></div><div class="bg-gradient-to-br from-red-500 to-green-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10 border-2 border-white/20"><i class="fas fa-gift text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Navideño</h3><p class="text-white/70 mb-6 z-10">22 y 23 Diciembre</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 22 y 23 de diciembre.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${navidadBtn}</span></div>`;
+                
+                // CAMBIO: Fondo degradado verde
+                const navidadCard = `
+                <div class="glass-effect rounded-2xl p-8 ${navidadClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${navidadClick}>
+                    <div class="count-badge">${navidadCount}</div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-tree text-9xl text-white"></i></div>
+                    <div class="bg-gradient-to-br from-green-500 to-emerald-700 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10 border-2 border-white/20"><i class="fas fa-tree text-3xl text-white"></i></div>
+                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Navideño</h3>
+                    <p class="text-white/70 mb-6 z-10">22 y 23 Diciembre</p>
+                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 22 y 23 de diciembre.</p>
+                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${navidadBtn}</span>
+                </div>`;
                 container.insertAdjacentHTML('beforeend', navidadCard);
 
                  const carnavalClass = hasCarnavalData ? 'card-hover' : 'card-locked';
                  const carnavalClick = hasCarnavalData ? "onclick=\"openPromotion('carnaval')\"" : '';
                  const carnavalBtn = hasCarnavalData ? 'Ver Detalles' : 'Bloqueado';
-                 const carnavalCard = `<div class="glass-effect rounded-2xl p-8 ${carnavalClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${carnavalClick}><div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-masks-theater text-9xl text-white"></i></div><div class="bg-gradient-to-br from-violet-500 to-pink-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-masks-theater text-3xl text-white"></i></div><h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Carnaval</h3><p class="text-white/70 mb-6 z-10">25, 26 y 27 Febrero</p><p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 25, 26 y 27 de febrero.</p><span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${carnavalBtn}</span></div>`;
+                 const carnavalCard = `
+                 <div class="glass-effect rounded-2xl p-8 ${carnavalClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${carnavalClick}>
+                    <div class="count-badge">${carnavalCount}</div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-masks-theater text-9xl text-white"></i></div>
+                    <div class="bg-gradient-to-br from-violet-500 to-pink-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-masks-theater text-3xl text-white"></i></div>
+                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Carnaval</h3>
+                    <p class="text-white/70 mb-6 z-10">25, 26 y 27 Febrero</p>
+                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 25, 26 y 27 de febrero.</p>
+                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${carnavalBtn}</span>
+                </div>`;
                  container.insertAdjacentHTML('beforeend', carnavalCard);
             };
 
             const initializeDashboard = (data) => {
                 const validData = data.filter(row => !Object.values(row).some(value => value === '#N/A'));
                 if(validData.length === 0) { 
-                     document.getElementById('error-info').classList.remove('hidden'); 
-                     const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h)); 
-                     fullData = MOCK_DATA.map(row => parseRow(row, headers));
+                      document.getElementById('error-info').classList.remove('hidden');
+                      const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h)); 
+                      fullData = MOCK_DATA.map(row => parseRow(row, headers)); 
                 } else {
                     document.getElementById('error-info').classList.add('hidden');
                     const headers = Object.keys(validData[0]).map(h => normalizeString(h));
@@ -1010,7 +1132,9 @@
 
             const currentMonthStr = String(new Date().getMonth() + 1);
             const monthSelect = document.getElementById('obj-month-filter');
-            if(monthSelect.querySelector(`option[value="${currentMonthStr}"]`)){ monthSelect.value = currentMonthStr; }
+            if(monthSelect.querySelector(`option[value="${currentMonthStr}"]`)){ 
+                monthSelect.value = currentMonthStr; 
+            }
 
             document.getElementById('tab-general').addEventListener('click', () => switchView('general')); 
             document.getElementById('tab-objetivos').addEventListener('click', () => switchView('objetivos'));
@@ -1018,12 +1142,13 @@
             
             document.getElementById('back-to-promos-btn').addEventListener('click', () => switchView('acciones'));
             document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
+            document.getElementById('obj-advisor-filter').addEventListener('change', renderObjectives);
             
             document.getElementById('reset-filters-btn').addEventListener('click', () => { 
-                 ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); 
-                 document.getElementById('filter-date-start').value = '';
-                 document.getElementById('filter-date-end').value = '';
-                 applyFiltersAndRender(); 
+                 ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos');
+                 document.getElementById('filter-date-start').value = ''; 
+                document.getElementById('filter-date-end').value = ''; 
+                applyFiltersAndRender(); 
             });
             
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'].forEach(id => {
@@ -1037,67 +1162,136 @@
             document.getElementById('close-modal-btn').addEventListener('click', closeModal);
             
             // ==========================================
-            // NUEVA LOGICA PDF: "IDÉNTICO A PANTALLA"
+            // LOGICA PDF CON MODAL Y OCULTAMIENTO
             // ==========================================
-            document.getElementById('download-report-btn').addEventListener('click', async () => {
-                const { jsPDF } = window.jspdf;
-                
-                showMessage('Capturando pantalla...', false);
+            const modalPDF = document.getElementById('pdf-options-modal');
+            const btnYes = document.getElementById('pdf-btn-yes');
+            const btnNo = document.getElementById('pdf-btn-no');
+            const btnCancel = document.getElementById('pdf-btn-cancel');
 
-                // Elementos a capturar (El Contenedor Principal)
+            // Abrir modal al hacer clic en descargar
+            document.getElementById('download-report-btn').addEventListener('click', () => {
+                modalPDF.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    modalPDF.classList.remove('opacity-0');
+                });
+            });
+
+            const closePdfModal = () => {
+                modalPDF.classList.add('opacity-0');
+                setTimeout(() => modalPDF.classList.add('hidden'), 300);
+            };
+
+            btnCancel.addEventListener('click', closePdfModal);
+
+            const generatePDF = async (includeAdvisors) => {
+                closePdfModal();
+                showMessage('Generando PDF...', false);
+
+                const { jsPDF } = window.jspdf;
                 const source = document.getElementById('main-container');
                 
-                // Configurar html2canvas
-                // ignoreElements: Función para ocultar botones y tabs durante la captura
-                const canvas = await html2canvas(source, {
-                    scale: 2, // Alta calidad
-                    useCORS: true,
-                    logging: false,
-                    ignoreElements: (element) => {
-                        const id = element.id;
-                        // Ocultar botones de navegación y tabs
-                        if (id === 'promo-nav-banner' || 
-                            id === 'action-buttons' || 
-                            id === 'main-nav-tabs' ||
-                            id === 'message-container') {
-                            return true;
-                        }
-                        // Ocultar filtros si el usuario prefiere (opcional, aquí los dejo visibles para que sea 'idéntico')
-                        return false;
-                    }
-                });
-
-                const imgData = canvas.toDataURL('image/png');
-                const imgProps = doc = new jsPDF('p', 'mm', 'a4'); // Hoja A4 Vertical
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = doc.internal.pageSize.getHeight();
+                // GUARDAR ESTADO ORIGINAL
+                const originalBackground = source.style.background;
+                const advisorChartCard = document.getElementById('card-asesora-chart');
+                let originalDisplay = '';
                 
-                // Propiedades de la imagen capturada
-                const imgWidth = canvas.width;
-                const imgHeight = canvas.height;
+                // 1. CAMBIAR FONDO PARA PDF (SOLO IMAGEN CON CAPA OSCURA)
+                // Usamos un gradiente lineal de color casi sólido sobre la imagen para oscurecerla
+                source.style.background = `
+                    linear-gradient(rgba(31, 41, 55, 0.95), rgba(31, 41, 55, 0.95)),
+                    url('https://i.postimg.cc/dtDHVQ1X/image.png') 
+                    no-repeat center center fixed
+                `;
+                source.style.backgroundSize = 'cover';
 
-                // Calcular ratio para que el ancho coincida con el ancho del PDF
-                const ratio = pdfWidth / imgWidth;
-                const finalHeight = imgHeight * ratio;
-
-                let heightLeft = finalHeight;
-                let position = 0;
-
-                // Primera página
-                doc.addImage(imgData, 'PNG', 0, position, pdfWidth, finalHeight);
-                heightLeft -= pdfHeight;
-
-                // Si el contenido es más largo que una hoja, agregar páginas
-                while (heightLeft >= 0) {
-                    position = heightLeft - finalHeight; // Subir la imagen para mostrar la parte siguiente
-                    doc.addPage();
-                    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, finalHeight);
-                    heightLeft -= pdfHeight;
+                // 2. Ocultar gráfico asesora si se solicitó
+                if (!includeAdvisors && advisorChartCard) {
+                    originalDisplay = advisorChartCard.style.display;
+                    advisorChartCard.style.display = 'none';
                 }
 
-                doc.save(`Reporte_${activeActionType || 'General'}_${new Date().toISOString().slice(0,10)}.pdf`);
-                showMessage('PDF Descargado exitosamente.');
-            });
+                try {
+                    // Configuración para mejor calidad y layout fijo
+                    const canvas = await html2canvas(source, {
+                        scale: 2, // Mejor resolución
+                        useCORS: true,
+                        logging: false,
+                        windowWidth: 1200, // Forzar ancho de escritorio para evitar layout móvil
+                        ignoreElements: (element) => {
+                            const id = element.id;
+                            if (id === 'promo-nav-banner' || 
+                                id === 'action-buttons' || 
+                                id === 'main-nav-tabs' ||
+                                id === 'message-container' ||
+                                id === 'filters-container' ||
+                                id === 'pdf-options-modal' ||
+                                id === 'detail-modal') {
+                                return true;
+                            }
+                            return false;
+                        }
+                    });
+
+                    // RESTAURAR ESTADO
+                    source.style.background = originalBackground;
+                    if (!includeAdvisors && advisorChartCard) {
+                        advisorChartCard.style.display = originalDisplay;
+                    }
+
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // LÓGICA DE AJUSTE A UNA SOLA PÁGINA
+                    // PDF A4 Vertical: 210mm x 297mm
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();   // 210
+                    const pdfHeight = pdf.internal.pageSize.getHeight(); // 297
+                    
+                    const imgWidth = canvas.width;
+                    const imgHeight = canvas.height;
+                    
+                    // Calcular el ratio para que quepa en el ancho
+                    const widthRatio = pdfWidth / imgWidth;
+                    
+                    // Altura que tendría la imagen al ajustarse al ancho
+                    const scaledHeight = imgHeight * widthRatio;
+                    
+                    // Si la altura escalada es mayor que la altura de la página, necesitamos reducir más
+                    // para que quepa verticalmente.
+                    let finalRatio = widthRatio;
+                    
+                    if (scaledHeight > pdfHeight) {
+                        // Calcular ratio basado en altura
+                        const heightRatio = pdfHeight / imgHeight;
+                        finalRatio = Math.min(widthRatio, heightRatio); // Usar el menor para que quepa todo
+                    }
+
+                    const finalImgWidth = imgWidth * finalRatio;
+                    const finalImgHeight = imgHeight * finalRatio;
+                    
+                    // Centrar si sobra espacio (opcional, aquí alineamos arriba-izquierda o centro)
+                    const xOffset = (pdfWidth - finalImgWidth) / 2;
+                    const yOffset = 0; // Pegado arriba
+
+                    pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalImgWidth, finalImgHeight);
+
+                    const fileName = `Reporte_${activeActionType || 'General'}_${new Date().toISOString().slice(0,10)}.pdf`;
+                    pdf.save(fileName);
+                    showMessage('PDF Descargado exitosamente.');
+
+                } catch (err) {
+                    console.error(err);
+                    showMessage('Error al generar PDF', true);
+                    // Restaurar visualización en caso de error
+                    source.style.background = originalBackground;
+                    if (!includeAdvisors && advisorChartCard) {
+                        advisorChartCard.style.display = originalDisplay;
+                    }
+                }
+            };
+
+            btnYes.addEventListener('click', () => generatePDF(true));
+            btnNo.addEventListener('click', () => generatePDF(false));
 
             fetchData();
         });
