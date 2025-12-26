@@ -487,7 +487,13 @@
                 const nombreIdx = findIdx(['nombre']);
                 const alumnoIdx = findIdx(['alumno', 'estudiante', 'nombre y apellido']);
 
-                const advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'N/A';
+                // -- LOGICA CORREGIDA ASESOR --
+                let advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'Sin Asignar';
+                if (!advisor || advisor.trim() === '') {
+                    advisor = 'Sin Asignar';
+                }
+                // -----------------------------
+
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
                 const career = careerIdx !== -1 ? Object.values(row)[careerIdx] : 'N/A';
                 const modalityRaw = modalityIdx !== -1 ? Object.values(row)[modalityIdx] : '';
@@ -680,7 +686,7 @@
                 const advisorSet = new Set();
 
                 data.forEach(row => {
-                    if (row.asesora !== 'N/A') {
+                    if (row.asesora) {
                         filters.asesora.add(row.asesora);
                         advisorSet.add(row.asesora);
                     }
