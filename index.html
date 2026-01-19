@@ -4,32 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Inscriptos</title>
-    <!-- Favicon solicitado -->
+    <!-- Favicon -->
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/5581/5581393.png" type="image/png">
     
-    <script type="text/javascript" src="https://gc.kes.v2.scr.kaspersky-labs.com/7EA5E9BB-55E1-4C31-9C21-4943DDFED2E4/main.js?attr=HLj9qQV7QLde4PWhI9Nd1v09hqNrsVJmJ556bm2a8ZdaHk_VS3t7F6yrLb5hY2fw5fucpPluhfJZfJjZSzIiHPVyIIMOWF10_kAVgKViGsQ" charset="UTF-8"></script>
-    
+    <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
     
-    <!-- LIBRERIA CONFETTI -->
+    <!-- Libreria Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- LIBRERIAS PARA GENERAR PDF -->
+    <!-- Librerias PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #1f2937;
+            overflow-x: hidden;
         }
         #main-container {
             background: linear-gradient(-45deg, rgba(238, 119, 82, 0.95), rgba(231, 60, 126, 0.95), rgba(35, 166, 213, 0.95), rgba(35, 213, 171, 0.95)),
@@ -288,8 +288,9 @@
                 </div>
             </div>
 
-            <!-- Filtros (Se ocultarán en PDF) -->
+            <!-- Filtros Generales -->
             <div id="filters-container" class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
+                <h4 class="text-xs uppercase font-bold text-white/50 mb-4 tracking-widest">Filtros Globales</h4>
                 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Desde</label><input type="date" id="filter-date-start" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
                     <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
@@ -303,7 +304,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN RANKING EMPRESAS (Visible en Pantalla) -->
+            <!-- SECCIÓN RANKING EMPRESAS -->
             <div id="empresas-ranking-section" class="hidden mb-8 glass-effect rounded-2xl p-6 shadow-lg">
                 <h3 class="text-2xl font-bold mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
                     <i class="fas fa-trophy text-yellow-400"></i> Inscriptos por empresa amiga:
@@ -330,7 +331,22 @@
                 <div id="card-asesora-chart" class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Asesora</h3><div class="chart-container"><canvas id="asesora-chart"></canvas></div></div>
                 <div class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Carrera</h3><div class="chart-container"><canvas id="carrera-chart"></canvas></div></div>
                 <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Modalidad</h3><div class="chart-container"><canvas id="modalidad-chart"></canvas></div></div>
-                <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Línea de Tiempo de Inscriptos (por Día)</h3><div class="chart-container"><canvas id="timeline-chart"></canvas></div></div>
+                
+                <!-- LÍNEA DE TIEMPO CON FILTROS PROPIOS -->
+                <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                        <h3 class="text-xl font-bold text-white/90">Línea de Tiempo de Inscriptos (por Día)</h3>
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <select id="timeline-filter-month" class="bg-black/40 text-white text-sm border border-white/20 rounded-lg px-3 py-1.5 focus:outline-none">
+                                <option value="todos">Todos los Meses</option>
+                            </select>
+                            <select id="timeline-filter-advisor" class="bg-black/40 text-white text-sm border border-white/20 rounded-lg px-3 py-1.5 focus:outline-none">
+                                <option value="todos">Todos los Vendedores</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container"><canvas id="timeline-chart"></canvas></div>
+                </div>
             </main>
         </div>
 
@@ -454,35 +470,51 @@
 
             const normalizeString = (str = '') => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
             const hexToRgba = (hex, alpha) => { 
-                let r=0, g=0, b=0; 
-                if(!hex) return `rgba(255,255,255,${alpha})`;
+                 let r=0, g=0, b=0; 
+                 if(!hex) return `rgba(255,255,255,${alpha})`;
                 if(hex.startsWith('#')) hex = hex.slice(1); 
-                if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; 
-                if(hex.length === 6){ r = parseInt(hex.substring(0,2), 16); g = parseInt(hex.substring(2,4), 16); b = parseInt(hex.substring(4,6), 16); } 
-                return `rgba(${r},${g},${b},${alpha})`; 
-            };
+                 if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; 
+                 if(hex.length === 6){ r = parseInt(hex.substring(0,2), 16); g = parseInt(hex.substring(2,4), 16); b = parseInt(hex.substring(4,6), 16); } 
+                 return `rgba(${r},${g},${b},${alpha})`; 
+             };
 
             const parseDate = (dateStr) => {
                 if (!dateStr) return null;
+                dateStr = dateStr.trim();
+                
                 if (dateStr.includes('/')) {
-                    const parts = dateStr.split('/');
+                    const parts = dateStr.split(' ')[0].split('/');
                     if (parts.length === 3) {
                         const d = parseInt(parts[0], 10);
                         const m = parseInt(parts[1], 10) - 1; 
                         const y = parseInt(parts[2], 10);
-                        const dateObj = new Date(y, m, d);
+                        const fullYear = y < 100 ? 2000 + y : y;
+                        const dateObj = new Date(fullYear, m, d);
                         if (!isNaN(dateObj.getTime())) return dateObj;
                     }
                 }
+                
                 const partsDe = dateStr.toLowerCase().split(' de ');
                 const monthMap = { 'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11 };
+                
                 if (partsDe.length >= 2) {
                     const day = parseInt(partsDe[0], 10);
                     const month = monthMap[partsDe[1].trim()];
-                    let year = new Date().getFullYear();
-                    if(partsDe.length === 3) year = parseInt(partsDe[2], 10);
+                    let year;
+                    
+                    if(partsDe.length === 3) {
+                        year = parseInt(partsDe[2], 10);
+                    } else {
+                        if (month >= 9) { 
+                            year = 2025;
+                        } else {
+                            year = 2026;
+                        }
+                    }
+
                     if (!isNaN(day) && month !== undefined) return new Date(year, month, day);
                 }
+                
                 const d = new Date(dateStr);
                 if (!isNaN(d.getTime())) return d;
                 return null;
@@ -506,12 +538,10 @@
                 const nombreIdx = findIdx(['nombre']);
                 const alumnoIdx = findIdx(['alumno', 'estudiante', 'nombre y apellido']);
 
-                // -- LOGICA CORREGIDA ASESOR --
                 let advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'Sin Asignar';
                 if (!advisor || advisor.trim() === '') {
                     advisor = 'Sin Asignar';
                 }
-                // -----------------------------
 
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
                 const career = careerIdx !== -1 ? Object.values(row)[careerIdx] : 'N/A';
@@ -714,6 +744,7 @@
                     if (row.modalidad !== 'No especificada') filters.modalidad.add(row.modalidad);
                 });
 
+                // Populate Global Filters
                 const objAdvisorSelect = document.getElementById('obj-advisor-filter');
                 if(objAdvisorSelect) {
                     objAdvisorSelect.innerHTML = '<option value="todos">Todos</option>';
@@ -724,7 +755,6 @@
                         objAdvisorSelect.appendChild(opt);
                     });
                 }
-
                 for (const key in filters) {
                     const select = document.getElementById(`filter-${key}`);
                     if (select) {
@@ -733,6 +763,57 @@
                         select.value = currentValue = currentFilters[key] || 'todos';
                     }
                 }
+
+                // Populate Timeline Specific Filters
+                const tlAdvisorSelect = document.getElementById('timeline-filter-advisor');
+                const tlMonthSelect = document.getElementById('timeline-filter-month');
+                
+                if (tlAdvisorSelect && tlMonthSelect) {
+                    tlAdvisorSelect.innerHTML = '<option value="todos">Todos los Vendedores</option>';
+                    tlMonthSelect.innerHTML = '<option value="todos">Todos los Meses</option>';
+                    
+                    [...filters.asesora].sort().forEach(adv => {
+                        const opt = document.createElement('option');
+                        opt.value = adv;
+                        opt.textContent = adv;
+                        tlAdvisorSelect.appendChild(opt);
+                    });
+                    
+                    [...filters.mes].sort().forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m;
+                        tlMonthSelect.appendChild(opt);
+                    });
+                }
+            };
+
+            // NEW FUNCTION: Specific Render for Timeline to handle its own filters
+            const renderTimelineSpecific = (data) => {
+                const tlAdvisor = document.getElementById('timeline-filter-advisor').value;
+                const tlMonth = document.getElementById('timeline-filter-month').value;
+
+                // Filter Data specifically for timeline
+                const tlData = data.filter(row => {
+                    const advMatch = tlAdvisor === 'todos' || row.asesora === tlAdvisor;
+                    const monthMatch = tlMonth === 'todos' || row.mes === tlMonth;
+                    return advMatch && monthMatch;
+                });
+
+                const timelineCounts = tlData.reduce((acc, row) => { 
+                    if (row.fecha) { 
+                        const dateString = row.fecha.toLocaleDateString('en-CA'); 
+                        acc[dateString] = (acc[dateString] || 0) + 1; 
+                    } 
+                    return acc; 
+                }, {});
+                
+                const sortedDates = Object.keys(timelineCounts).sort();
+                
+                // Colors Updated: Oct=Blue, Nov=Purple, Dec=Pink, Jan=Red, Feb=Orange, Mar=Yellow
+                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#ec4899', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
+                
+                updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24'], monthColors);
             };
 
             const applyFiltersAndRender = () => {
@@ -784,6 +865,7 @@
                 }
 
                 renderDashboard(activeData);
+                renderTimelineSpecific(fullData); // Initial call for timeline with full data (or filtered if preferred, but here independent)
             };
 
             const handleChartClick = (evt, elements, chartId, labels) => {
@@ -803,15 +885,26 @@
                 if (filterKey && filterSelectId) { const select = document.getElementById(filterSelectId); if (currentFilters[filterKey] === clickedLabel) { select.value = 'todos'; } else { select.value = clickedLabel; } applyFiltersAndRender(); }
             };
 
-            const updateChart = (chartId, type, labels, data, colors) => {
+            const updateChart = (chartId, type, labels, data, colors, segmentColors = null) => {
                 const canvasElement = document.getElementById(chartId); if (!canvasElement) return;
                 const ctx = canvasElement.getContext('2d'); if (chartInstances[chartId]) chartInstances[chartId].destroy();
                 const isTimeline = chartId === 'timeline-chart'; const isBar = type === 'bar'; const isPie = type === 'pie'; const total = data.reduce((a, b) => a + b, 0);
                 
-                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#ec4899', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
                 let segmentConfig = {};
-                if (isTimeline) {
-                    segmentConfig = { borderColor: ctx => { const p0 = ctx.p0; if (p0 && p0.parsed) { const dateStr = labels[p0.$context.dataIndex]; if (dateStr) { const month = dateStr.split('-')[1]; return monthColors[month] || '#fbbf24'; } } return '#fbbf24'; } };
+                if (isTimeline && segmentColors) {
+                    segmentConfig = { 
+                        borderColor: ctx => { 
+                            const p0 = ctx.p0; 
+                            if (p0 && p0.parsed) { 
+                                const dateStr = labels[p0.$context.dataIndex]; 
+                                if (dateStr) { 
+                                    const month = dateStr.split('-')[1]; 
+                                    return segmentColors[month] || '#fbbf24'; 
+                                } 
+                            } 
+                            return '#fbbf24'; 
+                        } 
+                    };
                 }
 
                 const datalabelsConfig = isTimeline ? {
@@ -834,8 +927,27 @@
                 
                 let datasetsConfig = [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }];
                 if (isTimeline) { 
-                    chartOptions.elements = { point: { radius: 6, hoverRadius: 8 } }; 
-                    datasetsConfig = [{ label: 'Inscriptos', data: data.map((count, index) => ({ x: labels[index], y: count })), borderWidth: 3, segment: segmentConfig, tension: 0.3, pointBackgroundColor: (ctx) => { const date = labels[ctx.dataIndex]; return DATE_TO_ICON[date] ? '#ef4444' : '#fbbf24'; }, pointRadius: (ctx) => { const date = labels[ctx.dataIndex]; return DATE_TO_ICON[date] ? 10 : 4; }, pointBorderColor: '#fff' }];
+                     chartOptions.elements = { point: { radius: 6, hoverRadius: 8 } }; 
+                     datasetsConfig = [{ 
+                        label: 'Inscriptos', 
+                        data: data.map((count, index) => ({ x: labels[index], y: count })), 
+                        borderWidth: 3, 
+                        segment: segmentConfig, 
+                        tension: 0.3, 
+                        pointBackgroundColor: (ctx) => { 
+                            const date = labels[ctx.dataIndex]; 
+                            if(segmentColors) {
+                                const m = date.split('-')[1];
+                                return segmentColors[m] || '#fbbf24';
+                            }
+                            return DATE_TO_ICON[date] ? '#ef4444' : '#fbbf24'; 
+                        }, 
+                        pointRadius: (ctx) => { 
+                            const date = labels[ctx.dataIndex]; 
+                            return DATE_TO_ICON[date] ? 10 : 4; 
+                        }, 
+                        pointBorderColor: '#fff' 
+                    }];
                 }
                 chartInstances[chartId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasetsConfig }, options: chartOptions });
             };
@@ -859,15 +971,14 @@
                 const asesoraCounts = data.reduce((acc, row) => { acc[row.asesora] = (acc[row.asesora] || 0) + 1; return acc; }, {});
                 const carreraCounts = data.reduce((acc, row) => { acc[row.carrera] = (acc[row.carrera] || 0) + 1; return acc; }, {});
                 const modalidadCounts = data.reduce((acc, row) => { acc[row.modalidad] = (acc[row.modalidad] || 0) + 1; return acc; }, {});
-                const timelineCounts = data.reduce((acc, row) => { if (row.fecha) { const dateString = row.fecha.toLocaleDateString('en-CA'); acc[dateString] = (acc[dateString] || 0) + 1; } return acc; }, {});
-                const sortedDates = Object.keys(timelineCounts).filter(d => d <= new Date().toLocaleDateString('en-CA')).sort();
+                
+                // NOTE: Timeline is now rendered by renderTimelineSpecific
                 
                 const selectedCareerCode = document.getElementById('filter-carrera').value;
                 let modalityColors;
                 if (selectedCareerCode !== 'todos' && careerData[selectedCareerCode]) { const baseColor = careerData[selectedCareerCode].color; modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': hexToRgba(baseColor, 1), 'Semipresencial': hexToRgba(baseColor, 0.7), 'A Distancia': hexToRgba(baseColor, 0.4) }[mod] || '#94a3b8')); } 
                 else { modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': '#fb923c', 'Semipresencial': '#4ade80', 'A Distancia': '#c084fc' }[mod] || '#94a3b8')); }
                 
-                updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24']);
                 updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
                 updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
                 updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), modalityColors);
@@ -884,12 +995,18 @@
 
                 let monthsToIterate = [];
                 if (selectedMonth !== 'todos') monthsToIterate = [selectedMonth];
-                else monthsToIterate = ['10', '11', '12'];
+                else monthsToIterate = ['10', '11', '12', '1']; // Se agrega Enero al default
 
                 let cardsGenerated = 0;
 
                 const now = new Date();
                 const currentMonthValue = now.getMonth() + 1;
+
+                // Helper para ordenar meses académicos (Octubre=0 ... Marzo=5)
+                const getAcademicYearOrder = (m) => {
+                    m = parseInt(m);
+                    return m >= 10 ? m - 10 : m + 2;
+                }
 
                 monthsToIterate.forEach(monthKey => {
                     const currentGoals = goalsConfig[monthKey];
@@ -918,8 +1035,8 @@
                         const percentage = Math.min(Math.round((actual / goal) * 100), 100);
                         const isMet = actual >= goal;
                         
-                        const isPastMonth = parseInt(monthKey) < currentMonthValue;
-                        const isCurrentMonth = parseInt(monthKey) === currentMonthValue;
+                        // CORRECCIÓN LOGICA DE AÑO: Usamos el orden académico para saber si es mes pasado
+                        const isPastMonth = getAcademicYearOrder(monthKey) < getAcademicYearOrder(currentMonthValue);
                         
                         let statusText = '';
                         let cardClass = 'goal-card-modern';
@@ -1082,9 +1199,9 @@
                 const validData = data.filter(row => !Object.values(row).some(value => value === '#N/A'));
                 if(validData.length === 0) { 
                       document.getElementById('error-info').classList.remove('hidden');
-                      const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h)); 
-                      fullData = MOCK_DATA.map(row => parseRow(row, headers)); 
-                } else {
+                      const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h));
+                      fullData = MOCK_DATA.map(row => parseRow(row, headers));
+                 } else {
                     document.getElementById('error-info').classList.add('hidden');
                     const headers = Object.keys(validData[0]).map(h => normalizeString(h));
                     fullData = validData.map(row => parseRow(row, headers));
@@ -1200,8 +1317,8 @@
             const currentMonthStr = String(new Date().getMonth() + 1);
             const monthSelect = document.getElementById('obj-month-filter');
             if(monthSelect.querySelector(`option[value="${currentMonthStr}"]`)){ 
-                monthSelect.value = currentMonthStr; 
-            }
+                 monthSelect.value = currentMonthStr; 
+             }
 
             document.getElementById('tab-general').addEventListener('click', () => switchView('general')); 
             document.getElementById('tab-objetivos').addEventListener('click', () => switchView('objetivos'));
@@ -1211,12 +1328,16 @@
             document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
             document.getElementById('obj-advisor-filter').addEventListener('change', renderObjectives);
             
+            // New Listeners for Timeline Filters
+            document.getElementById('timeline-filter-advisor').addEventListener('change', () => renderTimelineSpecific(fullData));
+            document.getElementById('timeline-filter-month').addEventListener('change', () => renderTimelineSpecific(fullData));
+
             document.getElementById('reset-filters-btn').addEventListener('click', () => { 
-                 ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos');
+                  ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); 
                  document.getElementById('filter-date-start').value = ''; 
-                document.getElementById('filter-date-end').value = ''; 
-                applyFiltersAndRender(); 
-            });
+                 document.getElementById('filter-date-end').value = ''; 
+                 applyFiltersAndRender(); 
+             });
             
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'].forEach(id => {
                 const el = document.getElementById(id);
@@ -1288,8 +1409,8 @@
                         ignoreElements: (element) => {
                             const id = element.id;
                             if (id === 'promo-nav-banner' || 
-                                id === 'action-buttons' || 
-                                id === 'main-nav-tabs' ||
+                                 id === 'action-buttons' || 
+                                 id === 'main-nav-tabs' ||
                                 id === 'message-container' ||
                                 id === 'filters-container' ||
                                 id === 'pdf-options-modal' ||
