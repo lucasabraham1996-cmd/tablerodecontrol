@@ -13,6 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
+    <!-- Plugin de Anotaciones para Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.1.0/chartjs-plugin-annotation.min.js"></script>
     
     <!-- Libreria Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -336,7 +338,7 @@
                 <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                         <h3 class="text-xl font-bold text-white/90">Línea de Tiempo de Inscriptos (por Día)</h3>
-                        <div class="flex flex-wrap gap-2 justify-end">
+                        <div class="flex flex-wrap gap-2 justify-end" id="timeline-filters-wrapper">
                             <select id="timeline-filter-month" class="bg-black/40 text-white text-sm border border-white/20 rounded-lg px-3 py-1.5 focus:outline-none">
                                 <option value="todos">Todos los Meses</option>
                             </select>
@@ -792,13 +794,33 @@
             const renderTimelineSpecific = (data) => {
                 const tlAdvisor = document.getElementById('timeline-filter-advisor').value;
                 const tlMonth = document.getElementById('timeline-filter-month').value;
+                const filtersWrapper = document.getElementById('timeline-filters-wrapper');
 
-                // Filter Data specifically for timeline
-                const tlData = data.filter(row => {
-                    const advMatch = tlAdvisor === 'todos' || row.asesora === tlAdvisor;
-                    const monthMatch = tlMonth === 'todos' || row.mes === tlMonth;
-                    return advMatch && monthMatch;
-                });
+                let tlData;
+                let isActionView = false;
+                
+                // ACTION VIEW LOGIC: If looking at an action detail, force filter by action dates
+                if (currentView === 'action-detail' && activeActionType && ACTION_DATES[activeActionType]) {
+                    isActionView = true;
+                    // Hide manual filters in action view to avoid confusion
+                    if(filtersWrapper) filtersWrapper.classList.add('hidden');
+                    
+                    const allowedDates = ACTION_DATES[activeActionType];
+                    tlData = data.filter(row => {
+                        if (!row.fecha) return false;
+                        const dateStr = row.fecha.toLocaleDateString('en-CA'); // YYYY-MM-DD
+                        return allowedDates.includes(dateStr);
+                    });
+                } else {
+                    // GENERAL VIEW LOGIC: Use manual filters
+                    if(filtersWrapper) filtersWrapper.classList.remove('hidden');
+                    
+                    tlData = data.filter(row => {
+                        const advMatch = tlAdvisor === 'todos' || row.asesora === tlAdvisor;
+                        const monthMatch = tlMonth === 'todos' || row.mes === tlMonth;
+                        return advMatch && monthMatch;
+                    });
+                }
 
                 const timelineCounts = tlData.reduce((acc, row) => { 
                     if (row.fecha) { 
@@ -810,10 +832,11 @@
                 
                 const sortedDates = Object.keys(timelineCounts).sort();
                 
-                // Colors Updated: Oct=Blue, Nov=Purple, Dec=TEAL (new), Jan=Red, Feb=Orange, Mar=Yellow
-                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#14b8a6', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
+                // Colors Updated: Oct=Blue, Nov=Purple, Dec=TEAL, Jan=FUCHSIA (new to avoid red clash), Feb=Orange, Mar=Yellow
+                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#14b8a6', '01': '#d946ef', '02': '#f97316', '03': '#eab308' };
                 
-                updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24'], monthColors);
+                // Pass !isActionView to show annotation only when NOT in action view
+                updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24'], monthColors, !isActionView);
             };
 
             const applyFiltersAndRender = () => {
@@ -885,7 +908,7 @@
                 if (filterKey && filterSelectId) { const select = document.getElementById(filterSelectId); if (currentFilters[filterKey] === clickedLabel) { select.value = 'todos'; } else { select.value = clickedLabel; } applyFiltersAndRender(); }
             };
 
-            const updateChart = (chartId, type, labels, data, colors, segmentColors = null) => {
+            const updateChart = (chartId, type, labels, data, colors, segmentColors = null, showRecessAnnotation = true) => {
                 const canvasElement = document.getElementById(chartId); if (!canvasElement) return;
                 const ctx = canvasElement.getContext('2d'); if (chartInstances[chartId]) chartInstances[chartId].destroy();
                 const isTimeline = chartId === 'timeline-chart'; const isBar = type === 'bar'; const isPie = type === 'pie'; const total = data.reduce((a, b) => a + b, 0);
@@ -930,7 +953,29 @@
                     plugins: { 
                         legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, 
                         datalabels: datalabelsConfig, 
-                        tooltip: { enabled: true } 
+                        tooltip: { enabled: true },
+                        annotation: (isTimeline && showRecessAnnotation) ? {
+                            annotations: {
+                                recesoBox: {
+                                    type: 'box',
+                                    xMin: new Date('2025-12-31').valueOf(), // Start Receso
+                                    xMax: new Date('2026-01-18').valueOf(), // End Receso
+                                    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red tint
+                                    borderColor: 'rgba(239, 68, 68, 0.3)',
+                                    borderWidth: 1,
+                                    label: {
+                                        content: 'RECESO',
+                                        display: true,
+                                        position: 'center',
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        font: {
+                                            size: 14,
+                                            weight: 'bold'
+                                        }
+                                    }
+                                }
+                            }
+                        } : {}
                     }, 
                     scales: (type === 'bar' || isTimeline) ? { 
                         y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, 
@@ -1099,7 +1144,7 @@
 
                         const html = `
                             <div class="${cardClass}" id="${cardId}" onclick="showAdvisorDetails('${advisorName}')">
-                                <div class="goal-glow" style="background: radial-gradient(circle, ${advisorColor}40 0%, transparent 70%);"></div>
+                                <div class="goal-glow" style="background: radial-gradient(circle, ${advisorColor}400%, transparent 70%);"></div>
                                 <div class="z-10 flex-1">
                                     <div class="flex justify-between items-start">
                                         <div>
