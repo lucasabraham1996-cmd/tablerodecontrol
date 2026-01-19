@@ -810,8 +810,8 @@
                 
                 const sortedDates = Object.keys(timelineCounts).sort();
                 
-                // Colors Updated: Oct=Blue, Nov=Purple, Dec=Pink, Jan=Red, Feb=Orange, Mar=Yellow
-                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#ec4899', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
+                // Colors Updated: Oct=Blue, Nov=Purple, Dec=TEAL (new), Jan=Red, Feb=Orange, Mar=Yellow
+                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#14b8a6', '01': '#ef4444', '02': '#f97316', '03': '#eab308' };
                 
                 updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24'], monthColors);
             };
@@ -923,7 +923,39 @@
                     }
                 };
 
-                const chartOptions = { onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels), responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, datalabels: datalabelsConfig, tooltip: { enabled: true } }, scales: (type === 'bar' || isTimeline) ? { y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, x: isTimeline ? { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd\nMMM' }, tooltipFormat: 'dd/MM/yyyy' }, ticks: { color: '#fff', source: 'data', autoSkip: false, maxRotation: 90 }, grid: { color: '#ffffff20' } } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } } : {} };
+                const chartOptions = { 
+                    onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels), 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, 
+                        datalabels: datalabelsConfig, 
+                        tooltip: { enabled: true } 
+                    }, 
+                    scales: (type === 'bar' || isTimeline) ? { 
+                        y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, 
+                        x: isTimeline ? { 
+                            type: 'time', 
+                            time: { 
+                                unit: 'day', 
+                                tooltipFormat: 'dd/MM/yyyy' 
+                            }, 
+                            ticks: { 
+                                color: '#fff', 
+                                source: 'data', 
+                                autoSkip: false, 
+                                maxRotation: 90,
+                                callback: function(value, index, values) {
+                                    const d = new Date(value);
+                                    const day = d.toLocaleDateString('es-ES', { day: 'numeric' });
+                                    const month = d.toLocaleDateString('es-ES', { month: 'short' });
+                                    return [day, month.toUpperCase()];
+                                }
+                            }, 
+                            grid: { color: '#ffffff20' } 
+                        } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } 
+                    } : {} 
+                };
                 
                 let datasetsConfig = [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }];
                 if (isTimeline) { 
