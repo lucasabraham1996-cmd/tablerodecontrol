@@ -396,6 +396,10 @@
                 <h3 id="modal-date-title" class="text-2xl font-bold text-white">Detalle</h3>
                 <button id="close-modal-btn" class="text-white/70 hover:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
+            <div id="modal-promo-banner" class="hidden mb-4 p-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg flex items-center gap-3">
+               <i class="fas fa-bullhorn text-yellow-400 text-xl"></i>
+               <span id="modal-promo-text" class="font-bold text-yellow-100"></span>
+            </div>
             <div id="modal-content" class="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar space-y-4"></div>
         </div>
     </div>
@@ -422,6 +426,7 @@
         let currentView = 'general';
         let activeActionType = null;
         let objectiveChartInstances = [];
+        let timelineHoveredIndex = -1; // To track hovered index in timeline
 
         document.addEventListener('DOMContentLoaded', () => {
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?output=csv';
@@ -431,6 +436,13 @@
                 'empresas': ['2025-12-11', '2025-12-12'],
                 'navidad': ['2025-12-22', '2025-12-23'],
                 'carnaval': ['2026-02-25', '2026-02-26', '2026-02-27']
+            };
+            
+            const ACTION_NAMES = {
+                'remarketing': 'Remarketing Noviembre',
+                'empresas': 'Días Empresas Amigas',
+                'navidad': 'Descuento Navideño',
+                'carnaval': 'Descuento Carnaval'
             };
 
             const DATE_TO_ICON = {
@@ -681,6 +693,8 @@
 
                 const modalTitle = document.getElementById('modal-date-title'); 
                 const modalContent = document.getElementById('modal-content');
+                const modalPromoBanner = document.getElementById('modal-promo-banner');
+                modalPromoBanner.classList.add('hidden'); // Reset for advisor view
                 
                 const dateForMonth = new Date(new Date().getFullYear(), targetMonthIndex, 1);
                 const monthName = dateForMonth.toLocaleString('es-ES', { month: 'long' });
@@ -723,9 +737,31 @@
             const showDayDetails = (dateString, dayData) => {
                 const modalTitle = document.getElementById('modal-date-title'); 
                 const modalContent = document.getElementById('modal-content');
+                const modalPromoBanner = document.getElementById('modal-promo-banner');
+                const modalPromoText = document.getElementById('modal-promo-text');
+                
                 const [year, month, day] = dateString.split('-').map(Number); 
                 const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1); modalContent.innerHTML = '';
+                
+                // --- PROMO LOGIC FOR MODAL ---
+                const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                let foundPromo = null;
+                for (const [key, dates] of Object.entries(ACTION_DATES)) {
+                    if (dates.includes(dateKey)) {
+                        foundPromo = ACTION_NAMES[key] || key.toUpperCase();
+                        break;
+                    }
+                }
+
+                if (foundPromo) {
+                    modalPromoText.textContent = `Día de Promoción: ${foundPromo}`;
+                    modalPromoBanner.classList.remove('hidden');
+                } else {
+                    modalPromoBanner.classList.add('hidden');
+                }
+                // -----------------------------
+
                 if (dayData.length === 0) { modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>'; } else {
                     const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
                     Object.keys(grouped).sort().forEach(carrera => { const careerColor = careerData[carrera] ? careerData[carrera].color : '#ffffff'; const modalities = grouped[carrera]; const totalCareer = Object.values(modalities).reduce((a, b) => a + b, 0); let html = `<div class="bg-white/5 rounded-xl p-4 border border-white/10"><div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2"><h4 class="font-bold text-lg" style="color: ${careerColor}">${careerData[carrera]?.name || carrera} (${carrera})</h4><span class="bg-white/20 px-2 py-1 rounded text-sm font-bold">${totalCareer}</span></div><ul class="space-y-2">`; Object.keys(modalities).forEach(mod => { html += `<li class="flex justify-between text-sm text-white/80 pl-2 border-l-2 border-white/20"><span>${mod}</span><span class="font-semibold text-white">${modalities[mod]}</span></li>`; }); html += `</ul></div>`; modalContent.insertAdjacentHTML('beforeend', html); });
@@ -908,6 +944,13 @@
                 if (filterKey && filterSelectId) { const select = document.getElementById(filterSelectId); if (currentFilters[filterKey] === clickedLabel) { select.value = 'todos'; } else { select.value = clickedLabel; } applyFiltersAndRender(); }
             };
 
+            const createGradient = (ctx, chartArea, color) => {
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, hexToRgba(color, 0.4));
+                gradient.addColorStop(1, hexToRgba(color, 0.9));
+                return gradient;
+            };
+
             const updateChart = (chartId, type, labels, data, colors, segmentColors = null, showRecessAnnotation = true) => {
                 const canvasElement = document.getElementById(chartId); if (!canvasElement) return;
                 const ctx = canvasElement.getContext('2d'); if (chartInstances[chartId]) chartInstances[chartId].destroy();
@@ -930,6 +973,30 @@
                     };
                 }
 
+                // Custom Plugin for X-Axis Circles (Timeline only)
+                const xTickCirclePlugin = {
+                    id: 'xTickCircle',
+                    afterDraw: (chart) => {
+                        if (chart.config.type !== 'line') return;
+                        const ctx = chart.ctx;
+                        const xAxis = chart.scales.x;
+                        
+                        xAxis.ticks.forEach((value, index) => {
+                            const x = xAxis.getPixelForTick(index);
+                            // Only draw if there's data for this tick (simplification)
+                            if (x) {
+                                const y = xAxis.bottom - 15; // Approximate center of tick label area
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.arc(x, y, 14, 0, 2 * Math.PI);
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                        });
+                    }
+                };
+
                 const datalabelsConfig = isTimeline ? {
                     display: (context) => {
                         const date = context.chart.data.labels[context.dataIndex];
@@ -947,30 +1014,51 @@
                 };
 
                 const chartOptions = { 
-                    onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels), 
+                    onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
+                    onHover: (event, elements, chart) => {
+                        if (chart.config.type !== 'line') return;
+                        const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, true);
+                        const previousIndex = timelineHoveredIndex;
+                        
+                        if (points.length) {
+                            timelineHoveredIndex = points[0].index;
+                        } else {
+                            timelineHoveredIndex = -1;
+                        }
+                        
+                        if (previousIndex !== timelineHoveredIndex) {
+                            chart.update('none');
+                        }
+                    }, 
                     responsive: true, 
                     maintainAspectRatio: false, 
                     plugins: { 
                         legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, 
                         datalabels: datalabelsConfig, 
-                        tooltip: { enabled: true },
+                        tooltip: { 
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Inscriptos: ${context.raw.y || context.raw}`;
+                                }
+                            }
+                        },
                         annotation: (isTimeline && showRecessAnnotation) ? {
                             annotations: {
                                 recesoBox: {
                                     type: 'box',
                                     xMin: new Date('2025-12-31').valueOf(), // Start Receso
                                     xMax: new Date('2026-01-18').valueOf(), // End Receso
-                                    backgroundColor: 'rgba(239, 68, 68, 0.15)', // Red tint
-                                    borderColor: 'rgba(239, 68, 68, 0.3)',
-                                    borderWidth: 1,
+                                    backgroundColor: 'rgba(239, 68, 68, 0.03)', // Even more subtle red tint
+                                    borderWidth: 0,
                                     label: {
                                         content: 'RECESO',
                                         display: true,
                                         position: 'center',
-                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        color: 'rgba(255, 255, 255, 0.4)',
                                         font: {
-                                            size: 14,
-                                            weight: 'bold'
+                                            size: 10,
+                                            weight: 'normal'
                                         }
                                     }
                                 }
@@ -978,7 +1066,11 @@
                         } : {}
                     }, 
                     scales: (type === 'bar' || isTimeline) ? { 
-                        y: { ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, grid: { color: '#ffffff20' } }, 
+                        y: { 
+                            ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, 
+                            grid: { color: '#ffffff20' },
+                            grace: isTimeline ? '15%' : '0%' // Add headroom for icons on timeline
+                        }, 
                         x: isTimeline ? { 
                             type: 'time', 
                             time: { 
@@ -986,7 +1078,18 @@
                                 tooltipFormat: 'dd/MM/yyyy' 
                             }, 
                             ticks: { 
-                                color: '#fff', 
+                                color: (context) => {
+                                     if (context.index === timelineHoveredIndex) {
+                                        return '#fff';
+                                    }
+                                    return '#ffffff80';
+                                },
+                                font: (context) => {
+                                    if (context.index === timelineHoveredIndex) {
+                                        return { size: 16, weight: 'bold' };
+                                    }
+                                    return { size: 12 };
+                                }, 
                                 source: 'data', 
                                 autoSkip: false, 
                                 maxRotation: 90,
@@ -1002,7 +1105,8 @@
                     } : {} 
                 };
                 
-                let datasetsConfig = [{ label: isTimeline ? 'Inscriptos por Día' : 'Inscriptos', data: isTimeline ? data.map((count, index) => ({ x: labels[index], y: count })) : data, backgroundColor: isTimeline ? colors[0] : colors, borderColor: isTimeline ? colors[0] : '#ffffff50', borderWidth: isTimeline ? 2 : 1, tension: 0.1 }];
+                let datasetsConfig;
+                
                 if (isTimeline) { 
                      chartOptions.elements = { point: { radius: 6, hoverRadius: 8 } }; 
                      datasetsConfig = [{ 
@@ -1025,8 +1129,35 @@
                         }, 
                         pointBorderColor: '#fff' 
                     }];
+                } else {
+                    // For Bar and Pie charts, apply gradients
+                    datasetsConfig = [{ 
+                        label: 'Inscriptos', 
+                        data: data, 
+                        backgroundColor: (context) => {
+                            const { ctx, chartArea } = context.chart;
+                            if (!chartArea) return null;
+                            // Logic to map index to color, then apply gradient
+                            const colorIndex = context.dataIndex;
+                            let baseColor;
+                            if (Array.isArray(colors)) {
+                                baseColor = colors[colorIndex % colors.length];
+                            } else {
+                                baseColor = colors;
+                            }
+                            return createGradient(ctx, chartArea, baseColor);
+                        },
+                        borderColor: '#ffffff50', 
+                        borderWidth: 1 
+                    }];
                 }
-                chartInstances[chartId] = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasetsConfig }, options: chartOptions });
+
+                chartInstances[chartId] = new Chart(ctx, { 
+                    type: type, 
+                    data: { labels: labels, datasets: datasetsConfig }, 
+                    options: chartOptions,
+                    plugins: isTimeline ? [xTickCirclePlugin] : [] 
+                });
             };
 
             const renderDashboard = (data) => {
