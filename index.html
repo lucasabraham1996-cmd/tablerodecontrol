@@ -364,6 +364,7 @@
                         <option value="11">Noviembre</option>
                         <option value="12">Diciembre</option>
                         <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
                     </select>
                 </div>
                 <!-- Filtro Vendedor (Nuevo) -->
@@ -435,31 +436,35 @@
                 'remarketing': ['2025-11-26', '2025-11-27', '2025-11-28'],
                 'empresas': ['2025-12-11', '2025-12-12'],
                 'navidad': ['2025-12-22', '2025-12-23'],
-                'carnaval': ['2026-02-25', '2026-02-26', '2026-02-27']
+                'carnaval': ['2026-02-25', '2026-02-26', '2026-02-27'],
+                'oferton': ['2026-03-09', '2026-03-10', '2026-03-11', '2026-03-12', '2026-03-13']
             };
             
             const ACTION_NAMES = {
                 'remarketing': 'Remarketing Noviembre',
                 'empresas': 'Días Empresas Amigas',
                 'navidad': 'Descuento Navideño',
-                'carnaval': 'Descuento Carnaval'
+                'carnaval': 'Descuento Carnaval',
+                'oferton': 'Ofertón Marzo'
             };
 
             const DATE_TO_ICON = {
                 '2025-11-26': '\uf0a1', '2025-11-27': '\uf0a1', '2025-11-28': '\uf0a1',
                 '2025-12-11': '\uf2b5', '2025-12-12': '\uf2b5',
                 '2025-12-22': '\uf06b', '2025-12-23': '\uf06b',
-                '2026-02-25': '\ue630', '2026-02-26': '\ue630', '2026-02-27': '\ue630'
+                '2026-02-25': '\ue630', '2026-02-26': '\ue630', '2026-02-27': '\ue630',
+                '2026-03-09': '\uf011', '2026-03-10': '\uf011', '2026-03-11': '\uf011', '2026-03-12': '\uf011', '2026-03-13': '\uf011'
             };
 
             const goalsConfig = {
                 '10': { 'Belen': 18, 'Kiara': 18 },
                 '11': { 'Belen': 65, 'Kiara': 65, 'Jeremias': 30, 'Laura': 30 },
                 '12': { 'Belen': 75, 'Kiara': 75, 'Jeremias': 75, 'Laura': 75 },
-                '1': { 'Belen': 40, 'Kiara': 40, 'Jeremias': 40, 'Laura': 40 }
+                '1': { 'Belen': 40, 'Kiara': 40, 'Jeremias': 40, 'Laura': 40 },
+                '2': { 'Belen': 100, 'Kiara': 100, 'Jeremias': 100, 'Laura': 100 }
             };
 
-            const monthNames = { '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre', '1': 'Enero' };
+            const monthNames = { '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre', '1': 'Enero', '2': 'Febrero' };
 
             const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
             const asesoraData = { 'Kiara': { color: '#c084fc' }, 'Belen': { color: '#fbbf24' }, 'Laura': { color: '#bef264' }, 'Jeremias': { color: '#fca5a5' }, 'Jeremías': { color: '#fca5a5' } };
@@ -476,23 +481,23 @@
 
             Chart.register(ChartDataLabels);
 
-            const showMessage = (msg, isError = false) => {
+            function showMessage(msg, isError = false) {
                 const container = document.getElementById('message-container');
                 container.innerHTML = `<div class="${isError ? 'bg-red-500/90' : 'bg-green-500/90'} text-white px-6 py-3 rounded-lg shadow-xl backdrop-blur-md border border-white/20 transition-all duration-500 transform translate-y-0">${msg}</div>`;
                 setTimeout(() => { container.innerHTML = ''; }, 4000);
-            };
+            }
 
-            const normalizeString = (str = '') => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-            const hexToRgba = (hex, alpha) => { 
+            function normalizeString(str = '') { return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
+            function hexToRgba(hex, alpha) { 
                  let r=0, g=0, b=0; 
                  if(!hex) return `rgba(255,255,255,${alpha})`;
                 if(hex.startsWith('#')) hex = hex.slice(1); 
                  if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; 
                  if(hex.length === 6){ r = parseInt(hex.substring(0,2), 16); g = parseInt(hex.substring(2,4), 16); b = parseInt(hex.substring(4,6), 16); } 
                  return `rgba(${r},${g},${b},${alpha})`; 
-             };
+             }
 
-            const parseDate = (dateStr) => {
+            function parseDate(dateStr) {
                 if (!dateStr) return null;
                 dateStr = dateStr.trim();
                 
@@ -532,9 +537,9 @@
                 const d = new Date(dateStr);
                 if (!isNaN(d.getTime())) return d;
                 return null;
-            };
+            }
 
-            const parseRow = (row, headers) => {
+            function parseRow(row, headers) {
                 const findIdx = (terms) => headers.findIndex(h => terms.some(t => h.includes(t)));
                 const advisorIdx = findIdx(['asesora', 'vendedora']); 
                 const timestampIdx = findIdx(['marca temporal', 'fecha']);
@@ -546,6 +551,7 @@
                 const empresasIdx = 9; 
                 const navidadIdx = 10; 
                 const carnavalIdx = 11; 
+                const ofertonIdx = 12; // Column M (13th column, index 12)
 
                 const matriculaIdx = findIdx(['matricula', 'legajo', 'dni', 'documento']);
                 const apellidoIdx = findIdx(['apellido']);
@@ -579,6 +585,9 @@
 
                 const navidadVal = vals[navidadIdx] || '';
                 const carnavalVal = vals[carnavalIdx] || '';
+                
+                // Specific logic for Ofertón: Column M (Index 12)
+                const ofertonVal = vals[ofertonIdx] || ''; 
 
                 const dateObject = parseDate(timestamp);
                 let monthName = 'Desconocido';
@@ -593,6 +602,7 @@
                 const isRemarketing = remarketingVal && remarketingVal.toLowerCase().includes('x');
                 const isNavidad = navidadVal && navidadVal.toLowerCase().includes('x');
                 const isCarnaval = carnavalVal && carnavalVal.toLowerCase().includes('x');
+                const isOferton = ofertonVal && ofertonVal.toLowerCase().includes('x');
 
                 return { 
                     asesora: advisor, 
@@ -607,11 +617,12 @@
                     isEmpresas, 
                     empresaNombre, 
                     isNavidad, 
-                    isCarnaval 
+                    isCarnaval,
+                    isOferton
                 };
-            };
+            }
 
-            const renderEmpresasTable = (data) => {
+            function renderEmpresasTable(data) {
                 const tbody = document.getElementById('empresas-ranking-body');
                 tbody.innerHTML = '';
                 
@@ -656,9 +667,9 @@
                     `;
                     tbody.insertAdjacentHTML('beforeend', rowHtml);
                 });
-            };
+            }
 
-            const openModal = () => { 
+            function openModal() { 
                 const modal = document.getElementById('detail-modal');
                 modal.classList.remove('hidden'); 
                 requestAnimationFrame(() => {
@@ -666,15 +677,15 @@
                     modal.firstElementChild.classList.remove('scale-95'); 
                     modal.firstElementChild.classList.add('scale-100'); 
                 });
-            };
+            }
             
-            const closeModal = () => { 
+            function closeModal() { 
                 const modal = document.getElementById('detail-modal');
                 modal.classList.add('opacity-0'); 
                 modal.firstElementChild.classList.remove('scale-100'); 
                 modal.firstElementChild.classList.add('scale-100'); 
                 setTimeout(() => modal.classList.add('hidden'), 300); 
-            };
+            }
 
             window.showAdvisorDetails = (advisorName) => {
                 const selectedMonth = document.getElementById('obj-month-filter').value;
@@ -734,7 +745,7 @@
                 openModal();
             };
 
-            const showDayDetails = (dateString, dayData) => {
+            function showDayDetails(dateString, dayData) {
                 const modalTitle = document.getElementById('modal-date-title'); 
                 const modalContent = document.getElementById('modal-content');
                 const modalPromoBanner = document.getElementById('modal-promo-banner');
@@ -766,9 +777,9 @@
                     const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
                     Object.keys(grouped).sort().forEach(carrera => { const careerColor = careerData[carrera] ? careerData[carrera].color : '#ffffff'; const modalities = grouped[carrera]; const totalCareer = Object.values(modalities).reduce((a, b) => a + b, 0); let html = `<div class="bg-white/5 rounded-xl p-4 border border-white/10"><div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2"><h4 class="font-bold text-lg" style="color: ${careerColor}">${careerData[carrera]?.name || carrera} (${carrera})</h4><span class="bg-white/20 px-2 py-1 rounded text-sm font-bold">${totalCareer}</span></div><ul class="space-y-2">`; Object.keys(modalities).forEach(mod => { html += `<li class="flex justify-between text-sm text-white/80 pl-2 border-l-2 border-white/20"><span>${mod}</span><span class="font-semibold text-white">${modalities[mod]}</span></li>`; }); html += `</ul></div>`; modalContent.insertAdjacentHTML('beforeend', html); });
                 } openModal();
-            };
+            }
 
-            const populateFilters = (data) => {
+            function populateFilters(data) {
                 const filters = { asesora: new Set(), mes: new Set(), carrera: new Set(), modalidad: new Set() };
                 const advisorSet = new Set();
 
@@ -824,10 +835,10 @@
                         tlMonthSelect.appendChild(opt);
                     });
                 }
-            };
+            }
 
             // NEW FUNCTION: Specific Render for Timeline to handle its own filters
-            const renderTimelineSpecific = (data) => {
+            function renderTimelineSpecific(data) {
                 const tlAdvisor = document.getElementById('timeline-filter-advisor').value;
                 const tlMonth = document.getElementById('timeline-filter-month').value;
                 const filtersWrapper = document.getElementById('timeline-filters-wrapper');
@@ -868,14 +879,14 @@
                 
                 const sortedDates = Object.keys(timelineCounts).sort();
                 
-                // Colors Updated: Oct=Blue, Nov=Purple, Dec=TEAL, Jan=FUCHSIA (new to avoid red clash), Feb=Orange, Mar=Yellow
+                // Colors Updated: Oct=Blue, Nov=Purple, Dec=TEAL, Jan=FUCHSIA, Feb=Orange, Mar=Yellow (OFERTÓN Month)
                 const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#14b8a6', '01': '#d946ef', '02': '#f97316', '03': '#eab308' };
                 
                 // Pass !isActionView to show annotation only when NOT in action view
                 updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24'], monthColors, !isActionView);
-            };
+            }
 
-            const applyFiltersAndRender = () => {
+            function applyFiltersAndRender() {
                 const filterAsesora = document.getElementById('filter-asesora');
                 const filterMes = document.getElementById('filter-mes');
                 const filterCarrera = document.getElementById('filter-carrera');
@@ -897,7 +908,7 @@
                 const endStr = filterDateEnd.value;
                 let startDate = null, endDate = null;
                 if (startStr) { const [sy, sm, sd] = startStr.split('-').map(Number); startDate = new Date(sy, sm - 1, sd); startDate.setHours(0, 0, 0, 0); }
-                if (endStr) { const [ey, em, ed] = endStr.split('-').map(Number); endDate = new Date(ey, em - 1, ed); endDate.setHours(23, 59, 59, 999); }
+                if (endStr) { const [ey, em, ed] = endStr.split('-').map(Number); endDate = new Date(ey, em - 1, ed); endDate.setHours(23, 59, 59, 99); }
                 
                 const activeData = fullData.filter(row => {
                     let viewMatch = true;
@@ -906,6 +917,7 @@
                         else if (activeActionType === 'empresas') viewMatch = row.isEmpresas;
                         else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
                         else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
+                        else if (activeActionType === 'oferton') viewMatch = row.isOferton;
                     }
                     const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
                     let dateMatch = true;
@@ -925,9 +937,9 @@
 
                 renderDashboard(activeData);
                 renderTimelineSpecific(fullData); // Initial call for timeline with full data (or filtered if preferred, but here independent)
-            };
+            }
 
-            const handleChartClick = (evt, elements, chartId, labels) => {
+            function handleChartClick(evt, elements, chartId, labels) {
                 if (elements.length === 0) return;
                 const index = elements[0].index;
                 const clickedLabel = labels[index];
@@ -942,18 +954,27 @@
                 else if (chartId === 'carrera-chart') { filterKey = 'carrera'; filterSelectId = 'filter-carrera'; }
                 else if (chartId === 'modalidad-chart') { filterKey = 'modalidad'; filterSelectId = 'filter-modalidad'; }
                 if (filterKey && filterSelectId) { const select = document.getElementById(filterSelectId); if (currentFilters[filterKey] === clickedLabel) { select.value = 'todos'; } else { select.value = clickedLabel; } applyFiltersAndRender(); }
-            };
+            }
 
-            const createGradient = (ctx, chartArea, color) => {
+            function createGradient(ctx, chartArea, color) {
+                if (!ctx || !chartArea) return color; // SAFETY CHECK
                 const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
                 gradient.addColorStop(0, hexToRgba(color, 0.4));
                 gradient.addColorStop(1, hexToRgba(color, 0.9));
                 return gradient;
-            };
+            }
 
-            const updateChart = (chartId, type, labels, data, colors, segmentColors = null, showRecessAnnotation = true) => {
-                const canvasElement = document.getElementById(chartId); if (!canvasElement) return;
-                const ctx = canvasElement.getContext('2d'); if (chartInstances[chartId]) chartInstances[chartId].destroy();
+            function updateChart(chartId, type, labels, data, colors, segmentColors = null, showRecessAnnotation = true) {
+                const canvasElement = document.getElementById(chartId);
+                if (!canvasElement) return;
+                
+                const ctx = canvasElement.getContext('2d');
+                if (!ctx) return; // SAFETY CHECK
+                
+                if (chartInstances[chartId]) {
+                    chartInstances[chartId].destroy();
+                }
+                
                 const isTimeline = chartId === 'timeline-chart'; const isBar = type === 'bar'; const isPie = type === 'pie'; const total = data.reduce((a, b) => a + b, 0);
                 
                 let segmentConfig = {};
@@ -979,7 +1000,9 @@
                     afterDraw: (chart) => {
                         if (chart.config.type !== 'line') return;
                         const ctx = chart.ctx;
+                        if (!ctx) return; // SAFETY CHECK
                         const xAxis = chart.scales.x;
+                        if (!xAxis) return; // SAFETY CHECK
                         
                         xAxis.ticks.forEach((value, index) => {
                             const x = xAxis.getPixelForTick(index);
@@ -1117,9 +1140,14 @@
                         tension: 0.3, 
                         pointBackgroundColor: (ctx) => { 
                             const date = labels[ctx.dataIndex]; 
+                            if (!date) return '#fbbf24';
+                            
                             if(segmentColors) {
-                                const m = date.split('-')[1];
-                                return segmentColors[m] || '#fbbf24';
+                                const parts = date.split('-');
+                                if (parts.length >= 2) {
+                                    const m = parts[1];
+                                    return segmentColors[m] || '#fbbf24';
+                                }
                             }
                             return DATE_TO_ICON[date] ? '#ef4444' : '#fbbf24'; 
                         }, 
@@ -1158,9 +1186,9 @@
                     options: chartOptions,
                     plugins: isTimeline ? [xTickCirclePlugin] : [] 
                 });
-            };
+            }
 
-            const renderDashboard = (data) => {
+            function renderDashboard(data) {
                 document.getElementById('total-inscriptos').textContent = data.length;
                 
                 // NEW: Update General Goal Bar
@@ -1190,9 +1218,9 @@
                 updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
                 updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
                 updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), modalityColors);
-            };
+            }
 
-            const renderObjectives = () => {
+            function renderObjectives() {
                 const container = document.getElementById('objetivos-container');
                 const selectedMonth = document.getElementById('obj-month-filter').value;
                 const selectedAdvisor = document.getElementById('obj-advisor-filter').value;
@@ -1328,26 +1356,35 @@
                 if (cardsGenerated === 0) {
                     container.innerHTML = '<p class="text-white text-center col-span-2 text-xl opacity-50 py-10">No se encontraron objetivos para los filtros seleccionados.</p>';
                 }
-            };
+            }
 
-            const renderActions = () => {
+            function renderActions() {
                 const container = document.getElementById('acciones-grid');
                 container.innerHTML = '';
 
                 const hasEmpresasData = fullData.some(r => r.isEmpresas);
                 const hasNavidadData = fullData.some(r => r.isNavidad);
                 const hasCarnavalData = fullData.some(r => r.isCarnaval);
+                const hasOfertonData = fullData.some(r => r.isOferton);
 
                 const remarketingCount = fullData.filter(r => r.isRemarketing).length;
                 const empresasCount = fullData.filter(r => r.isEmpresas).length;
                 const navidadCount = fullData.filter(r => r.isNavidad).length;
                 const carnavalCount = fullData.filter(r => r.isCarnaval).length;
+                const ofertonCount = fullData.filter(r => r.isOferton).length;
                 
+                // 1. Remarketing
                 const remarketingCard = `
                 <div class="glass-effect rounded-2xl p-8 card-hover flex flex-col items-center text-center h-full relative overflow-hidden group" onclick="openPromotion('remarketing')">
                     <div class="count-badge">${remarketingCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-bullhorn text-9xl text-white"></i></div>
-                    <div class="bg-gradient-to-br from-orange-400 to-red-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-bullhorn text-3xl text-white"></i></div>
+                    <!-- Background Icon Faded -->
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <img src="https://i.postimg.cc/ZKLBGff6/Remarketing.png" class="w-32 h-32 object-contain grayscale">
+                    </div>
+                    
+                    <!-- Main Icon -->
+                    <img src="https://i.postimg.cc/ZKLBGff6/Remarketing.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
+                    
                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Remarketing</h3>
                     <p class="text-white/70 mb-6 z-10">Noviembre 2025</p>
                     <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 26, 27 y 28 de noviembre.</p>
@@ -1355,14 +1392,17 @@
                 </div>`;
                 container.insertAdjacentHTML('beforeend', remarketingCard);
 
+                // 2. Empresas
                 const empresasClass = hasEmpresasData ? 'card-hover' : 'card-locked';
                 const empresasClick = hasEmpresasData ? "onclick=\"openPromotion('empresas')\"" : '';
                 const empresasBtn = hasEmpresasData ? 'Ver Detalles' : 'Bloqueado';
                 const empresasCard = `
                 <div class="glass-effect rounded-2xl p-8 ${empresasClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${empresasClick}>
                     <div class="count-badge">${empresasCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-handshake text-9xl text-white"></i></div>
-                    <div class="bg-gradient-to-br from-blue-400 to-indigo-600 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-handshake text-3xl text-white"></i></div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                         <img src="https://i.postimg.cc/dt9kbWWQ/Empresa-amiga.png" class="w-32 h-32 object-contain grayscale">
+                    </div>
+                    <img src="https://i.postimg.cc/dt9kbWWQ/Empresa-amiga.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Días Empresas Amigas</h3>
                     <p class="text-white/70 mb-6 z-10">11 y 12 Diciembre</p>
                     <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 11 y 12 de diciembre.</p>
@@ -1370,16 +1410,17 @@
                 </div>`;
                 container.insertAdjacentHTML('beforeend', empresasCard);
 
+                // 3. Navidad
                 const navidadClass = hasNavidadData ? 'card-hover' : 'card-locked';
                 const navidadClick = hasNavidadData ? "onclick=\"openPromotion('navidad')\"" : '';
                 const navidadBtn = hasNavidadData ? 'Ver Detalles' : 'Bloqueado';
-                
-                // CAMBIO: Fondo degradado verde
                 const navidadCard = `
                 <div class="glass-effect rounded-2xl p-8 ${navidadClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${navidadClick}>
                     <div class="count-badge">${navidadCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-tree text-9xl text-white"></i></div>
-                    <div class="bg-gradient-to-br from-green-500 to-emerald-700 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10 border-2 border-white/20"><i class="fas fa-tree text-3xl text-white"></i></div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <img src="https://i.postimg.cc/8PbJ2yyh/Navidad.png" class="w-32 h-32 object-contain grayscale">
+                    </div>
+                    <img src="https://i.postimg.cc/8PbJ2yyh/Navidad.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Navideño</h3>
                     <p class="text-white/70 mb-6 z-10">22 y 23 Diciembre</p>
                     <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 22 y 23 de diciembre.</p>
@@ -1387,23 +1428,44 @@
                 </div>`;
                 container.insertAdjacentHTML('beforeend', navidadCard);
 
+                 // 4. Carnaval
                  const carnavalClass = hasCarnavalData ? 'card-hover' : 'card-locked';
                  const carnavalClick = hasCarnavalData ? "onclick=\"openPromotion('carnaval')\"" : '';
                  const carnavalBtn = hasCarnavalData ? 'Ver Detalles' : 'Bloqueado';
                  const carnavalCard = `
                  <div class="glass-effect rounded-2xl p-8 ${carnavalClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${carnavalClick}>
                     <div class="count-badge">${carnavalCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-masks-theater text-9xl text-white"></i></div>
-                    <div class="bg-gradient-to-br from-violet-500 to-pink-500 w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg z-10"><i class="fas fa-masks-theater text-3xl text-white"></i></div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <img src="https://i.postimg.cc/WpgJnpgy/Carnaval.png" class="w-32 h-32 object-contain grayscale">
+                    </div>
+                    <img src="https://i.postimg.cc/WpgJnpgy/Carnaval.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Carnaval</h3>
                     <p class="text-white/70 mb-6 z-10">25, 26 y 27 Febrero</p>
                     <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 25, 26 y 27 de febrero.</p>
                     <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${carnavalBtn}</span>
                 </div>`;
                  container.insertAdjacentHTML('beforeend', carnavalCard);
-            };
 
-            const initializeDashboard = (data) => {
+                 // 5. Oferton
+                 const ofertonClass = hasOfertonData ? 'card-hover' : 'card-locked';
+                 const ofertonClick = hasOfertonData ? "onclick=\"openPromotion('oferton')\"" : '';
+                 const ofertonBtn = hasOfertonData ? 'Ver Detalles' : 'Bloqueado';
+                 const ofertonCard = `
+                 <div class="glass-effect rounded-2xl p-8 ${ofertonClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${ofertonClick}>
+                    <div class="count-badge">${ofertonCount}</div>
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <img src="https://i.postimg.cc/VLFrx77q/Oferton.png" class="w-32 h-32 object-contain grayscale">
+                    </div>
+                    <img src="https://i.postimg.cc/VLFrx77q/Oferton.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
+                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Ofertón Marzo</h3>
+                    <p class="text-white/70 mb-6 z-10">9 al 13 de Marzo</p>
+                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 9, 10, 11, 12 y 13 de marzo.</p>
+                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${ofertonBtn}</span>
+                </div>`;
+                 container.insertAdjacentHTML('beforeend', ofertonCard);
+            }
+
+            function initializeDashboard(data) {
                 const validData = data.filter(row => !Object.values(row).some(value => value === '#N/A'));
                 if(validData.length === 0) { 
                       document.getElementById('error-info').classList.remove('hidden');
@@ -1418,9 +1480,9 @@
                 if (currentView === 'acciones') renderActions();
                 if (currentView === 'objetivos') renderObjectives();
                 applyFiltersAndRender();
-            };
+            }
 
-            const fetchData = async () => {
+            async function fetchData() {
                 showMessage('Actualizando datos...');
                 try {
                     const response = await fetch(`${googleSheetUrl}&t=${new Date().getTime()}`);
@@ -1438,7 +1500,7 @@
                     showMessage('Usando datos de respaldo (Falló conexión)', true);
                     initializeDashboard([]);
                 }
-            };
+            }
             
             // TOGGLE LOGIC FOR GENERAL GOAL
             const toggleGoalBtn = document.getElementById('toggle-goal-btn');
@@ -1501,6 +1563,7 @@
                     else if (activeActionType === 'empresas') { title = "Días Empresas Amigas"; subtitle = "Acción del 11 y 12 de diciembre."; }
                     else if (activeActionType === 'navidad') { title = "Descuento Navideño"; subtitle = "Acción del 22 y 23 de diciembre."; }
                     else if (activeActionType === 'carnaval') { title = "Descuento Carnaval"; subtitle = "Acción del 25, 26 y 27 de febrero."; }
+                    else if (activeActionType === 'oferton') { title = "Ofertón Marzo"; subtitle = "Acción del 9 al 13 de marzo."; }
                     
                     document.getElementById('action-title').innerText = `📢 ${title}`;
                     document.getElementById('action-subtitle').innerText = subtitle;
@@ -1536,20 +1599,38 @@
             document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
             document.getElementById('obj-advisor-filter').addEventListener('change', renderObjectives);
             
-            // New Listeners for Timeline Filters
-            document.getElementById('timeline-filter-advisor').addEventListener('change', () => renderTimelineSpecific(fullData));
-            document.getElementById('timeline-filter-month').addEventListener('change', () => renderTimelineSpecific(fullData));
+            // New Listeners for Timeline Filters (Linked to Global Filters)
+            document.getElementById('timeline-filter-advisor').addEventListener('change', (e) => {
+                document.getElementById('filter-asesora').value = e.target.value;
+                applyFiltersAndRender();
+            });
+            document.getElementById('timeline-filter-month').addEventListener('change', (e) => {
+                document.getElementById('filter-mes').value = e.target.value;
+                applyFiltersAndRender();
+            });
 
             document.getElementById('reset-filters-btn').addEventListener('click', () => { 
                   ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); 
                  document.getElementById('filter-date-start').value = ''; 
                  document.getElementById('filter-date-end').value = ''; 
+                 // Also reset timeline filters for visual consistency
+                 if(document.getElementById('timeline-filter-advisor')) document.getElementById('timeline-filter-advisor').value = 'todos';
+                 if(document.getElementById('timeline-filter-month')) document.getElementById('timeline-filter-month').value = 'todos';
                  applyFiltersAndRender(); 
              });
             
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'].forEach(id => {
                 const el = document.getElementById(id);
-                if(el) el.addEventListener('change', applyFiltersAndRender);
+                if(el) el.addEventListener('change', (e) => {
+                    // Sync timeline filters if needed
+                    if(id === 'filter-asesora' && document.getElementById('timeline-filter-advisor')) {
+                        document.getElementById('timeline-filter-advisor').value = e.target.value;
+                    }
+                    if(id === 'filter-mes' && document.getElementById('timeline-filter-month')) {
+                        document.getElementById('timeline-filter-month').value = e.target.value;
+                    }
+                    applyFiltersAndRender();
+                });
             });
 
             document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
