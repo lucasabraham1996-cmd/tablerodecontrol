@@ -436,7 +436,7 @@
                 'remarketing': ['2025-11-26', '2025-11-27', '2025-11-28'],
                 'empresas': ['2025-12-11', '2025-12-12'],
                 'navidad': ['2025-12-22', '2025-12-23'],
-                'carnaval': ['2026-02-25', '2026-02-26', '2026-02-27'],
+                'carnaval': ['2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22', '2026-02-23'],
                 'oferton': ['2026-03-09', '2026-03-10', '2026-03-11', '2026-03-12', '2026-03-13']
             };
             
@@ -452,7 +452,7 @@
                 '2025-11-26': '\uf0a1', '2025-11-27': '\uf0a1', '2025-11-28': '\uf0a1',
                 '2025-12-11': '\uf2b5', '2025-12-12': '\uf2b5',
                 '2025-12-22': '\uf06b', '2025-12-23': '\uf06b',
-                '2026-02-25': '\ue630', '2026-02-26': '\ue630', '2026-02-27': '\ue630',
+                '2026-02-17': '\ue52b', '2026-02-18': '\ue52b', '2026-02-19': '\ue52b', '2026-02-20': '\ue52b', '2026-02-21': '\ue52b', '2026-02-22': '\ue52b', '2026-02-23': '\ue52b',
                 '2026-03-09': '\uf011', '2026-03-10': '\uf011', '2026-03-11': '\uf011', '2026-03-12': '\uf011', '2026-03-13': '\uf011'
             };
 
@@ -486,7 +486,7 @@
                 {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'matricula': '1002', 'apellido': 'Gomez', 'nombre': 'Maria', 'remarketing': 'x', 'colJ': '', 'colK': '', 'colL': ''},
                 {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'matricula': '1003', 'apellido': 'Lopez', 'nombre': 'Carlos', 'remarketing': '', 'colJ': 'Coca Cola', 'colK': '', 'colL': ''},
                 {'asesora': 'Jeremias', 'marca temporal': '22 de diciembre de 2025', 'carrera': 'AE', 'modalidad': 'A Distancia', 'matricula': '1004', 'apellido': 'Diaz', 'nombre': 'Ana', 'remarketing': '', 'colJ': '', 'colK': 'x', 'colL': ''},
-                {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'},
+                {'asesora': 'Kiara', 'marca temporal': '17 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'},
                 {'asesora': 'Belen', 'marca temporal': '12 de diciembre de 2025', 'carrera': 'MKT', 'modalidad': 'A Distancia', 'matricula': '1006', 'apellido': 'Sosa', 'nombre': 'Pedro', 'remarketing': '', 'colJ': 'Arcor', 'colK': '', 'colL': ''},
                 {'asesora': 'Laura', 'marca temporal': '15 de noviembre de 2025', 'carrera': 'RH', 'modalidad': 'A Distancia', 'matricula': '1007', 'apellido': 'Martinez', 'nombre': 'Sofia', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''}
             ];
@@ -1452,8 +1452,8 @@
                     </div>
                     <img src="https://i.postimg.cc/WpgJnpgy/Carnaval.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
                     <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Carnaval</h3>
-                    <p class="text-white/70 mb-6 z-10">25, 26 y 27 Febrero</p>
-                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 25, 26 y 27 de febrero.</p>
+                    <p class="text-white/70 mb-6 z-10">17 al 23 de Febrero</p>
+                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada del 17 al 23 de febrero.</p>
                     <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${carnavalBtn}</span>
                 </div>`;
                  container.insertAdjacentHTML('beforeend', carnavalCard);
@@ -1574,7 +1574,7 @@
                     if (activeActionType === 'remarketing') { title = "Remarketing Noviembre"; subtitle = "Acción del 26, 27 y 28 de noviembre."; }
                     else if (activeActionType === 'empresas') { title = "Días Empresas Amigas"; subtitle = "Acción del 11 y 12 de diciembre."; }
                     else if (activeActionType === 'navidad') { title = "Descuento Navideño"; subtitle = "Acción del 22 y 23 de diciembre."; }
-                    else if (activeActionType === 'carnaval') { title = "Descuento Carnaval"; subtitle = "Acción del 25, 26 y 27 de febrero."; }
+                    else if (activeActionType === 'carnaval') { title = "Descuento Carnaval"; subtitle = "Acción del 17 al 23 de febrero."; }
                     else if (activeActionType === 'oferton') { title = "Ofertón Marzo"; subtitle = "Acción del 9 al 13 de marzo."; }
                     
                     document.getElementById('action-title').innerText = `📢 ${title}`;
