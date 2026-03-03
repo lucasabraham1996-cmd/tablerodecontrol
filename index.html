@@ -365,6 +365,8 @@
                         <option value="12">Diciembre</option>
                         <option value="1">Enero</option>
                         <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
                     </select>
                 </div>
                 <!-- Filtro Vendedor (Nuevo) -->
@@ -461,10 +463,12 @@
                 '11': { 'Belen': 65, 'Kiara': 65, 'Jeremias': 30, 'Laura': 30 },
                 '12': { 'Belen': 75, 'Kiara': 75, 'Jeremias': 75, 'Laura': 75 },
                 '1': { 'Belen': 40, 'Kiara': 40, 'Jeremias': 40, 'Laura': 40 },
-                '2': { 'Belen': 100, 'Kiara': 100, 'Jeremias': 100, 'Laura': 100 }
+                '2': { 'Belen': 100, 'Kiara': 100, 'Jeremias': 100, 'Laura': 100 },
+                '3': { 'Belen': 105, 'Kiara': 105, 'Jeremias': 105, 'Laura': 105 },
+                '4': { 'Belen': 100, 'Kiara': 100, 'Jeremias': 100, 'Laura': 100 }
             };
 
-            const monthNames = { '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre', '1': 'Enero', '2': 'Febrero' };
+            const monthNames = { '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre', '1': 'Enero', '2': 'Febrero', '3': 'Marzo', '4': 'Abril' };
 
             const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
             const asesoraData = { 
@@ -1243,7 +1247,7 @@
 
                 let monthsToIterate = [];
                 if (selectedMonth !== 'todos') monthsToIterate = [selectedMonth];
-                else monthsToIterate = ['10', '11', '12', '1']; // Se agrega Enero al default
+                else monthsToIterate = ['10', '11', '12', '1', '2', '3', '4']; // Se agregan todos los meses
 
                 let cardsGenerated = 0;
 
