@@ -227,6 +227,49 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
+
+        /* ESTILOS DE IMPRESIÓN (RENDERIZADO NATIVO PARA PDF) */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 1cm;
+            }
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-color: #1f2937 !important;
+                color: white !important;
+                overflow: visible !important;
+            }
+            #main-container {
+                /* Fondo estático y oscuro para el PDF en lugar de animado */
+                background: linear-gradient(rgba(31, 41, 55, 0.95), rgba(31, 41, 55, 0.95)),
+                            url('https://i.postimg.cc/dtDHVQ1X/image.png') !important;
+                background-size: cover !important;
+                background-position: center top !important;
+                background-attachment: scroll !important;
+                min-height: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            /* Ocultar elementos interactivos y modales */
+            #promo-nav-banner, #main-nav-tabs, #filters-container, #action-buttons, #message-container, #pdf-options-modal, #detail-modal, #password-modal {
+                display: none !important;
+            }
+            /* Ajustes para que los gráficos encajen y no se corten por la mitad */
+            main#dashboard-container {
+                display: block !important;
+            }
+            .glass-effect, .chart-container {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin-bottom: 20px !important;
+            }
+            /* Asegurar visibilidad de sombras en impresión */
+            .glass-effect {
+                border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            }
+        }
     </style>
 </head>
 <body class="text-white">
@@ -507,7 +550,7 @@
                 {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'matricula': '1002', 'apellido': 'Gomez', 'nombre': 'Maria', 'remarketing': 'x', 'colJ': '', 'colK': '', 'colL': ''},
                 {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'matricula': '1003', 'apellido': 'Lopez', 'nombre': 'Carlos', 'remarketing': '', 'colJ': 'Coca Cola', 'colK': '', 'colL': ''},
                 {'asesora': 'Jeremias', 'marca temporal': '22 de diciembre de 2025', 'carrera': 'AE', 'modalidad': 'A Distancia', 'matricula': '1004', 'apellido': 'Diaz', 'nombre': 'Ana', 'remarketing': '', 'colJ': '', 'colK': 'x', 'colL': ''},
-                {'asesora': 'Kiara', 'marca temporal': '17 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'},
+                {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'},
                 {'asesora': 'Belen', 'marca temporal': '12 de diciembre de 2025', 'carrera': 'MKT', 'modalidad': 'A Distancia', 'matricula': '1006', 'apellido': 'Sosa', 'nombre': 'Pedro', 'remarketing': '', 'colJ': 'Arcor', 'colK': '', 'colL': ''},
                 {'asesora': 'Laura', 'marca temporal': '15 de noviembre de 2025', 'carrera': 'RH', 'modalidad': 'A Distancia', 'matricula': '1007', 'apellido': 'Martinez', 'nombre': 'Sofia', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''}
             ];
@@ -1703,18 +1746,46 @@
 
             const generatePDF = async (includeAdvisors) => {
                 closePdfModal();
-                showMessage('Generando PDF...', false);
+                showMessage('Generando PDF, aguarde un momento...', false);
 
-                const { jsPDF } = window.jspdf;
-                const source = document.getElementById('main-container');
+                // Initialize jsPDF correctly - fallback if window.jspdf is undefined
+                const jsPDF = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
                 
-                // GUARDAR ESTADO ORIGINAL
-                const originalBackground = source.style.background;
+                if (!jsPDF) {
+                    showMessage('Error: jsPDF library not loaded.', true);
+                    return;
+                }
+
+                const source = document.getElementById('main-container');
                 const advisorChartCard = document.getElementById('card-asesora-chart');
+                
+                // 1. Guardar estados originales
+                const originalBackground = source.style.background;
                 let originalDisplay = '';
                 
-                // 1. CAMBIAR FONDO PARA PDF (SOLO IMAGEN CON CAPA OSCURA)
-                // Usamos un gradiente lineal de color casi sólido sobre la imagen para oscurecerla
+                if (!includeAdvisors && advisorChartCard) {
+                    originalDisplay = advisorChartCard.style.display;
+                    advisorChartCard.style.display = 'none';
+                }
+
+                // 2. Ocultar UI interactiva que no debe salir en el reporte PDF
+                const hideElements = [
+                    'promo-nav-banner', 'main-nav-tabs', 'filters-container', 
+                    'action-buttons', 'message-container', 'pdf-options-modal', 
+                    'detail-modal', 'password-modal', 'timeline-filters-wrapper',
+                    'toggle-goal-btn'
+                ];
+                
+                const originalDisplays = {};
+                hideElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        originalDisplays[id] = el.style.display;
+                        el.style.display = 'none';
+                    }
+                });
+
+                // 3. Fondo estático para evitar problemas de captura con animaciones CSS
                 source.style.background = `
                     linear-gradient(rgba(31, 41, 55, 0.95), rgba(31, 41, 55, 0.95)),
                     url('https://i.postimg.cc/dtDHVQ1X/image.png') 
@@ -1722,89 +1793,63 @@
                 `;
                 source.style.backgroundSize = 'cover';
 
-                // 2. Ocultar gráfico asesora si se solicitó
-                if (!includeAdvisors && advisorChartCard) {
-                    originalDisplay = advisorChartCard.style.display;
-                    advisorChartCard.style.display = 'none';
-                }
+                // Pequeña pausa para asegurar renderizado del DOM antes de la foto
+                setTimeout(async () => {
+                    try {
+                        const canvas = await html2canvas(source, {
+                            scale: 2, // Calidad alta
+                            useCORS: true,
+                            logging: false,
+                            backgroundColor: '#1f2937' // Fondo base por defecto
+                        });
 
-                try {
-                    // Configuración para mejor calidad y layout fijo
-                    const canvas = await html2canvas(source, {
-                        scale: 2, // Mejor resolución
-                        useCORS: true,
-                        logging: false,
-                        windowWidth: 1200, // Forzar ancho de escritorio para evitar layout móvil
-                        ignoreElements: (element) => {
-                            const id = element.id;
-                            if (id === 'promo-nav-banner' || 
-                                 id === 'action-buttons' || 
-                                 id === 'main-nav-tabs' ||
-                                id === 'message-container' ||
-                                id === 'filters-container' ||
-                                id === 'pdf-options-modal' ||
-                                id === 'detail-modal') {
-                                return true;
-                            }
-                            return false;
+                        const imgData = canvas.toDataURL('image/png');
+                        
+                        // Crear PDF (A4 Vertical)
+                        const pdf = new jsPDF('p', 'mm', 'a4');
+                        const pdfWidth = pdf.internal.pageSize.getWidth(); // 210
+                        const pdfHeight = pdf.internal.pageSize.getHeight(); // 297
+                        
+                        const imgWidth = canvas.width;
+                        const imgHeight = canvas.height;
+                        
+                        // Relación de aspecto para que encaje perfecto sin distorsionarse
+                        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                        
+                        const finalImgWidth = imgWidth * ratio;
+                        const finalImgHeight = imgHeight * ratio;
+                        
+                        // Centrado horizontal
+                        const xOffset = (pdfWidth - finalImgWidth) / 2;
+                        const yOffset = 10; // Margen superior
+
+                        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalImgWidth, finalImgHeight);
+
+                        // Nombre de archivo dinámico
+                        const actionName = activeActionType ? activeActionType.toUpperCase() : 'GENERAL';
+                        const fileName = `Reporte_${actionName}_${new Date().toISOString().slice(0,10)}.pdf`;
+                        
+                        // Forzar descarga
+                        pdf.save(fileName);
+                        showMessage('PDF Descargado exitosamente.', false);
+
+                    } catch (err) {
+                        console.error(err);
+                        showMessage('Error al generar PDF', true);
+                    } finally {
+                        // 4. Restaurar todo a la normalidad para el usuario
+                        source.style.background = originalBackground;
+                        if (!includeAdvisors && advisorChartCard) {
+                            advisorChartCard.style.display = originalDisplay;
                         }
-                    });
-
-                    // RESTAURAR ESTADO
-                    source.style.background = originalBackground;
-                    if (!includeAdvisors && advisorChartCard) {
-                        advisorChartCard.style.display = originalDisplay;
+                        hideElements.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) {
+                                el.style.display = originalDisplays[id];
+                            }
+                        });
                     }
-
-                    const imgData = canvas.toDataURL('image/png');
-                    
-                    // LÓGICA DE AJUSTE A UNA SOLA PÁGINA
-                    // PDF A4 Vertical: 210mm x 297mm
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();   // 210
-                    const pdfHeight = pdf.internal.pageSize.getHeight(); // 297
-                    
-                    const imgWidth = canvas.width;
-                    const imgHeight = canvas.height;
-                    
-                    // Calcular el ratio para que quepa en el ancho
-                    const widthRatio = pdfWidth / imgWidth;
-                    
-                    // Altura que tendría la imagen al ajustarse al ancho
-                    const scaledHeight = imgHeight * widthRatio;
-                    
-                    // Si la altura escalada es mayor que la altura de la página, necesitamos reducir más
-                    // para que quepa verticalmente.
-                    let finalRatio = widthRatio;
-                    
-                    if (scaledHeight > pdfHeight) {
-                        // Calcular ratio basado en altura
-                        const heightRatio = pdfHeight / imgHeight;
-                        finalRatio = Math.min(widthRatio, heightRatio); // Usar el menor para que quepa todo
-                    }
-
-                    const finalImgWidth = imgWidth * finalRatio;
-                    const finalImgHeight = imgHeight * finalRatio;
-                    
-                    // Centrar si sobra espacio (opcional, aquí alineamos arriba-izquierda o centro)
-                    const xOffset = (pdfWidth - finalImgWidth) / 2;
-                    const yOffset = 0; // Pegado arriba
-
-                    pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalImgWidth, finalImgHeight);
-
-                    const fileName = `Reporte_${activeActionType || 'General'}_${new Date().toISOString().slice(0,10)}.pdf`;
-                    pdf.save(fileName);
-                    showMessage('PDF Descargado exitosamente.');
-
-                } catch (err) {
-                    console.error(err);
-                    showMessage('Error al generar PDF', true);
-                    // Restaurar visualización en caso de error
-                    source.style.background = originalBackground;
-                    if (!includeAdvisors && advisorChartCard) {
-                        advisorChartCard.style.display = originalDisplay;
-                    }
-                }
+                }, 400); // 400ms para asegurar el repintado de CSS
             };
 
             btnYes.addEventListener('click', () => generatePDF(true));
