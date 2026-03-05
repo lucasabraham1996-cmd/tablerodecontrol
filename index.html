@@ -420,6 +420,22 @@
         </div>
     </div>
 
+    <!-- Modal Contraseña Acciones -->
+    <div id="password-modal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
+        <div class="glass-effect bg-gray-900/95 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl border border-white/20 text-center transform transition-all">
+            <div class="mb-4">
+                <i class="fas fa-lock text-4xl text-white/80"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Área Restringida</h3>
+            <p class="text-white/60 mb-6 text-sm">Ingrese la contraseña para ver las acciones comerciales.</p>
+            <input type="password" id="actions-password-input" class="w-full p-3 rounded-lg bg-black/50 text-white border border-white/30 mb-6 focus:outline-none focus:border-blue-500 text-center" placeholder="Contraseña">
+            <div class="flex justify-center gap-4">
+                <button id="pwd-btn-submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors w-1/2">Ingresar</button>
+                <button id="pwd-btn-cancel" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors w-1/2">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.openPromotion = null;
         window.showAdvisorDetails = null;
@@ -430,6 +446,7 @@
         let activeActionType = null;
         let objectiveChartInstances = [];
         let timelineHoveredIndex = -1; // To track hovered index in timeline
+        let isActionsUnlocked = false; // Control de acceso a sección de acciones
 
         document.addEventListener('DOMContentLoaded', () => {
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?output=csv';
@@ -1609,7 +1626,14 @@
 
             document.getElementById('tab-general').addEventListener('click', () => switchView('general')); 
             document.getElementById('tab-objetivos').addEventListener('click', () => switchView('objetivos'));
-            document.getElementById('tab-acciones').addEventListener('click', () => switchView('acciones'));
+            
+            document.getElementById('tab-acciones').addEventListener('click', () => {
+                if (isActionsUnlocked) {
+                    switchView('acciones');
+                } else {
+                    openPasswordModal();
+                }
+            });
             
             document.getElementById('back-to-promos-btn').addEventListener('click', () => switchView('acciones'));
             document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
@@ -1785,6 +1809,50 @@
 
             btnYes.addEventListener('click', () => generatePDF(true));
             btnNo.addEventListener('click', () => generatePDF(false));
+
+            // ==========================================
+            // LOGICA CONTRASEÑA ACCIONES
+            // ==========================================
+            const pwdModal = document.getElementById('password-modal');
+            const pwdInput = document.getElementById('actions-password-input');
+            const pwdSubmit = document.getElementById('pwd-btn-submit');
+            const pwdCancel = document.getElementById('pwd-btn-cancel');
+
+            function openPasswordModal() {
+                pwdInput.value = '';
+                pwdModal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    pwdModal.classList.remove('opacity-0');
+                    pwdInput.focus();
+                });
+            }
+
+            function closePasswordModal() {
+                pwdModal.classList.add('opacity-0');
+                setTimeout(() => pwdModal.classList.add('hidden'), 300);
+            }
+
+            pwdCancel.addEventListener('click', closePasswordModal);
+
+            pwdSubmit.addEventListener('click', () => {
+                if (pwdInput.value === 'comercial2') {
+                    isActionsUnlocked = true;
+                    closePasswordModal();
+                    switchView('acciones');
+                    showMessage('Acceso concedido', false);
+                } else {
+                    showMessage('Contraseña incorrecta', true);
+                    pwdInput.value = '';
+                    pwdInput.focus();
+                }
+            });
+
+            // Permitir "Enter" en el input
+            pwdInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    pwdSubmit.click();
+                }
+            });
 
             fetchData();
         });
