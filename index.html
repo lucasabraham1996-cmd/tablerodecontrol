@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Inscriptos</title>
+    <title>DASHBOARD - INICIO AGOSTO 2026</title>
+    
     <!-- Favicon -->
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/5581/5581393.png" type="image/png">
     
@@ -11,475 +12,378 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
-    <!-- Plugin de Anotaciones para Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.1.0/chartjs-plugin-annotation.min.js"></script>
-    
-    <!-- Libreria Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <!-- Librerias PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
+        /* Paleta de colores Light/Soft UI inspirada en la imagen */
+        :root {
+            --bg-main: #f0f4f8; /* Fondo azulado/gris muy suave */
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #8c98a4;
+            --accent-purple: #8b5cf6;
+            --accent-green: #34d399;
+            --grid-color: rgba(0, 0, 0, 0.04);
+            --card-shadow: 0 12px 40px rgba(148, 163, 184, 0.25); /* Sombra fría */
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1f2937;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f4f7fb 0%, #e2e8f0 100%); /* Gradiente azulado */
+            color: var(--text-main);
             overflow-x: hidden;
-        }
-        #main-container {
-            background: linear-gradient(-45deg, rgba(238, 119, 82, 0.95), rgba(231, 60, 126, 0.95), rgba(35, 166, 213, 0.95), rgba(35, 213, 171, 0.95)),
-                        url('https://i.postimg.cc/dtDHVQ1X/image.png');
-            background-size: 400% 400%, cover; 
-            background-position: 0% 50%, center center;
-            background-repeat: no-repeat, no-repeat;
-            background-attachment: fixed, fixed;
-            background-blend-mode: multiply; 
-            animation: gradientBG 15s ease infinite;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+            margin: 0;
+            padding: 0;
             min-height: 100vh;
+            display: flex;
         }
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-width: 1600px;
+            margin: 0 auto;
         }
-        .chart-container { height: 300px; position: relative; width: 100%; }
-        
-        @media (min-width: 768px) {
-            .chart-container { height: 350px; }
+
+        /* Estilo de las Tarjetas (Soft UI) */
+        .neo-card {
+            background-color: var(--card-bg);
+            border-radius: 28px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.8);
         }
-        
-        select, option, input[type="date"] { background: rgba(40, 43, 54, 0.9); color: white; }
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
+        .neo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 50px rgba(148, 163, 184, 0.35);
         }
-        
-        .glass-effect {
-            background-color: rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-        
-        .nav-tab {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0.6;
-            border-bottom: 3px solid transparent;
+
+        .panel-header {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
             padding-bottom: 0.5rem;
-        }
-        .nav-tab:hover { opacity: 0.9; }
-        .nav-tab.active {
-            opacity: 1;
-            border-bottom-color: #fff;
-            font-weight: 800;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
-        .action-banner {
-            background: linear-gradient(90deg, rgba(239, 68, 68, 0.9), rgba(245, 158, 11, 0.9));
-            border: 1px solid rgba(255,255,255,0.4);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .error-banner {
-            background: rgba(220, 38, 38, 0.9);
-            border-left: 4px solid #fca5a5;
-        }
-        
-        /* Estilos para Acciones */
-        .card-hover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-        
-        .card-locked {
-            filter: grayscale(100%);
-            opacity: 0.7;
-            cursor: not-allowed;
-            pointer-events: none;
-            position: relative;
-        }
-        
-        .card-locked::after {
-            content: "\f023"; /* FontAwesome Lock Icon */
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 4rem;
-            color: rgba(255,255,255,0.8);
-            z-index: 20;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        /* Badge Moderno para conteo */
-        .count-badge {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: rgba(255, 255, 255, 0.95);
-            color: #1f2937;
-            font-weight: 800;
-            width: 3rem;
-            height: 3rem;
-            border-radius: 9999px;
+            margin-bottom: 1rem;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 30;
-            font-size: 1.1rem;
-            border: 2px solid rgba(0,0,0,0.1);
-        }
-
-        /* Estilos Objetivos Modernos */
-        .goal-card-modern {
-            background: rgba(20, 20, 30, 0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            align-items: center;
+        }
+        .panel-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Contenedores de gráficos */
+        .chart-container { height: 260px; position: relative; width: 100%; }
+        .chart-container-large { height: 320px; position: relative; width: 100%; }
+        
+        /* Controles de formulario Soft UI */
+        select, input[type="date"], input[type="password"] { 
+            background: #f8fafc; 
+            color: var(--text-main); 
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+            background: #ffffff;
+        }
+
+        /* Pestañas de Navegación Modernas */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.5);
+            padding: 0.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .nav-tab {
+            padding: 0.6rem 1.5rem;
             cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            border-radius: 14px;
+            transition: all 0.3s;
         }
-        .goal-card-modern:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-            border-color: rgba(255,255,255,0.2);
+        .nav-tab:hover { color: var(--text-main); background: rgba(255,255,255,0.8); }
+        .nav-tab.active {
+            color: white;
+            background: var(--text-main);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Botones Soft UI */
+        .btn-neo {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: var(--text-main);
+            font-weight: 700;
+            border-radius: 12px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        .btn-neo:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+            transform: translateY(-1px);
+        }
+        .btn-primary {
+            background: var(--text-main);
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #374151;
+            color: white;
+        }
+
+        /* Filtro CSS para teñir la imagen a Azul Marino */
+        .logo-navy {
+            filter: brightness(0) saturate(100%) invert(18%) sepia(35%) saturate(3011%) hue-rotate(204deg) brightness(94%) contrast(104%);
         }
         
-        /* Estados de Objetivos */
-        .goal-met {
-            border: 2px solid #fbbf24; /* Amber 400 */
-            box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
-            background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(251, 191, 36, 0.1));
-        }
-        .goal-failed {
-            border: 1px solid #ef4444; /* Red 500 */
-            background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(239, 68, 68, 0.1));
-        }
-        .goal-inprogress {
-            border: 1px solid #3b82f6; /* Blue 500 */
-            background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(59, 130, 246, 0.1));
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .goal-glow {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%);
-            top: -20px;
-            right: -20px;
-            pointer-events: none;
-        }
-
-        /* Estilos Tabla Empresas */
-        .ranking-row {
-            transition: background-color 0.2s;
-        }
-        .ranking-row:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-        .ranking-bar-bg {
-            background-color: rgba(255,255,255,0.1);
-            border-radius: 9999px;
-            height: 8px;
-            width: 100%;
-            overflow: hidden;
-        }
-        .ranking-bar-fill {
-            height: 100%;
-            border-radius: 9999px;
-            transition: width 1s ease-out;
-        }
-
-        canvas { cursor: pointer; }
-        
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        /* ESTILOS DE IMPRESIÓN (RENDERIZADO NATIVO PARA PDF) */
+        /* Estilos de Impresión */
         @media print {
-            @page {
-                size: A4 portrait;
-                margin: 1cm;
-            }
-            body {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                background-color: #1f2937 !important;
-                color: white !important;
-                overflow: visible !important;
-            }
-            #main-container {
-                /* Fondo estático y oscuro para el PDF en lugar de animado */
-                background: linear-gradient(rgba(31, 41, 55, 0.95), rgba(31, 41, 55, 0.95)),
-                            url('https://i.postimg.cc/dtDHVQ1X/image.png') !important;
-                background-size: cover !important;
-                background-position: center top !important;
-                background-attachment: scroll !important;
-                min-height: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            /* Ocultar elementos interactivos y modales */
-            #promo-nav-banner, #main-nav-tabs, #filters-container, #action-buttons, #message-container, #pdf-options-modal, #detail-modal, #password-modal {
-                display: none !important;
-            }
-            /* Ajustes para que los gráficos encajen y no se corten por la mitad */
-            main#dashboard-container {
-                display: block !important;
-            }
-            .glass-effect, .chart-container {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                margin-bottom: 20px !important;
-            }
-            /* Asegurar visibilidad de sombras en impresión */
-            .glass-effect {
-                border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            }
+            .nav-tabs, #filters-container, #action-buttons, #promo-nav-banner, .modal-backdrop, #toggle-goal-btn { display: none !important; }
+            body { background: white !important; }
+            .neo-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; break-inside: avoid; }
+        }
+
+        /* Modales */
+        .modal-backdrop {
+            background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
     </style>
 </head>
-<body class="text-white">
-    <div id="main-container" class="container mx-auto p-4 md:p-8">
-        <header class="flex flex-col items-center justify-center text-center mb-6 glass-effect rounded-2xl shadow-lg p-6 relative">
-            <div class="flex flex-col sm:flex-row items-center justify-center mb-4">
-                <img src="https://i.ibb.co/4nqvFQGM/logo.png" alt="Logo" class="h-14 w-auto mb-4 sm:mb-0 sm:mr-6 filter drop-shadow-lg" onerror="this.style.display='none'">
-                <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Tablero de control de inscriptos <span class="block text-lg font-medium opacity-80 mt-1">Marzo 2026</span></h1>
+<body>
+
+    <div class="main-content" id="main-container">
+        
+        <!-- HEADER -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 pb-4">
+            <div class="flex items-center gap-6">
+                <!-- Se aplicó la clase logo-navy para el azul marino -->
+                <img src="https://i.ibb.co/4nqvFQGM/logo.png" alt="Cervantes Logo" class="h-16 w-auto object-contain logo-navy">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">
+                        DASHBOARD <span class="text-gray-400 font-medium">INICIO AGOSTO 2026</span>
+                    </h1>
+                    <p class="text-sm text-gray-500 font-medium mt-1">SISTEMA DE CONTROL GENERAL</p>
+                </div>
             </div>
             
-            <div id="main-nav-tabs" class="flex flex-wrap justify-center gap-8 text-xl w-full border-t border-white/10 pt-4 mt-2">
+            <div id="main-nav-tabs" class="nav-tabs mt-6 md:mt-0">
                 <div id="tab-general" class="nav-tab active">General</div>
                 <div id="tab-objetivos" class="nav-tab">Objetivos</div>
                 <div id="tab-acciones" class="nav-tab">Acciones</div>
             </div>
         </header>
 
-        <div id="error-info" class="hidden mb-6 p-4 rounded-xl shadow-lg error-banner backdrop-blur-md">
-            <p class="font-bold">⚠️ Aviso</p>
-            <p class="text-sm">No se pudo conectar en tiempo real con la hoja de cálculo. Se muestran los datos de ejemplo.</p>
+        <div id="error-info" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold shadow-sm">
+            <i class="fas fa-exclamation-circle mr-2"></i> Error de conexión Datalink. Cargando datos locales en caché.
         </div>
 
-        <!-- Banner de navegación interna para Acciones con BOTÓN PDF -->
-        <div id="promo-nav-banner" class="hidden mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <button id="back-to-promos-btn" class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white font-semibold transition-colors backdrop-blur-sm border border-white/20">
-                <i class="fas fa-arrow-left"></i> Volver a Acciones
-            </button>
+        <div id="promo-nav-banner" class="hidden mb-6 flex justify-between">
+            <button id="back-to-promos-btn" class="btn-neo px-5 py-2 text-sm"><i class="fas fa-arrow-left mr-2"></i> Volver a Acciones</button>
+            <button id="download-report-btn" class="btn-neo btn-primary px-5 py-2 text-sm"><i class="fas fa-file-pdf mr-2"></i> Exportar PDF</button>
+        </div>
+
+        <!-- VISTA GENERAL -->
+        <div id="view-main" class="space-y-8">
             
-            <button id="download-report-btn" class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold transition-all shadow-lg border border-white/20 backdrop-blur-md">
-                <i class="fas fa-file-pdf"></i> Descargar Informe PDF
-            </button>
-        </div>
+            <!-- FILTROS -->
+            <div id="filters-container" class="neo-card p-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-5 items-end">
+                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Desde</label><input type="date" id="filter-date-start" class="p-2.5 text-sm"></div>
+                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 text-sm"></div>
+                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Asesora</label><select id="filter-asesora" class="p-2.5 text-sm"></select></div>
+                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Mes</label><select id="filter-mes" class="p-2.5 text-sm"></select></div>
+                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Carrera</label><select id="filter-carrera" class="p-2.5 text-sm"></select></div>
+                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Modalidad</label><select id="filter-modalidad" class="p-2.5 text-sm"></select></div>
+                    <div class="flex flex-col"><button id="reset-filters-btn" class="btn-neo py-2.5 text-sm h-[42px]">Limpiar</button></div>
+                </div>
+            </div>
 
-        <div id="action-info" class="hidden mb-6 p-4 rounded-xl shadow-lg text-center action-banner backdrop-blur-md animate-pulse">
-            <p id="action-title" class="text-xl font-bold mb-1">📢 Detalle de Acción</p>
-            <p id="action-subtitle" class="text-white/90">Datos filtrados.</p>
-        </div>
-
-        <!-- VISTA PRINCIPAL -->
-        <div id="view-main">
-            <!-- KPI Total -->
-            <div id="kpi-container-export" class="mb-6 p-6 glass-effect rounded-2xl shadow-xl max-w-md mx-auto text-center transform hover:scale-105 transition-transform duration-300">
-                <h3 id="kpi-title" class="text-xl font-semibold text-white/90 mb-4 uppercase tracking-wide">Total de Inscriptos (General)</h3>
-                <p id="total-inscriptos" class="text-7xl font-extrabold text-white filter drop-shadow-lg leading-tight pb-2" style="text-shadow: 0px 4px 10px rgba(0,0,0,0.5);">0</p>
+            <!-- GRID PRINCIPAL -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                <!-- Barra de Progreso Global (Toggle) -->
-                <div class="flex flex-col items-center mt-2">
-                    <button id="toggle-goal-btn" class="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-2 focus:outline-none" title="Ver progreso meta anual">
-                        <i class="fas fa-eye text-lg"></i> <span class="text-xs font-semibold">Ver Meta</span>
-                    </button>
-                    <div id="general-goal-container" class="w-full max-w-xs mt-3 hidden transition-all duration-300 opacity-0 transform translate-y-2">
-                        <div class="flex justify-between text-xs text-white/80 mb-1 font-semibold">
-                            <span>Progreso</span>
-                            <span id="goal-percentage">0%</span>
+                <!-- KPI Izquierda (Progreso Circular con Botón) -->
+                <div class="neo-card p-8 flex flex-col justify-center items-center relative text-center">
+                    <h3 class="font-extrabold text-xl text-gray-800 mb-6">Progreso General</h3>
+                    
+                    <div class="relative w-56 h-56 flex justify-center items-center mb-4">
+                        <canvas id="total-gauge-chart"></canvas>
+                        
+                        <div id="gauge-display" class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-300">
+                            <span id="gauge-number" class="text-6xl font-extrabold text-gray-800">0</span>
+                            <span id="gauge-label" class="text-sm text-gray-500 font-bold mt-1">Inscriptos</span>
                         </div>
-                        <div class="w-full bg-black/30 rounded-full h-3 backdrop-blur-sm border border-white/10 shadow-inner">
-                            <div id="goal-bar-fill" class="bg-gradient-to-r from-green-400 to-emerald-600 h-3 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]" style="width: 0%; transition: width 1s ease-in-out;"></div>
-                        </div>
-                        <div class="text-right text-[10px] text-white/50 mt-1 font-mono tracking-wider">Meta: 1269</div>
+                    </div>
+                    
+                    <div class="w-full bg-gray-50 rounded-2xl p-4 flex justify-between items-center border border-gray-100 mb-4">
+                        <span class="text-sm text-gray-500 font-bold">Meta Anual</span>
+                        <span class="text-purple-600 font-extrabold text-xl"><span id="goal-percentage">0</span>%</span>
+                    </div>
+
+                    <button id="toggle-goal-btn" class="btn-neo px-5 py-2 text-xs w-full">Ver Meta y Faltante</button>
+                </div>
+
+                <!-- Gráfico Centro Arriba (Barras Horizontales Delgadas - Carreras) -->
+                <div class="neo-card p-8 lg:col-span-2">
+                    <div class="panel-header">Distribución por Carrera <span class="panel-subtitle">Volumen total</span></div>
+                    <div class="chart-container"><canvas id="carrera-chart"></canvas></div>
+                </div>
+
+                <!-- Gráfico Abajo Izquierda (Barras Verticales - Asesoras) -->
+                <div id="card-asesora-chart" class="neo-card p-8 lg:col-span-2">
+                    <div class="panel-header">Rendimiento por Asesora <span class="panel-subtitle">Desempeño individual</span></div>
+                    <div class="chart-container"><canvas id="asesora-chart"></canvas></div>
+                </div>
+
+                <!-- Nuevo Gráfico Abajo Derecha (Doughnut - Día Semana) -->
+                <div class="neo-card p-8 relative">
+                    <div class="panel-header">Días de Inscripción <span class="panel-subtitle">Volumen semanal</span></div>
+                    <div class="chart-container flex items-center justify-center mt-2">
+                        <canvas id="dias-chart"></canvas>
                     </div>
                 </div>
-            </div>
 
-            <!-- Filtros Generales -->
-            <div id="filters-container" class="mb-8 p-6 glass-effect rounded-2xl shadow-lg">
-                <h4 class="text-xs uppercase font-bold text-white/50 mb-4 tracking-widest">Filtros Globales</h4>
-                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
-                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Desde</label><input type="date" id="filter-date-start" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
-                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none placeholder-gray-400"></div>
-                    
-                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Asesora</label><select id="filter-asesora" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
-                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Mes</label><select id="filter-mes" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
-                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Carrera</label><select id="filter-carrera" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
-                    <div class="flex flex-col"><label class="font-bold mb-2 text-sm uppercase tracking-wider text-white/80">Modalidad</label><select id="filter-modalidad" class="p-2.5 rounded-lg bg-black/40 text-white border border-white/20 focus:outline-none"></select></div>
-                    
-                    <button id="reset-filters-btn" class="w-full px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-lg shadow-lg transition-all uppercase tracking-wider text-sm backdrop-blur-sm">Limpiar</button>
+                <!-- Línea de Tiempo (Ancho completo, estilo ola) -->
+                <div class="neo-card p-8 lg:col-span-3">
+                    <div class="panel-header flex-col sm:flex-row gap-4 mb-6">
+                        <div>Evolución de Inscripciones <span class="panel-subtitle block sm:inline sm:ml-2">Flujo temporal</span></div>
+                        <div class="flex gap-3" id="timeline-filters-wrapper">
+                            <select id="timeline-filter-month" class="p-2 text-xs w-36"></select>
+                            <select id="timeline-filter-advisor" class="p-2 text-xs w-36"></select>
+                        </div>
+                    </div>
+                    <div class="chart-container-large"><canvas id="timeline-chart"></canvas></div>
                 </div>
             </div>
-
-            <!-- SECCIÓN RANKING EMPRESAS -->
-            <div id="empresas-ranking-section" class="hidden mb-8 glass-effect rounded-2xl p-6 shadow-lg">
-                <h3 class="text-2xl font-bold mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
-                    <i class="fas fa-trophy text-yellow-400"></i> Inscriptos por empresa amiga:
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-white/90">
-                        <thead class="text-xs uppercase bg-white/10 text-white/80">
-                            <tr>
-                                <th class="px-4 py-3 w-16 text-center">#</th>
-                                <th class="px-4 py-3">Empresa</th>
-                                <th class="px-4 py-3 w-32 text-center">Inscriptos</th>
-                                <th class="px-4 py-3 w-1/3">Participación</th>
-                            </tr>
+            
+            <!-- SECCIÓN EMPRESAS -->
+            <div id="empresas-ranking-section" class="hidden neo-card p-8">
+                 <div class="panel-header">Convenios Corporativos <span class="panel-subtitle">Empresas Amigas</span></div>
+                 <div class="overflow-x-auto mt-4">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-xs uppercase text-gray-400 border-b border-gray-100">
+                            <tr><th class="py-3 px-4 w-16">Rank</th><th class="py-3 px-4">Empresa</th><th class="py-3 px-4 text-center">Inscriptos</th><th class="py-3 px-4 w-1/2">Participación</th></tr>
                         </thead>
-                        <tbody id="empresas-ranking-body" class="divide-y divide-white/5 text-sm">
-                            <!-- JS inyectará filas aquí -->
-                        </tbody>
+                        <tbody id="empresas-ranking-body" class="divide-y divide-gray-50 font-medium"></tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- Gráficos -->
-            <main id="dashboard-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div id="card-asesora-chart" class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Asesora</h3><div class="chart-container"><canvas id="asesora-chart"></canvas></div></div>
-                <div class="p-6 glass-effect rounded-2xl shadow-lg"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Carrera</h3><div class="chart-container"><canvas id="carrera-chart"></canvas></div></div>
-                <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2"><h3 class="text-xl font-bold mb-6 text-center text-white/90">Inscriptos por Modalidad</h3><div class="chart-container"><canvas id="modalidad-chart"></canvas></div></div>
-                
-                <!-- LÍNEA DE TIEMPO CON FILTROS PROPIOS -->
-                <div class="p-6 glass-effect rounded-2xl shadow-lg lg:col-span-2">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                        <h3 class="text-xl font-bold text-white/90">Línea de Tiempo de Inscriptos (por Día)</h3>
-                        <div class="flex flex-wrap gap-2 justify-end" id="timeline-filters-wrapper">
-                            <select id="timeline-filter-month" class="bg-black/40 text-white text-sm border border-white/20 rounded-lg px-3 py-1.5 focus:outline-none">
-                                <option value="todos">Todos los Meses</option>
-                            </select>
-                            <select id="timeline-filter-advisor" class="bg-black/40 text-white text-sm border border-white/20 rounded-lg px-3 py-1.5 focus:outline-none">
-                                <option value="todos">Todos los Vendedores</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="chart-container"><canvas id="timeline-chart"></canvas></div>
-                </div>
-            </main>
         </div>
 
         <!-- VISTA OBJETIVOS -->
-        <div id="view-objetivos" class="hidden w-full">
-            <div class="mb-10 flex flex-col md:flex-row justify-center gap-6">
-                <!-- Filtro Mes -->
-                <div class="glass-effect p-6 rounded-2xl inline-flex flex-col items-center gap-2">
-                    <label for="obj-month-filter" class="font-bold uppercase tracking-wider text-white/90 text-sm">Mes</label>
-                    <select id="obj-month-filter" class="p-3 rounded-lg bg-black/50 text-white border border-white/30 font-bold focus:outline-none text-xl text-center w-64">
-                        <option value="todos">Todos los meses</option>
-                        <option value="10">Octubre</option>
-                        <option value="11">Noviembre</option>
-                        <option value="12">Diciembre</option>
-                        <option value="1">Enero</option>
-                        <option value="2">Febrero</option>
-                        <option value="3">Marzo</option>
-                        <option value="4">Abril</option>
-                    </select>
-                </div>
-                <!-- Filtro Vendedor (Nuevo) -->
-                <div class="glass-effect p-6 rounded-2xl inline-flex flex-col items-center gap-2">
-                    <label for="obj-advisor-filter" class="font-bold uppercase tracking-wider text-white/90 text-sm">Vendedor/Asesora</label>
-                    <select id="obj-advisor-filter" class="p-3 rounded-lg bg-black/50 text-white border border-white/30 font-bold focus:outline-none text-xl text-center w-64">
-                        <!-- Se llena con JS -->
-                        <option value="todos">Todos</option>
-                    </select>
-                </div>
+        <div id="view-objetivos" class="hidden space-y-8">
+            <div class="neo-card p-6 flex flex-wrap gap-6 justify-center bg-white/60">
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Periodo</label><select id="obj-month-filter" class="p-3 text-sm w-48 shadow-sm"></select></div>
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Asesora</label><select id="obj-advisor-filter" class="p-3 text-sm w-48 shadow-sm"></select></div>
             </div>
-            <div id="objetivos-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8 max-w-5xl mx-auto"></div>
+            <div id="objetivos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         </div>
 
         <!-- VISTA ACCIONES -->
-        <div id="view-acciones" class="hidden w-full"> 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto" id="acciones-grid"></div>
+        <div id="view-acciones" class="hidden">
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="acciones-grid"></div>
         </div>
 
-        <div class="mt-12 text-center pb-8" id="action-buttons"> 
-            <button id="refresh-data-btn" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all">Actualizar Datos</button>
-        </div>
-        <div id="message-container" class="text-center mt-4 fixed bottom-4 right-4 z-50"></div>
+        <div id="message-container" class="fixed bottom-6 right-6 z-50 text-sm"></div>
     </div>
 
-    <!-- Modal de Detalles -->
-    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
-        <div class="glass-effect bg-gray-900/90 rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl border border-white/20 transform transition-all scale-95 duration-300">
-            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                <h3 id="modal-date-title" class="text-2xl font-bold text-white">Detalle</h3>
-                <button id="close-modal-btn" class="text-white/70 hover:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+    <!-- Modales -->
+    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden opacity-0 transition-opacity">
+        <div class="neo-card p-8 max-w-2xl w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-date-title" class="text-2xl font-bold text-gray-800">Detalle</h3>
+                <button id="close-modal-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-10 h-10 flex items-center justify-center transition-colors"><i class="fas fa-times"></i></button>
             </div>
-            <div id="modal-promo-banner" class="hidden mb-4 p-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg flex items-center gap-3">
-               <i class="fas fa-bullhorn text-yellow-400 text-xl"></i>
-               <span id="modal-promo-text" class="font-bold text-yellow-100"></span>
+            <div id="modal-promo-banner" class="hidden mb-6 p-4 bg-purple-50 text-purple-700 rounded-xl font-bold text-sm border border-purple-100">
+               <i class="fas fa-tag mr-2"></i><span id="modal-promo-text"></span>
             </div>
-            <div id="modal-content" class="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar space-y-4"></div>
+            <div id="modal-content" class="max-h-[60vh] overflow-y-auto pr-2 text-sm space-y-2"></div>
         </div>
     </div>
 
-    <!-- Modal Opciones PDF -->
-    <div id="pdf-options-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
-        <div class="glass-effect bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-white/20 text-center">
-            <h3 class="text-2xl font-bold text-white mb-4">Opciones de Reporte</h3>
-            <p class="text-white/80 mb-8 text-lg">¿Deseas incluir el gráfico de <strong>"Inscriptos por Asesora"</strong> en el PDF?</p>
-            <div class="flex justify-center gap-4">
-                <button id="pdf-btn-yes" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors w-1/3">SÍ</button>
-                <button id="pdf-btn-no" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors w-1/3">NO</button>
+    <div id="password-modal" class="fixed inset-0 z-[70] flex items-center justify-center modal-backdrop hidden opacity-0 transition-opacity">
+        <div class="neo-card p-10 max-w-sm w-full mx-4 text-center">
+            <div class="bg-red-50 text-red-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-lock text-3xl"></i>
             </div>
-            <button id="pdf-btn-cancel" class="mt-6 text-sm text-white/50 hover:text-white underline">Cancelar</button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-3">Área Restringida</h3>
+            <p class="text-gray-500 text-sm mb-8 font-medium">Ingrese la contraseña para visualizar las acciones comerciales.</p>
+            <input type="password" id="actions-password-input" class="w-full p-4 mb-6 text-center text-lg font-bold bg-gray-50 focus:bg-white" placeholder="••••••••">
+            <div class="flex gap-3">
+                <button id="pwd-btn-submit" class="btn-neo btn-primary w-1/2 py-3">Ingresar</button>
+                <button id="pwd-btn-cancel" class="btn-neo w-1/2 py-3">Cancelar</button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal Contraseña Acciones -->
-    <div id="password-modal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
-        <div class="glass-effect bg-gray-900/95 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl border border-white/20 text-center transform transition-all">
-            <div class="mb-4">
-                <i class="fas fa-lock text-4xl text-white/80"></i>
+    <div id="pdf-options-modal" class="fixed inset-0 z-[60] flex items-center justify-center modal-backdrop hidden opacity-0 transition-opacity">
+        <div class="neo-card p-10 max-w-md w-full mx-4 text-center">
+            <div class="bg-green-50 text-green-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-file-pdf text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-bold text-white mb-2">Área Restringida</h3>
-            <p class="text-white/60 mb-6 text-sm">Ingrese la contraseña para ver las acciones comerciales.</p>
-            <input type="password" id="actions-password-input" class="w-full p-3 rounded-lg bg-black/50 text-white border border-white/30 mb-6 focus:outline-none focus:border-blue-500 text-center" placeholder="Contraseña">
-            <div class="flex justify-center gap-4">
-                <button id="pwd-btn-submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors w-1/2">Ingresar</button>
-                <button id="pwd-btn-cancel" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors w-1/2">Cancelar</button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Exportar Reporte</h3>
+            <p class="text-gray-500 text-sm mb-8 font-medium">¿Desea incluir el gráfico de "Rendimiento por Asesora" en el documento PDF?</p>
+            <div class="flex gap-4 justify-center">
+                <button id="pdf-btn-yes" class="btn-neo btn-primary px-8 py-3">Sí, incluir</button>
+                <button id="pdf-btn-no" class="btn-neo px-8 py-3">No, omitir</button>
             </div>
+            <button id="pdf-btn-cancel" class="mt-6 text-sm text-gray-400 hover:text-gray-600 font-semibold underline">Cancelar</button>
         </div>
     </div>
 
     <script>
+        // Configuración Global Chart.js para Soft UI
+        Chart.defaults.color = '#8c98a4'; 
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.font.weight = '500';
+
+        const chartColors = {
+            purple: '#8b5cf6',
+            green: '#34d399',
+            blue: '#3b82f6',
+            orange: '#f97316',
+            red: '#ef4444',
+            teal: '#14b8a6',
+            yellow: '#eab308',
+            grid: 'rgba(0,0,0,0.04)'
+        };
+
         window.openPromotion = null;
         window.showAdvisorDetails = null;
         let fullData = [];
@@ -488,11 +392,11 @@
         let currentView = 'general';
         let activeActionType = null;
         let objectiveChartInstances = [];
-        let timelineHoveredIndex = -1; // To track hovered index in timeline
-        let isActionsUnlocked = false; // Control de acceso a sección de acciones
+        let timelineHoveredIndex = -1; 
+        let isActionsUnlocked = false; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSrL0KyBFoN6o6ZDK-zoG0pDT1ViTcluQ173F0cVA26x-d94CHEbeHSlK4Y-VBmgdWyrbtuFbFZxd_D/pub?output=csv';
+            const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEJyDexcS4KB-qdaMRi9hUtxNSXEbiwoR3ChyRfKIMPA5KhGkCu7SvfQcYQQc2_jBnrugOOnTvs_mZ/pub?output=csv';
             
             const ACTION_DATES = {
                 'remarketing': ['2025-11-26', '2025-11-27', '2025-11-28'],
@@ -501,118 +405,72 @@
                 'carnaval': ['2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-21', '2026-02-22', '2026-02-23'],
                 'oferton': ['2026-03-09', '2026-03-10', '2026-03-11', '2026-03-12', '2026-03-13']
             };
+            const ACTION_NAMES = { 'remarketing': 'Remarketing', 'empresas': 'Empresas Amigas', 'navidad': 'Navidad', 'carnaval': 'Carnaval', 'oferton': 'Ofertón' };
             
-            const ACTION_NAMES = {
-                'remarketing': 'Remarketing Noviembre',
-                'empresas': 'Días Empresas Amigas',
-                'navidad': 'Descuento Navideño',
-                'carnaval': 'Descuento Carnaval',
-                'oferton': 'Ofertón Marzo'
-            };
-
-            const DATE_TO_ICON = {
-                '2025-11-26': '\uf0a1', '2025-11-27': '\uf0a1', '2025-11-28': '\uf0a1',
-                '2025-12-11': '\uf2b5', '2025-12-12': '\uf2b5',
-                '2025-12-22': '\uf06b', '2025-12-23': '\uf06b',
-                '2026-02-17': '\ue52b', '2026-02-18': '\ue52b', '2026-02-19': '\ue52b', '2026-02-20': '\ue52b', '2026-02-21': '\ue52b', '2026-02-22': '\ue52b', '2026-02-23': '\ue52b',
-                '2026-03-09': '\uf011', '2026-03-10': '\uf011', '2026-03-11': '\uf011', '2026-03-12': '\uf011', '2026-03-13': '\uf011'
-            };
-
             const goalsConfig = {
-                '10': { 'Belen': 18, 'Kiara': 18 },
-                '11': { 'Belen': 65, 'Kiara': 65, 'Jeremias': 30, 'Laura': 30 },
-                '12': { 'Belen': 75, 'Kiara': 75, 'Jeremias': 75, 'Laura': 75 },
-                '1': { 'Belen': 40, 'Kiara': 40, 'Jeremias': 40, 'Laura': 40 },
-                '2': { 'Belen': 100, 'Kiara': 100, 'Jeremias': 100, 'Laura': 100 },
-                '3': { 'Belen': 100, 'Kiara': 100, 'Jeremias': 100, 'Laura': 100 },
-                '4': { 'Belen': 10, 'Kiara': 10, 'Jeremias': 10, 'Laura': 10 }
+                '5': { 'Belen': 22, 'Kiara': 22, 'Laura': 22, 'Lucas': 22, 'Micaela (LP)': 22, 'Ayelén': 22, 'Jeremías': 22, 'Juan': 22 },
+                '6': { 'Belen': 35, 'Kiara': 35, 'Laura': 35, 'Lucas': 35, 'Micaela (LP)': 35, 'Ayelén': 35, 'Jeremías': 35, 'Juan': 35 },
+                '7': { 'Belen': 60, 'Kiara': 60, 'Laura': 60, 'Lucas': 60, 'Micaela (LP)': 60, 'Ayelén': 60, 'Jeremías': 60, 'Juan': 60 },
+                '8': { 'Belen': 50, 'Kiara': 50, 'Laura': 50, 'Lucas': 50, 'Micaela (LP)': 50, 'Ayelén': 50, 'Jeremías': 50, 'Juan': 50 }
             };
-
-            const monthNames = { '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre', '1': 'Enero', '2': 'Febrero', '3': 'Marzo', '4': 'Abril' };
-
-            const careerData = { 'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 'MKT': { name: 'Marketing', color: '#fa5d0f' }, 'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 'IA': { name: 'Ciencia de Datos', color: '#2d4693' } };
-            const asesoraData = { 
-                'Kiara': { color: '#c084fc' }, 
-                'Belen': { color: '#fbbf24' }, 
-                'Laura': { color: '#bef264' }, 
-                'Jeremias': { color: '#fca5a5' }, 
-                'Jeremías': { color: '#fca5a5' },
-                'Lucas': { color: '#3b82f6' },        // Azul
-                'Ayelén': { color: '#fde047' },       // Amarillo más claro
-                'Ayelen': { color: '#fde047' },       // Sin tilde por si acaso
-                'Micaela (LP)': { color: '#38bdf8' }, // Celeste
-                'Juan': { color: '#78350f' },         // Marrón
-                'Sin Asignar': { color: '#000000' }   // Negro
+            const monthNames = { '5': 'Mayo', '6': 'Junio', '7': 'Julio', '8': 'Agosto', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre', '1': 'Enero', '2': 'Febrero', '3': 'Marzo', '4': 'Abril' };
+            
+            const careerData = { 
+                'AE': { name: 'Adm. de Empresas', color: '#8da248' }, 
+                'RH': { name: 'Recursos Humanos', color: '#b388c2' }, 
+                'MKT': { name: 'Marketing', color: '#fa5d0f' }, 
+                'ASC': { name: 'Analista de Sistemas', color: '#00b1e1' }, 
+                'DW': { name: 'Desarrollo Web', color: '#a8927d' }, 
+                'HYS': { name: 'Higiene y Seguridad', color: '#f4c01e' }, 
+                'GI': { name: 'Gestión Inmobiliaria', color: '#bb242a' }, 
+                'CDEIA': { name: 'Ciencia de Datos e IA', color: '#2d4693' }, 
+                'IA': { name: 'Ciencia de Datos', color: '#2d4693' } 
             };
             
-            const MOCK_DATA = [
-                {'asesora': 'Kiara', 'marca temporal': '14 de octubre de 2025', 'carrera': 'MKT', 'modalidad': 'Semipresencial', 'matricula': '1001', 'apellido': 'Perez', 'nombre': 'Juan', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''},
-                {'asesora': 'Belen', 'marca temporal': '26 de noviembre de 2025', 'carrera': 'ASC', 'modalidad': 'A Distancia', 'matricula': '1002', 'apellido': 'Gomez', 'nombre': 'Maria', 'remarketing': 'x', 'colJ': '', 'colK': '', 'colL': ''},
-                {'asesora': 'Laura', 'marca temporal': '11 de diciembre de 2025', 'carrera': 'GI', 'modalidad': 'Presencial', 'matricula': '1003', 'apellido': 'Lopez', 'nombre': 'Carlos', 'remarketing': '', 'colJ': 'Coca Cola', 'colK': '', 'colL': ''},
-                {'asesora': 'Jeremias', 'marca temporal': '22 de diciembre de 2025', 'carrera': 'AE', 'modalidad': 'A Distancia', 'matricula': '1004', 'apellido': 'Diaz', 'nombre': 'Ana', 'remarketing': '', 'colJ': '', 'colK': 'x', 'colL': ''},
-                {'asesora': 'Kiara', 'marca temporal': '25 de febrero de 2026', 'carrera': 'DW', 'modalidad': 'Semipresencial', 'matricula': '1005', 'apellido': 'Romero', 'nombre': 'Luis', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': 'x'},
-                {'asesora': 'Belen', 'marca temporal': '12 de diciembre de 2025', 'carrera': 'MKT', 'modalidad': 'A Distancia', 'matricula': '1006', 'apellido': 'Sosa', 'nombre': 'Pedro', 'remarketing': '', 'colJ': 'Arcor', 'colK': '', 'colL': ''},
-                {'asesora': 'Laura', 'marca temporal': '15 de noviembre de 2025', 'carrera': 'RH', 'modalidad': 'A Distancia', 'matricula': '1007', 'apellido': 'Martinez', 'nombre': 'Sofia', 'remarketing': '', 'colJ': '', 'colK': '', 'colL': ''}
-            ];
+            const asesoraData = { 
+                 'Kiara': { color: '#c084fc' },
+                 'Belen': { color: '#fbbf24' },
+                 'Laura': { color: '#bef264' },
+                 'Jeremías': { color: '#991b1b' }, // Rojo oscuro
+                 'Lucas': { color: '#3b82f6' },
+                 'Ayelén': { color: '#fde047' },
+                 'Micaela (LP)': { color: '#38bdf8' },
+                 'Juan': { color: '#78350f' },
+                 'Sin Asignar': { color: '#9ca3af' }
+            };
 
             Chart.register(ChartDataLabels);
 
             function showMessage(msg, isError = false) {
                 const container = document.getElementById('message-container');
-                container.innerHTML = `<div class="${isError ? 'bg-red-500/90' : 'bg-green-500/90'} text-white px-6 py-3 rounded-lg shadow-xl backdrop-blur-md border border-white/20 transition-all duration-500 transform translate-y-0">${msg}</div>`;
-                setTimeout(() => { container.innerHTML = ''; }, 4000);
+                const colorClass = isError ? 'bg-red-500 text-white' : 'bg-gray-800 text-white';
+                container.innerHTML = `<div class="${colorClass} px-6 py-3 rounded-xl shadow-lg font-bold transform transition-all duration-300 translate-y-0 opacity-100">${msg}</div>`;
+                setTimeout(() => { container.firstChild.classList.replace('opacity-100', 'opacity-0'); setTimeout(()=>container.innerHTML='', 300); }, 3000);
             }
 
             function normalizeString(str = '') { return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
-            function hexToRgba(hex, alpha) { 
-                 let r=0, g=0, b=0; 
-                 if(!hex) return `rgba(255,255,255,${alpha})`;
-                if(hex.startsWith('#')) hex = hex.slice(1); 
-                 if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]; 
-                 if(hex.length === 6){ r = parseInt(hex.substring(0,2), 16); g = parseInt(hex.substring(2,4), 16); b = parseInt(hex.substring(4,6), 16); } 
-                 return `rgba(${r},${g},${b},${alpha})`; 
-             }
-
+            
             function parseDate(dateStr) {
                 if (!dateStr) return null;
                 dateStr = dateStr.trim();
-                
                 if (dateStr.includes('/')) {
                     const parts = dateStr.split(' ')[0].split('/');
                     if (parts.length === 3) {
-                        const d = parseInt(parts[0], 10);
-                        const m = parseInt(parts[1], 10) - 1; 
-                        const y = parseInt(parts[2], 10);
+                        const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, y = parseInt(parts[2], 10);
                         const fullYear = y < 100 ? 2000 + y : y;
                         const dateObj = new Date(fullYear, m, d);
                         if (!isNaN(dateObj.getTime())) return dateObj;
                     }
                 }
-                
                 const partsDe = dateStr.toLowerCase().split(' de ');
                 const monthMap = { 'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11 };
-                
                 if (partsDe.length >= 2) {
-                    const day = parseInt(partsDe[0], 10);
-                    const month = monthMap[partsDe[1].trim()];
-                    let year;
-                    
-                    if(partsDe.length === 3) {
-                        year = parseInt(partsDe[2], 10);
-                    } else {
-                        if (month >= 9) { 
-                            year = 2025;
-                        } else {
-                            year = 2026;
-                        }
-                    }
-
+                    const day = parseInt(partsDe[0], 10), month = monthMap[partsDe[1].trim()];
+                    let year = partsDe.length === 3 ? parseInt(partsDe[2], 10) : (month >= 9 ? 2025 : 2026);
                     if (!isNaN(day) && month !== undefined) return new Date(year, month, day);
                 }
-                
                 const d = new Date(dateStr);
-                if (!isNaN(d.getTime())) return d;
-                return null;
+                return isNaN(d.getTime()) ? null : d;
             }
 
             function parseRow(row, headers) {
@@ -621,23 +479,18 @@
                 const timestampIdx = findIdx(['marca temporal', 'fecha']);
                 const careerIdx = findIdx(['carrera']);
                 const modalityIdx = findIdx(['modalidad']);
-                
-                const remarketingIdxRaw = findIdx(['remarketing']); 
-                const remarketingIdx = remarketingIdxRaw !== -1 ? remarketingIdxRaw : 8;
-                const empresasIdx = 9; 
-                const navidadIdx = 10; 
-                const carnavalIdx = 11; 
-                const ofertonIdx = 12; // Column M (13th column, index 12)
-
-                const matriculaIdx = findIdx(['matricula', 'legajo', 'dni', 'documento']);
-                const apellidoIdx = findIdx(['apellido']);
-                const nombreIdx = findIdx(['nombre']);
-                const alumnoIdx = findIdx(['alumno', 'estudiante', 'nombre y apellido']);
+                const remarketingIdx = findIdx(['remarketing']) !== -1 ? findIdx(['remarketing']) : 8;
+                const empresasIdx = 9, navidadIdx = 10, carnavalIdx = 11, ofertonIdx = 12; 
+                const matriculaIdx = findIdx(['matricula', 'legajo', 'dni']);
+                const apellidoIdx = findIdx(['apellido']), nombreIdx = findIdx(['nombre']), alumnoIdx = findIdx(['alumno', 'nombre y apellido']);
 
                 let advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'Sin Asignar';
-                if (!advisor || advisor.trim() === '') {
-                    advisor = 'Sin Asignar';
-                }
+                if (!advisor || advisor.trim() === '') advisor = 'Sin Asignar';
+
+                // Unificar versiones con y sin tilde
+                let normAdv = normalizeString(advisor);
+                if (normAdv === 'jeremias') advisor = 'Jeremías';
+                if (normAdv === 'ayelen') advisor = 'Ayelén';
 
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
                 const career = careerIdx !== -1 ? Object.values(row)[careerIdx] : 'N/A';
@@ -646,97 +499,56 @@
                 let matricula = matriculaIdx !== -1 ? Object.values(row)[matriculaIdx] : '-';
                 let apellido = apellidoIdx !== -1 ? Object.values(row)[apellidoIdx] : '';
                 let nombre = nombreIdx !== -1 ? Object.values(row)[nombreIdx] : '';
-                
-                if ((!apellido || !nombre) && alumnoIdx !== -1) {
-                    const nombreCompleto = Object.values(row)[alumnoIdx] || '';
-                    apellido = nombreCompleto;
-                }
+                if ((!apellido || !nombre) && alumnoIdx !== -1) apellido = Object.values(row)[alumnoIdx] || '';
 
                 const vals = Object.values(row);
-                const remarketingVal = vals[remarketingIdx] || '';
-                
-                const empresasVal = vals[empresasIdx] || '';
-                const empresaNombre = empresasVal.trim();
+                const isRemarketing = (vals[remarketingIdx] || '').toLowerCase().includes('x');
+                const empresaNombre = (vals[empresasIdx] || '').trim();
                 const isEmpresas = empresaNombre.length > 0;
-
-                const navidadVal = vals[navidadIdx] || '';
-                const carnavalVal = vals[carnavalIdx] || '';
-                
-                // Specific logic for Ofertón: Column M (Index 12)
-                const ofertonVal = vals[ofertonIdx] || ''; 
+                const isNavidad = (vals[navidadIdx] || '').toLowerCase().includes('x');
+                const isCarnaval = (vals[carnavalIdx] || '').toLowerCase().includes('x');
+                const isOferton = (vals[ofertonIdx] || '').toLowerCase().includes('x');
 
                 const dateObject = parseDate(timestamp);
-                let monthName = 'Desconocido';
-                if (dateObject) {
-                    monthName = dateObject.toLocaleString('es-ES', { month: 'long' });
-                    monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                }
-                let modality = 'No especificada';
+                let monthName = dateObject ? dateObject.toLocaleString('es-ES', { month: 'long' }) : 'Desconocido';
+                if(monthName !== 'Desconocido') monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                
+                let modality = 'N/E';
                 const rawMod = modalityRaw.slice(-1).toUpperCase();
                 if (rawMod === 'P') modality = 'Presencial'; else if (rawMod === 'S') modality = 'Semipresencial'; else if (rawMod === 'D') modality = 'A Distancia';
-                
-                const isRemarketing = remarketingVal && remarketingVal.toLowerCase().includes('x');
-                const isNavidad = navidadVal && navidadVal.toLowerCase().includes('x');
-                const isCarnaval = carnavalVal && carnavalVal.toLowerCase().includes('x');
-                const isOferton = ofertonVal && ofertonVal.toLowerCase().includes('x');
 
-                return { 
-                    asesora: advisor, 
-                    mes: monthName, 
-                    carrera: career, 
-                    modalidad: modality, 
-                    fecha: dateObject, 
-                    matricula, 
-                    apellido, 
-                    nombre, 
-                    isRemarketing, 
-                    isEmpresas, 
-                    empresaNombre, 
-                    isNavidad, 
-                    isCarnaval,
-                    isOferton
-                };
+                return { asesora: advisor, mes: monthName, carrera: career, modalidad: modality, fecha: dateObject, matricula, apellido, nombre, isRemarketing, isEmpresas, empresaNombre, isNavidad, isCarnaval, isOferton };
             }
 
             function renderEmpresasTable(data) {
                 const tbody = document.getElementById('empresas-ranking-body');
                 tbody.innerHTML = '';
-                
                 const counts = {};
                 data.forEach(row => {
                     if (row.isEmpresas && row.empresaNombre) {
-                        const name = row.empresaNombre.trim();
-                        const displayName = (name.toLowerCase() === 'x') ? 'Empresa S/D' : name;
-                        counts[displayName] = (counts[displayName] || 0) + 1;
+                        const name = row.empresaNombre.trim() === 'x' ? 'Corp S/D' : row.empresaNombre.trim();
+                        counts[name] = (counts[name] || 0) + 1;
                     }
                 });
 
-                if (Object.keys(counts).length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-3 text-center text-white/50">No hay datos de empresas registradas.</td></tr>';
-                    return;
-                }
+                if (Object.keys(counts).length === 0) return;
 
                 const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
                 const maxVal = sorted[0][1];
 
                 sorted.forEach(([empresa, count], index) => {
-                    const percentage = Math.round((count / maxVal) * 100);
-                    let medal = '';
-                    if (index === 0) medal = '<i class="fas fa-medal text-yellow-400"></i>';
-                    else if (index === 1) medal = '<i class="fas fa-medal text-gray-300"></i>';
-                    else if (index === 2) medal = '<i class="fas fa-medal text-orange-400"></i>';
-                    else medal = `<span class="text-white/50 font-mono">#${index + 1}</span>`;
-
+                    const pct = Math.round((count / maxVal) * 100);
+                    const colorClass = index === 0 ? 'bg-purple-500' : (index === 1 ? 'bg-blue-400' : 'bg-gray-300');
+                    const textClass = index < 3 ? 'text-gray-800 font-bold' : 'text-gray-600';
+                    
                     const rowHtml = `
-                        <tr class="ranking-row border-b border-white/5 last:border-0">
-                            <td class="px-4 py-2 text-center text-lg w-16 align-middle">${medal}</td>
-                            <td class="px-4 py-2 font-semibold text-white/90 align-middle">
-                                <div class="whitespace-normal break-words" title="${empresa}">${empresa}</div>
-                            </td>
-                            <td class="px-4 py-2 text-center font-bold text-white w-24 align-middle">${count}</td>
-                            <td class="px-4 py-2 align-middle w-1/3">
-                                <div class="ranking-bar-bg">
-                                    <div class="ranking-bar-fill bg-gradient-to-r from-blue-400 to-indigo-500" style="width: ${percentage}%"></div>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-4 text-center text-gray-400 font-bold">0${index + 1}</td>
+                            <td class="py-4 px-4 ${textClass} truncate max-w-[150px]">${empresa}</td>
+                            <td class="py-4 px-4 text-center font-extrabold text-gray-800">${count}</td>
+                            <td class="py-4 px-4">
+                                <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                                    <div class="${colorClass} h-full rounded-full" style="width: ${pct}%"></div>
                                 </div>
                             </td>
                         </tr>
@@ -745,1159 +557,662 @@
                 });
             }
 
-            function openModal() { 
-                const modal = document.getElementById('detail-modal');
-                modal.classList.remove('hidden'); 
-                requestAnimationFrame(() => {
-                    modal.classList.remove('opacity-0'); 
-                    modal.firstElementChild.classList.remove('scale-95'); 
-                    modal.firstElementChild.classList.add('scale-100'); 
-                });
-            }
-            
-            function closeModal() { 
-                const modal = document.getElementById('detail-modal');
-                modal.classList.add('opacity-0'); 
-                modal.firstElementChild.classList.remove('scale-100'); 
-                modal.firstElementChild.classList.add('scale-100'); 
-                setTimeout(() => modal.classList.add('hidden'), 300); 
+            // --- Lógica de Modales ---
+            function toggleModal(modalId, show) {
+                const modal = document.getElementById(modalId);
+                if (show) {
+                    modal.classList.remove('hidden');
+                    requestAnimationFrame(() => modal.classList.remove('opacity-0'));
+                } else {
+                    modal.classList.add('opacity-0');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                }
             }
 
             window.showAdvisorDetails = (advisorName) => {
                 const selectedMonth = document.getElementById('obj-month-filter').value;
                 const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
-                
-                if(isNaN(targetMonthIndex)) {
-                    showMessage('Selecciona un mes específico para ver detalles.', true);
-                    return;
-                }
-                
-                const filteredData = fullData.filter(d => {
-                    const isAdvisor = normalizeString(d.asesora).includes(normalizeString(advisorName)) || normalizeString(advisorName).includes(normalizeString(d.asesora));
-                    const isMonth = d.fecha && d.fecha.getMonth() === targetMonthIndex;
-                    return isAdvisor && isMonth;
-                });
+                if(isNaN(targetMonthIndex)) { showMessage('Seleccione periodo específico.', true); return; }
 
-                const modalTitle = document.getElementById('modal-date-title'); 
-                const modalContent = document.getElementById('modal-content');
-                const modalPromoBanner = document.getElementById('modal-promo-banner');
-                modalPromoBanner.classList.add('hidden'); // Reset for advisor view
+                const filteredData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex && normalizeString(d.asesora).includes(normalizeString(advisorName)));
                 
-                const dateForMonth = new Date(new Date().getFullYear(), targetMonthIndex, 1);
-                const monthName = dateForMonth.toLocaleString('es-ES', { month: 'long' });
-                const monthCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
-                modalTitle.textContent = `${advisorName} - ${monthCap}`;
+                document.getElementById('modal-date-title').textContent = `${advisorName}`;
+                document.getElementById('modal-promo-banner').classList.add('hidden');
+                const content = document.getElementById('modal-content');
                 
-                if (filteredData.length === 0) {
-                    modalContent.innerHTML = '<p class="text-white text-center">No hay inscriptos registrados para este asesor en este mes.</p>';
-                } else {
-                    let html = `
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left text-white/90">
-                                <thead class="text-xs uppercase bg-white/10 text-white border-b border-white/20">
-                                    <tr>
-                                        <th class="px-4 py-3">Matrícula</th>
-                                        <th class="px-4 py-3">Apellido y Nombre</th>
-                                        <th class="px-4 py-3">Carrera</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-white/10">
-                    `;
+                if (filteredData.length === 0) { content.innerHTML = '<p class="text-center text-gray-400 font-medium py-4">Sin registros para este periodo.</p>'; } 
+                else {
+                    let html = `<table class="w-full text-left bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100"><thead class="bg-gray-50 text-xs text-gray-500 uppercase"><tr><th class="py-3 px-4">Matrícula</th><th class="py-3 px-4">Alumno</th><th class="py-3 px-4">Carrera</th></tr></thead><tbody class="divide-y divide-gray-100">`;
                     filteredData.forEach(row => {
-                        const fullName = `${row.apellido} ${row.nombre}`.trim() || 'Sin Nombre';
-                        const career = careerData[row.carrera] ? careerData[row.carrera].name : row.carrera;
-                        html += `
-                            <tr class="hover:bg-white/5 transition-colors">
-                                <td class="px-4 py-3 font-mono">${row.matricula}</td>
-                                <td class="px-4 py-3 font-medium">${fullName}</td>
-                                <td class="px-4 py-3">${career}</td>
-                            </tr>
-                        `;
+                        html += `<tr><td class="py-3 px-4 font-bold text-gray-600">${row.matricula}</td><td class="py-3 px-4 font-semibold text-gray-800 truncate max-w-[150px]">${row.apellido} ${row.nombre}</td><td class="py-3 px-4 text-gray-500">${row.carrera}</td></tr>`;
                     });
-                    html += `</tbody></table></div><p class="text-right text-xs text-white/50 mt-2">Total: ${filteredData.length}</p>`;
-                    modalContent.innerHTML = html;
+                    content.innerHTML = html + `</tbody></table><div class="text-right mt-4 font-bold text-gray-800">Total: ${filteredData.length}</div>`;
                 }
-                openModal();
+                toggleModal('detail-modal', true);
             };
 
             function showDayDetails(dateString, dayData) {
-                const modalTitle = document.getElementById('modal-date-title'); 
-                const modalContent = document.getElementById('modal-content');
-                const modalPromoBanner = document.getElementById('modal-promo-banner');
-                const modalPromoText = document.getElementById('modal-promo-text');
+                const [year, month, day] = dateString.split('-');
+                document.getElementById('modal-date-title').textContent = `${day}/${month}/${year}`;
+                const promoBanner = document.getElementById('modal-promo-banner');
+                let foundPromo = Object.keys(ACTION_DATES).find(key => ACTION_DATES[key].includes(dateString));
                 
-                const [year, month, day] = dateString.split('-').map(Number); 
-                const displayDate = new Date(year, month - 1, day).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                modalTitle.textContent = displayDate.charAt(0).toUpperCase() + displayDate.slice(1); modalContent.innerHTML = '';
-                
-                // --- PROMO LOGIC FOR MODAL ---
-                const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                let foundPromo = null;
-                for (const [key, dates] of Object.entries(ACTION_DATES)) {
-                    if (dates.includes(dateKey)) {
-                        foundPromo = ACTION_NAMES[key] || key.toUpperCase();
-                        break;
-                    }
-                }
-
                 if (foundPromo) {
-                    modalPromoText.textContent = `Día de Promoción: ${foundPromo}`;
-                    modalPromoBanner.classList.remove('hidden');
-                } else {
-                    modalPromoBanner.classList.add('hidden');
+                    document.getElementById('modal-promo-text').textContent = `Día de Acción: ${ACTION_NAMES[foundPromo]}`;
+                    promoBanner.classList.remove('hidden');
+                } else { promoBanner.classList.add('hidden'); }
+
+                const content = document.getElementById('modal-content');
+                if (dayData.length === 0) { content.innerHTML = '<p class="text-center text-gray-400 font-medium py-4">Sin inscripciones en esta fecha.</p>'; } 
+                else {
+                    const grouped = dayData.reduce((acc, curr) => { if(!acc[curr.carrera]) acc[curr.carrera]=0; acc[curr.carrera]++; return acc; }, {});
+                    let html = `<ul class="space-y-2">`;
+                    Object.entries(grouped).forEach(([car, count]) => {
+                        const color = careerData[car] ? careerData[car].color : chartColors.purple;
+                        html += `<li class="flex justify-between items-center bg-gray-50 border border-gray-100 rounded-xl p-4"><div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full" style="background-color:${color}"></span><span class="font-bold text-gray-700">${careerData[car]?.name || car}</span></div><span class="font-extrabold text-lg text-gray-800">${count}</span></li>`;
+                    });
+                    content.innerHTML = html + `</ul>`;
                 }
-                // -----------------------------
-
-                if (dayData.length === 0) { modalContent.innerHTML = '<p class="text-white text-center">No hay inscripciones registradas para este día.</p>'; } else {
-                    const grouped = dayData.reduce((acc, curr) => { if (!acc[curr.carrera]) acc[curr.carrera] = {}; if (!acc[curr.carrera][curr.modalidad]) acc[curr.carrera][curr.modalidad] = 0; acc[curr.carrera][curr.modalidad]++; return acc; }, {});
-                    Object.keys(grouped).sort().forEach(carrera => { const careerColor = careerData[carrera] ? careerData[carrera].color : '#ffffff'; const modalities = grouped[carrera]; const totalCareer = Object.values(modalities).reduce((a, b) => a + b, 0); let html = `<div class="bg-white/5 rounded-xl p-4 border border-white/10"><div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2"><h4 class="font-bold text-lg" style="color: ${careerColor}">${careerData[carrera]?.name || carrera} (${carrera})</h4><span class="bg-white/20 px-2 py-1 rounded text-sm font-bold">${totalCareer}</span></div><ul class="space-y-2">`; Object.keys(modalities).forEach(mod => { html += `<li class="flex justify-between text-sm text-white/80 pl-2 border-l-2 border-white/20"><span>${mod}</span><span class="font-semibold text-white">${modalities[mod]}</span></li>`; }); html += `</ul></div>`; modalContent.insertAdjacentHTML('beforeend', html); });
-                } openModal();
+                toggleModal('detail-modal', true);
             }
+            document.getElementById('close-modal-btn').addEventListener('click', () => toggleModal('detail-modal', false));
 
+            // --- Filtros ---
             function populateFilters(data) {
                 const filters = { asesora: new Set(), mes: new Set(), carrera: new Set(), modalidad: new Set() };
-                const advisorSet = new Set();
-
                 data.forEach(row => {
-                    if (row.asesora) {
-                        filters.asesora.add(row.asesora);
-                        advisorSet.add(row.asesora);
-                    }
+                    if (row.asesora) filters.asesora.add(row.asesora);
                     if (row.mes !== 'Desconocido') filters.mes.add(row.mes);
                     if (row.carrera !== 'N/A') filters.carrera.add(row.carrera);
-                    if (row.modalidad !== 'No especificada') filters.modalidad.add(row.modalidad);
+                    if (row.modalidad !== 'N/E') filters.modalidad.add(row.modalidad);
                 });
 
-                // Populate Global Filters
-                const objAdvisorSelect = document.getElementById('obj-advisor-filter');
-                if(objAdvisorSelect) {
-                    objAdvisorSelect.innerHTML = '<option value="todos">Todos</option>';
-                    [...advisorSet].sort().forEach(adv => {
-                        const opt = document.createElement('option');
-                        opt.value = adv;
-                        opt.textContent = adv;
-                        objAdvisorSelect.appendChild(opt);
-                    });
-                }
-                for (const key in filters) {
-                    const select = document.getElementById(`filter-${key}`);
-                    if (select) {
-                        select.innerHTML = '<option value="todos">Todos</option>';
-                        [...filters[key]].sort().forEach(value => { const option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
-                        select.value = currentValue = currentFilters[key] || 'todos';
-                    }
-                }
+                const fillSelect = (id, set, defaultText) => {
+                    const sel = document.getElementById(id);
+                    if(!sel) return;
+                    sel.innerHTML = `<option value="todos">${defaultText}</option>`;
+                    [...set].sort().forEach(v => sel.insertAdjacentHTML('beforeend', `<option value="${v}">${v}</option>`));
+                };
 
-                // Populate Timeline Specific Filters
-                const tlAdvisorSelect = document.getElementById('timeline-filter-advisor');
-                const tlMonthSelect = document.getElementById('timeline-filter-month');
+                fillSelect('filter-asesora', filters.asesora, 'Todas las Asesoras');
+                fillSelect('filter-mes', filters.mes, 'Todos los Meses');
+                fillSelect('filter-carrera', filters.carrera, 'Todas las Carreras');
+                fillSelect('filter-modalidad', filters.modalidad, 'Todas las Modalidades');
+                fillSelect('obj-advisor-filter', filters.asesora, 'Todas las Asesoras');
+                fillSelect('timeline-filter-advisor', filters.asesora, 'Todas las Asesoras');
+                fillSelect('timeline-filter-month', filters.mes, 'Todos los Meses');
                 
-                if (tlAdvisorSelect && tlMonthSelect) {
-                    tlAdvisorSelect.innerHTML = '<option value="todos">Todos los Vendedores</option>';
-                    tlMonthSelect.innerHTML = '<option value="todos">Todos los Meses</option>';
-                    
-                    [...filters.asesora].sort().forEach(adv => {
-                        const opt = document.createElement('option');
-                        opt.value = adv;
-                        opt.textContent = adv;
-                        tlAdvisorSelect.appendChild(opt);
-                    });
-                    
-                    [...filters.mes].sort().forEach(m => {
-                        const opt = document.createElement('option');
-                        opt.value = m;
-                        opt.textContent = m;
-                        tlMonthSelect.appendChild(opt);
-                    });
+                // Meses para objetivos manuales
+                const objMonth = document.getElementById('obj-month-filter');
+                if(objMonth) {
+                    objMonth.innerHTML = `<option value="todos">Todos los Periodos</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option>`;
                 }
             }
 
-            // NEW FUNCTION: Specific Render for Timeline to handle its own filters
-            function renderTimelineSpecific(data) {
-                const tlAdvisor = document.getElementById('timeline-filter-advisor').value;
-                const tlMonth = document.getElementById('timeline-filter-month').value;
-                const filtersWrapper = document.getElementById('timeline-filters-wrapper');
+            // --- Lógica del Botón de Meta ---
+            let showGoal = false;
+            let currentTotal = 0;
+            let currentFaltan = 0;
 
-                let tlData;
-                let isActionView = false;
+            function updateGaugeText() {
+                const numEl = document.getElementById('gauge-number');
+                const lblEl = document.getElementById('gauge-label');
+                const btn = document.getElementById('toggle-goal-btn');
                 
-                // ACTION VIEW LOGIC: If looking at an action detail, force filter by action dates
-                if (currentView === 'action-detail' && activeActionType && ACTION_DATES[activeActionType]) {
-                    isActionView = true;
-                    // Hide manual filters in action view to avoid confusion
-                    if(filtersWrapper) filtersWrapper.classList.add('hidden');
-                    
-                    const allowedDates = ACTION_DATES[activeActionType];
-                    tlData = data.filter(row => {
-                        if (!row.fecha) return false;
-                        const dateStr = row.fecha.toLocaleDateString('en-CA'); // YYYY-MM-DD
-                        return allowedDates.includes(dateStr);
-                    });
+                if (showGoal) {
+                    numEl.textContent = currentFaltan;
+                    numEl.className = "text-5xl font-extrabold text-purple-600";
+                    lblEl.textContent = "Faltan para Meta";
+                    btn.textContent = 'Ver Total Inscriptos';
                 } else {
-                    // GENERAL VIEW LOGIC: Use manual filters
-                    if(filtersWrapper) filtersWrapper.classList.remove('hidden');
-                    
-                    tlData = data.filter(row => {
-                        const advMatch = tlAdvisor === 'todos' || row.asesora === tlAdvisor;
-                        const monthMatch = tlMonth === 'todos' || row.mes === tlMonth;
-                        return advMatch && monthMatch;
+                    numEl.textContent = currentTotal;
+                    numEl.className = "text-6xl font-extrabold text-gray-800";
+                    lblEl.textContent = "Inscriptos";
+                    btn.textContent = 'Ver Meta y Faltante';
+                }
+            }
+
+            document.getElementById('toggle-goal-btn').addEventListener('click', () => {
+                showGoal = !showGoal;
+                updateGaugeText();
+            });
+
+            // --- Renderizado de Gráficos (Estilo Soft UI) ---
+            function createChart(chartId, type, labels, data, colors, isTimeline = false, isGauge = false, isHorizontalBar = false) {
+                const canvas = document.getElementById(chartId);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (chartInstances[chartId]) chartInstances[chartId].destroy();
+
+                let config = { type, data: { labels, datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } };
+
+                if (isGauge) {
+                    // KPI Circular / Doughnut
+                    config.data.datasets.push({
+                        data: data, // [actual, restante]
+                        backgroundColor: [chartColors.purple, '#f3f4f6'],
+                        borderWidth: 0,
+                        circumference: 360,
+                        cutout: '80%',
+                        borderRadius: 20
                     });
+                    config.options.plugins.tooltip = { enabled: false };
+                    config.options.plugins.datalabels = { display: false };
+                } 
+                else if (isHorizontalBar) {
+                    // Barras Horizontales (Carreras)
+                    const maxVal = Math.max(...data);
+                    const threshold = maxVal * 0.15; // Límite para ver si el texto entra
+
+                    config.options.indexAxis = 'y';
+                    config.options.layout = { padding: { right: 50 } }; // Forzar padding para que el texto no se corte
+                    config.data.datasets.push({
+                        data: data,
+                        backgroundColor: colors,
+                        barThickness: 24, // Más gruesa para que entre texto
+                        borderRadius: 8
+                    });
+                    config.options.scales = {
+                        x: { display: false, grid: {display:false}, grace: '30%' }, // Aumentado el grace
+                        y: { display: false } // Ocultar eje Y, el label va adentro
+                    };
+                    config.options.plugins.datalabels = {
+                        anchor: 'end',
+                        align: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'start' : 'end',
+                        color: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? '#ffffff' : '#1f2937',
+                        offset: 8,
+                        formatter: (val, ctx) => {
+                            const lbl = ctx.chart.data.labels[ctx.dataIndex];
+                            const name = careerData[lbl]?.name || lbl;
+                            return `${name}: ${val}`;
+                        },
+                        font: { weight: 'extrabold', size: 11 },
+                        textShadowBlur: 4,
+                        textShadowColor: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'rgba(0,0,0,0.3)' : 'transparent'
+                    };
+                }
+                else if (type === 'bar') {
+                    // Barras Verticales (Asesoras)
+                    const maxVal = Math.max(...data);
+                    const threshold = maxVal * 0.20;
+
+                    config.options.layout = { padding: { top: 40 } }; // Forzar padding arriba para etiquetas externas
+                    config.data.datasets.push({
+                        data: data,
+                        backgroundColor: colors,
+                        barThickness: 36, // Ajuste para que entre el nombre parado
+                        borderRadius: {topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight:0},
+                    });
+                    config.options.scales = {
+                        x: { display: false }, // Ocultar Eje X
+                        y: { display: false, grace: '30%' }
+                    };
+                    config.options.plugins.datalabels = {
+                        anchor: 'end',
+                        align: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'start' : 'end',
+                        color: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? '#ffffff' : '#1f2937',
+                        offset: 8,
+                        rotation: -90, // TEXTO EN VERTICAL (Parado)
+                        formatter: (val, ctx) => {
+                            return ctx.chart.data.labels[ctx.dataIndex] + ' : ' + val;
+                        },
+                        textAlign: 'center',
+                        font: { weight: 'extrabold', size: 12 },
+                        textShadowBlur: 4,
+                        textShadowColor: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'rgba(0,0,0,0.5)' : 'transparent'
+                    };
+                }
+                else if (type === 'pie' || type === 'doughnut') {
+                    // Días de la semana
+                    config.options.layout = { padding: 30 }; // Padding para etiquetas por fuera
+                    config.data.datasets.push({
+                        data: data, backgroundColor: colors, borderWidth: 4, borderColor: '#ffffff', hoverOffset: 4
+                    });
+                    config.options.cutout = type === 'doughnut' ? '65%' : '0%';
+                    config.options.plugins.datalabels = {
+                        color: '#475569', 
+                        anchor: 'end',
+                        align: 'end',
+                        offset: 4,
+                        font: { weight:'extrabold', size: 11 },
+                        formatter: (val, ctx) => val > 0 ? ctx.chart.data.labels[ctx.dataIndex] + '\n' + val : '',
+                        textAlign: 'center'
+                    };
+                }
+                else if (isTimeline) {
+                    // Paleta de colores para los meses
+                    const timelineColors = {
+                        5: '#34d399', // Mayo: Verde
+                        6: '#3b82f6', // Junio: Azul
+                        7: '#8b5cf6', // Julio: Morado
+                        8: '#f97316', // Agosto: Naranja
+                        10: '#f43f5e', // Octubre: Rojo
+                        11: '#14b8a6', // Nov: Teal
+                        12: '#eab308', // Dic: Amarillo
+                        1: '#0ea5e9',  // Ene: Cian
+                        2: '#d946ef',  // Feb: Fucsia
+                        3: '#84cc16',  // Mar: Lima
+                        4: '#64748b'   // Abr: Slate
+                    };
+
+                    const getMonthColor = (dateStr) => {
+                        if (!dateStr) return chartColors.blue;
+                        const m = parseInt(dateStr.split('-')[1], 10);
+                        return timelineColors[m] || chartColors.blue;
+                    };
+
+                    config.data.datasets.push({
+                        data: data,
+                        borderWidth: 3,
+                        fill: false, // Sin fondo para resaltar la línea multicolor
+                        tension: 0.4, // Curvas suaves
+                        pointRadius: 4, 
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: ctx => getMonthColor(config.data.labels[ctx.dataIndex]),
+                        pointBorderColor: '#ffffff',
+                        pointHoverBackgroundColor: '#ffffff',
+                        pointHoverBorderColor: ctx => getMonthColor(config.data.labels[ctx.dataIndex]),
+                        pointHoverBorderWidth: 2,
+                        segment: {
+                            borderColor: ctx => getMonthColor(config.data.labels[ctx.p0DataIndex])
+                        }
+                    });
+                    config.options.scales = {
+                        x: { 
+                            ticks: { color: '#94a3b8', maxTicksLimit: 12, font: {weight: 'bold'} },
+                            grid: { color: chartColors.grid, drawBorder: false }
+                        },
+                        y: { display: false, grid: { display: false }, grace: '10%' }
+                    };
+                    config.options.plugins.datalabels = { display: false };
                 }
 
-                const timelineCounts = tlData.reduce((acc, row) => { 
-                    if (row.fecha) { 
-                        const dateString = row.fecha.toLocaleDateString('en-CA'); 
-                        acc[dateString] = (acc[dateString] || 0) + 1; 
-                    } 
-                    return acc; 
-                }, {});
-                
-                const sortedDates = Object.keys(timelineCounts).sort();
-                
-                // Colors Updated: Oct=Blue, Nov=Purple, Dec=TEAL, Jan=FUCHSIA, Feb=Orange, Mar=Yellow (OFERTÓN Month)
-                const monthColors = { '10': '#3b82f6', '11': '#8b5cf6', '12': '#14b8a6', '01': '#d946ef', '02': '#f97316', '03': '#eab308' };
-                
-                // Pass !isActionView to show annotation only when NOT in action view
-                updateChart('timeline-chart', 'line', sortedDates, sortedDates.map(date => timelineCounts[date]), ['#fbbf24'], monthColors, !isActionView);
+                // Interactividad: Cliqueo para filtrar (Cross-filtering) y Modales
+                config.options.onClick = (evt, elements) => {
+                    if (!elements.length) return;
+                    const idx = elements[0].index;
+                    const label = config.data.labels[idx];
+
+                    if (isHorizontalBar) {
+                        const sel = document.getElementById('filter-carrera');
+                        sel.value = sel.value === label ? 'todos' : label;
+                        applyFiltersAndRender();
+                    } else if (type === 'bar' && !isHorizontalBar) {
+                        const sel = document.getElementById('filter-asesora');
+                        sel.value = sel.value === label ? 'todos' : label;
+                        applyFiltersAndRender();
+                    } else if (type === 'doughnut' && !isGauge) {
+                        // Omitir clic en día de semana para filtros
+                    } else if (isTimeline) {
+                        const dateLbl = config.data.labels[idx];
+                        const dayData = fullData.filter(r => r.fecha && r.fecha.toLocaleDateString('en-CA') === dateLbl);
+                        showDayDetails(dateLbl, dayData);
+                    }
+                };
+
+                // Cambiar cursor al pasar sobre elementos interactivos
+                config.options.onHover = (evt, elements) => {
+                    evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+                };
+
+                chartInstances[chartId] = new Chart(ctx, config);
             }
 
             function applyFiltersAndRender() {
-                const filterAsesora = document.getElementById('filter-asesora');
-                const filterMes = document.getElementById('filter-mes');
-                const filterCarrera = document.getElementById('filter-carrera');
-                const filterModalidad = document.getElementById('filter-modalidad');
-                const filterDateStart = document.getElementById('filter-date-start');
-                const filterDateEnd = document.getElementById('filter-date-end');
-                const empresasSection = document.getElementById('empresas-ranking-section');
+                if(currentView !== 'general' && currentView !== 'action-detail') return;
 
-                if (!filterAsesora || !filterMes || !filterCarrera || !filterModalidad) return;
+                const fAsesora = document.getElementById('filter-asesora').value;
+                const fMes = document.getElementById('filter-mes').value;
+                const fCarrera = document.getElementById('filter-carrera').value;
+                const fModalidad = document.getElementById('filter-modalidad').value;
+                const dStart = document.getElementById('filter-date-start').value;
+                const dEnd = document.getElementById('filter-date-end').value;
 
-                currentFilters = { 
-                    asesora: filterAsesora.value, 
-                    mes: filterMes.value, 
-                    carrera: filterCarrera.value, 
-                    modalidad: filterModalidad.value 
-                };
+                let startD=null, endD=null;
+                if(dStart) startD = new Date(dStart + 'T00:00:00');
+                if(dEnd) endD = new Date(dEnd + 'T23:59:59');
 
-                const startStr = filterDateStart.value;
-                const endStr = filterDateEnd.value;
-                let startDate = null, endDate = null;
-                if (startStr) { const [sy, sm, sd] = startStr.split('-').map(Number); startDate = new Date(sy, sm - 1, sd); startDate.setHours(0, 0, 0, 0); }
-                if (endStr) { const [ey, em, ed] = endStr.split('-').map(Number); endDate = new Date(ey, em - 1, ed); endDate.setHours(23, 59, 59, 99); }
-                
-                const activeData = fullData.filter(row => {
-                    let viewMatch = true;
-                    if (currentView === 'action-detail') {
-                        if (activeActionType === 'remarketing') viewMatch = row.isRemarketing;
-                        else if (activeActionType === 'empresas') viewMatch = row.isEmpresas;
-                        else if (activeActionType === 'navidad') viewMatch = row.isNavidad;
-                        else if (activeActionType === 'carnaval') viewMatch = row.isCarnaval;
-                        else if (activeActionType === 'oferton') viewMatch = row.isOferton;
+                let activeData = fullData.filter(row => {
+                    let matchView = true;
+                    if(currentView === 'action-detail') {
+                        if(activeActionType === 'remarketing') matchView = row.isRemarketing;
+                        else if(activeActionType === 'empresas') matchView = row.isEmpresas;
+                        else if(activeActionType === 'navidad') matchView = row.isNavidad;
+                        else if(activeActionType === 'carnaval') matchView = row.isCarnaval;
+                        else if(activeActionType === 'oferton') matchView = row.isOferton;
                     }
-                    const dropdownMatch = Object.keys(currentFilters).every(key => currentFilters[key] === 'todos' || row[key] === currentFilters[key]);
-                    let dateMatch = true;
-                    if (row.fecha) {
-                        if (startDate && row.fecha < startDate) dateMatch = false;
-                        if (endDate && row.fecha > endDate) dateMatch = false;
-                    } else if (startDate || endDate) { dateMatch = false; }
-                    return viewMatch && dropdownMatch && dateMatch;
+                    
+                    const matchF = (fAsesora==='todos'||row.asesora===fAsesora) && 
+                                   (fMes==='todos'||row.mes===fMes) && 
+                                   (fCarrera==='todos'||row.carrera===fCarrera) && 
+                                   (fModalidad==='todos'||row.modalidad===fModalidad);
+                    
+                    let matchD = true;
+                    if(row.fecha) {
+                        if(startD && row.fecha < startD) matchD=false;
+                        if(endD && row.fecha > endD) matchD=false;
+                    } else if(startD||endD) matchD=false;
+
+                    return matchView && matchF && matchD;
                 });
-                
-                if (currentView === 'action-detail' && activeActionType === 'empresas') {
-                    empresasSection.classList.remove('hidden');
-                    renderEmpresasTable(activeData);
-                } else {
-                    empresasSection.classList.add('hidden');
-                }
 
-                renderDashboard(activeData);
-                renderTimelineSpecific(fullData); // Initial call for timeline with full data (or filtered if preferred, but here independent)
-            }
+                // Mostrar Empresas si aplica
+                const secEmp = document.getElementById('empresas-ranking-section');
+                if(currentView === 'action-detail' && activeActionType === 'empresas') {
+                    secEmp.classList.remove('hidden'); renderEmpresasTable(activeData);
+                } else { secEmp.classList.add('hidden'); }
 
-            function handleChartClick(evt, elements, chartId, labels) {
-                if (elements.length === 0) return;
-                const index = elements[0].index;
-                const clickedLabel = labels[index];
+                // --- Renderizar Vista General ---
                 
-                if (chartId === 'timeline-chart') {
-                    const activeData = fullData.filter(row => row.fecha && row.fecha.toLocaleDateString('en-CA') === clickedLabel); 
-                    showDayDetails(clickedLabel, activeData); return;
-                }
-                
-                let filterKey = null; let filterSelectId = null;
-                if (chartId === 'asesora-chart') { filterKey = 'asesora'; filterSelectId = 'filter-asesora'; }
-                else if (chartId === 'carrera-chart') { filterKey = 'carrera'; filterSelectId = 'filter-carrera'; }
-                else if (chartId === 'modalidad-chart') { filterKey = 'modalidad'; filterSelectId = 'filter-modalidad'; }
-                if (filterKey && filterSelectId) { const select = document.getElementById(filterSelectId); if (currentFilters[filterKey] === clickedLabel) { select.value = 'todos'; } else { select.value = clickedLabel; } applyFiltersAndRender(); }
-            }
+                // KPI Central / Gauge y Faltante
+                currentTotal = activeData.length;
+                currentFaltan = Math.max(0, 456 - currentTotal);
+                updateGaugeText();
 
-            function createGradient(ctx, chartArea, color) {
-                if (!ctx || !chartArea) return color; // SAFETY CHECK
-                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                gradient.addColorStop(0, hexToRgba(color, 0.4));
-                gradient.addColorStop(1, hexToRgba(color, 0.9));
-                return gradient;
-            }
+                const pct = Math.min(Math.round((currentTotal/456)*100), 100);
+                document.getElementById('goal-percentage').textContent = pct;
+                createChart('total-gauge-chart', 'doughnut', ['Logrado', 'Restante'], [currentTotal, currentFaltan], null, false, true);
 
-            function updateChart(chartId, type, labels, data, colors, segmentColors = null, showRecessAnnotation = true) {
-                const canvasElement = document.getElementById(chartId);
-                if (!canvasElement) return;
-                
-                const ctx = canvasElement.getContext('2d');
-                if (!ctx) return; // SAFETY CHECK
-                
-                if (chartInstances[chartId]) {
-                    chartInstances[chartId].destroy();
-                }
-                
-                const isTimeline = chartId === 'timeline-chart'; const isBar = type === 'bar'; const isPie = type === 'pie'; const total = data.reduce((a, b) => a + b, 0);
-                
-                let segmentConfig = {};
-                if (isTimeline && segmentColors) {
-                    segmentConfig = { 
-                        borderColor: ctx => { 
-                            const p0 = ctx.p0; 
-                            if (p0 && p0.parsed) { 
-                                const dateStr = labels[p0.$context.dataIndex]; 
-                                if (dateStr) { 
-                                    const month = dateStr.split('-')[1]; 
-                                    return segmentColors[month] || '#fbbf24'; 
-                                } 
-                            } 
-                            return '#fbbf24'; 
-                        } 
-                    };
-                }
+                // Agrupaciones
+                const cAsesora = {}, cCarrera = {};
+                const cDias = { 'Lunes':0, 'Martes':0, 'Miércoles':0, 'Jueves':0, 'Viernes':0, 'Sábado':0, 'Domingo':0 };
+                const diasNombres = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-                // Custom Plugin for X-Axis Circles (Timeline only)
-                const xTickCirclePlugin = {
-                    id: 'xTickCircle',
-                    afterDraw: (chart) => {
-                        if (chart.config.type !== 'line') return;
-                        const ctx = chart.ctx;
-                        if (!ctx) return; // SAFETY CHECK
-                        const xAxis = chart.scales.x;
-                        if (!xAxis) return; // SAFETY CHECK
-                        
-                        xAxis.ticks.forEach((value, index) => {
-                            const x = xAxis.getPixelForTick(index);
-                            // Only draw if there's data for this tick (simplification)
-                            if (x) {
-                                const y = xAxis.bottom - 15; // Approximate center of tick label area
-                                ctx.save();
-                                ctx.beginPath();
-                                ctx.arc(x, y, 14, 0, 2 * Math.PI);
-                                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-                                ctx.fill();
-                                ctx.restore();
-                            }
-                        });
+                activeData.forEach(r => {
+                    cAsesora[r.asesora] = (cAsesora[r.asesora]||0)+1;
+                    cCarrera[r.carrera] = (cCarrera[r.carrera]||0)+1;
+                    if(r.fecha) {
+                        const diaStr = diasNombres[r.fecha.getDay()];
+                        cDias[diaStr] = (cDias[diaStr] || 0) + 1;
                     }
-                };
-
-                const datalabelsConfig = isTimeline ? {
-                    display: (context) => {
-                        const date = context.chart.data.labels[context.dataIndex];
-                        return !!DATE_TO_ICON[date];
-                    },
-                    align: 'top', anchor: 'center', offset: 0, 
-                    font: { family: '"Font Awesome 6 Free"', weight: 900, size: 20 }, 
-                    color: '#FFF',
-                    formatter: (value, context) => { const date = context.chart.data.labels[context.dataIndex]; return DATE_TO_ICON[date] || ''; }
-                } : {
-                    labels: {
-                        value: { color: '#FFF', anchor: isPie ? 'center' : 'end', align: isPie ? 'center' : 'start', offset: isPie ? 0 : -4, font: { weight: 'bold', size: 18 }, formatter: (value) => { const percentage = total > 0 ? Math.round((value / total) * 100) : 0; return isPie ? '' : (value > 0 ? `${value} (${percentage}%)` : ''); }, textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', },
-                        name: { color: isPie ? '#FFF' : 'rgba(255, 255, 255, 0.25)', anchor: isPie ? 'center' : 'start', align: isPie ? 'center' : 'end', rotation: isPie ? 0 : -90, font: { weight: '900', size: isPie ? 14 : 22 }, formatter: (value, context) => { const label = context.chart.data.labels[context.dataIndex]; const val = context.chart.data.datasets[0].data[context.dataIndex]; const pct = total > 0 ? Math.round((val / total) * 100) : 0; if (isPie) { const labelMap = { 'Presencial': 'Presencial', 'Semipresencial': 'Semi', 'A Distancia': 'Distancia' }; const shortLabel = labelMap[label] || label; return val > 0 ? `${shortLabel}\n${val} (${pct}%)` : ''; } return label; }, textShadow: isPie ? '2px 2px 4px rgba(0, 0, 0, 0.8)' : 'none' }
-                    }
-                };
-
-                const chartOptions = { 
-                    onClick: (evt, elements) => handleChartClick(evt, elements, chartId, labels),
-                    onHover: (event, elements, chart) => {
-                        if (chart.config.type !== 'line') return;
-                        const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, true);
-                        const previousIndex = timelineHoveredIndex;
-                        
-                        if (points.length) {
-                            timelineHoveredIndex = points[0].index;
-                        } else {
-                            timelineHoveredIndex = -1;
-                        }
-                        
-                        if (previousIndex !== timelineHoveredIndex) {
-                            chart.update('none');
-                        }
-                    }, 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { display: type !== 'bar' && !isTimeline, labels: { color: '#fff', font: { size: 14 } } }, 
-                        datalabels: datalabelsConfig, 
-                        tooltip: { 
-                            enabled: true,
-                            callbacks: {
-                                label: function(context) {
-                                    return `Inscriptos: ${context.raw.y || context.raw}`;
-                                }
-                            }
-                        },
-                        annotation: (isTimeline && showRecessAnnotation) ? {
-                            annotations: {
-                                recesoBox: {
-                                    type: 'box',
-                                    xMin: new Date('2025-12-31').valueOf(), // Start Receso
-                                    xMax: new Date('2026-01-18').valueOf(), // End Receso
-                                    backgroundColor: 'rgba(239, 68, 68, 0.03)', // Even more subtle red tint
-                                    borderWidth: 0,
-                                    label: {
-                                        content: 'RECESO',
-                                        display: true,
-                                        position: 'center',
-                                        color: 'rgba(255, 255, 255, 0.4)',
-                                        font: {
-                                            size: 10,
-                                            weight: 'normal'
-                                        }
-                                    }
-                                }
-                            }
-                        } : {}
-                    }, 
-                    scales: (type === 'bar' || isTimeline) ? { 
-                        y: { 
-                            ticks: { color: '#fff', beginAtZero: true, stepSize: 1, precision: 0 }, 
-                            grid: { color: '#ffffff20' },
-                            grace: isTimeline ? '15%' : '0%' // Add headroom for icons on timeline
-                        }, 
-                        x: isTimeline ? { 
-                            type: 'time', 
-                            time: { 
-                                unit: 'day', 
-                                tooltipFormat: 'dd/MM/yyyy' 
-                            }, 
-                            ticks: { 
-                                color: (context) => {
-                                     if (context.index === timelineHoveredIndex) {
-                                        return '#fff';
-                                    }
-                                    return '#ffffff80';
-                                },
-                                font: (context) => {
-                                    if (context.index === timelineHoveredIndex) {
-                                        return { size: 16, weight: 'bold' };
-                                    }
-                                    return { size: 12 };
-                                }, 
-                                source: 'data', 
-                                autoSkip: false, 
-                                maxRotation: 90,
-                                callback: function(value, index, values) {
-                                    const d = new Date(value);
-                                    const day = d.toLocaleDateString('es-ES', { day: 'numeric' });
-                                    const month = d.toLocaleDateString('es-ES', { month: 'short' });
-                                    return [day, month.toUpperCase()];
-                                }
-                            }, 
-                            grid: { color: '#ffffff20' } 
-                        } : { ticks: { color: '#fff', display: !isBar }, grid: { color: '#ffffff20' } } 
-                    } : {} 
-                };
-                
-                let datasetsConfig;
-                
-                if (isTimeline) { 
-                     chartOptions.elements = { point: { radius: 6, hoverRadius: 8 } }; 
-                     datasetsConfig = [{ 
-                        label: 'Inscriptos', 
-                        data: data.map((count, index) => ({ x: labels[index], y: count })), 
-                        borderWidth: 3, 
-                        segment: segmentConfig, 
-                        tension: 0.3, 
-                        pointBackgroundColor: (ctx) => { 
-                            const date = labels[ctx.dataIndex]; 
-                            if (!date) return '#fbbf24';
-                            
-                            if(segmentColors) {
-                                const parts = date.split('-');
-                                if (parts.length >= 2) {
-                                    const m = parts[1];
-                                    return segmentColors[m] || '#fbbf24';
-                                }
-                            }
-                            return DATE_TO_ICON[date] ? '#ef4444' : '#fbbf24'; 
-                        }, 
-                        pointRadius: (ctx) => { 
-                            const date = labels[ctx.dataIndex]; 
-                            return DATE_TO_ICON[date] ? 10 : 4; 
-                        }, 
-                        pointBorderColor: '#fff' 
-                    }];
-                } else {
-                    // For Bar and Pie charts, apply gradients
-                    datasetsConfig = [{ 
-                        label: 'Inscriptos', 
-                        data: data, 
-                        backgroundColor: (context) => {
-                            const { ctx, chartArea } = context.chart;
-                            if (!chartArea) return null;
-                            // Logic to map index to color, then apply gradient
-                            const colorIndex = context.dataIndex;
-                            let baseColor;
-                            if (Array.isArray(colors)) {
-                                baseColor = colors[colorIndex % colors.length];
-                            } else {
-                                baseColor = colors;
-                            }
-                            return createGradient(ctx, chartArea, baseColor);
-                        },
-                        borderColor: '#ffffff50', 
-                        borderWidth: 1 
-                    }];
-                }
-
-                chartInstances[chartId] = new Chart(ctx, { 
-                    type: type, 
-                    data: { labels: labels, datasets: datasetsConfig }, 
-                    options: chartOptions,
-                    plugins: isTimeline ? [xTickCirclePlugin] : [] 
                 });
-            }
 
-            function renderDashboard(data) {
-                document.getElementById('total-inscriptos').textContent = data.length;
+                // Sort Carreras
+                const sortedCarreras = Object.entries(cCarrera).sort((a,b)=>b[1]-a[1]);
+                const carLbls = sortedCarreras.map(e=>e[0]);
+                const carVals = sortedCarreras.map(e=>e[1]);
+                const carCols = carLbls.map(c => careerData[c]?careerData[c].color : chartColors.purple);
+                createChart('carrera-chart', 'bar', carLbls, carVals, carCols, false, false, true); 
                 
-                // NEW: Update General Goal Bar
-                const GOAL_GENERAL = 1269;
-                const totalCurrent = data.length;
-                const pct = Math.min(Math.round((totalCurrent / GOAL_GENERAL) * 100), 100);
+                // Asesoras Vertical
+                const asLbls = Object.keys(cAsesora);
+                const asCols = asLbls.map(a => asesoraData[a]?asesoraData[a].color : '#cbd5e1');
+                createChart('asesora-chart', 'bar', asLbls, Object.values(cAsesora), asCols);
+
+                // Días de la semana Anillo (en vez de modalidad)
+                Object.keys(cDias).forEach(k => { if(cDias[k]===0) delete cDias[k] }); // Quitar los que tienen 0
+                const diasLbls = Object.keys(cDias);
+                const colorPalette = [chartColors.purple, chartColors.green, chartColors.blue, chartColors.orange, chartColors.teal, chartColors.red, chartColors.yellow];
+                const diasCols = diasLbls.map((d, i) => colorPalette[i % colorPalette.length]);
+                createChart('dias-chart', 'doughnut', diasLbls, Object.values(cDias), diasCols);
+
+                // --- Render Timeline ---
+                const tlAdv = document.getElementById('timeline-filter-advisor')?.value || 'todos';
+                const tlMes = document.getElementById('timeline-filter-month')?.value || 'todos';
                 
-                const goalPctEl = document.getElementById('goal-percentage');
-                const goalBarEl = document.getElementById('goal-bar-fill');
-                
-                if (goalPctEl && goalBarEl) {
-                    goalPctEl.innerText = `${pct}%`;
-                    goalBarEl.style.width = `${pct}%`;
+                let tlData = activeData;
+                if(currentView === 'general') { 
+                    document.getElementById('timeline-filters-wrapper').classList.remove('hidden');
+                    tlData = fullData.filter(r => (tlAdv==='todos'||r.asesora===tlAdv) && (tlMes==='todos'||r.mes===tlMes));
+                } else {
+                    document.getElementById('timeline-filters-wrapper').classList.add('hidden');
                 }
 
-                const asesoraCounts = data.reduce((acc, row) => { acc[row.asesora] = (acc[row.asesora] || 0) + 1; return acc; }, {});
-                const carreraCounts = data.reduce((acc, row) => { acc[row.carrera] = (acc[row.carrera] || 0) + 1; return acc; }, {});
-                const modalidadCounts = data.reduce((acc, row) => { acc[row.modalidad] = (acc[row.modalidad] || 0) + 1; return acc; }, {});
+                const countsByDate = {};
+                tlData.forEach(r => { if(r.fecha){ const d = r.fecha.toLocaleDateString('en-CA'); countsByDate[d]=(countsByDate[d]||0)+1; }});
+                const sortedDates = Object.keys(countsByDate).sort();
                 
-                // NOTE: Timeline is now rendered by renderTimelineSpecific
-                
-                const selectedCareerCode = document.getElementById('filter-carrera').value;
-                let modalityColors;
-                if (selectedCareerCode !== 'todos' && careerData[selectedCareerCode]) { const baseColor = careerData[selectedCareerCode].color; modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': hexToRgba(baseColor, 1), 'Semipresencial': hexToRgba(baseColor, 0.7), 'A Distancia': hexToRgba(baseColor, 0.4) }[mod] || '#94a3b8')); } 
-                else { modalityColors = Object.keys(modalidadCounts).map(mod => ({ 'Presencial': '#fb923c', 'Semipresencial': '#4ade80', 'A Distancia': '#c084fc' }[mod] || '#94a3b8')); }
-                
-                updateChart('asesora-chart', 'bar', Object.keys(asesoraCounts), Object.values(asesoraCounts), Object.keys(asesoraCounts).map(a => asesoraData[a]?.color || '#38bdf8'));
-                updateChart('carrera-chart', 'bar', Object.keys(carreraCounts), Object.values(carreraCounts), Object.keys(carreraCounts).map(c => careerData[c]?.color || '#94a3b8'));
-                updateChart('modalidad-chart', 'pie', Object.keys(modalidadCounts), Object.values(modalidadCounts), modalityColors);
+                createChart('timeline-chart', 'line', sortedDates, sortedDates.map(d=>countsByDate[d]), null, true);
             }
 
+            // --- Vista Objetivos ---
             function renderObjectives() {
                 const container = document.getElementById('objetivos-container');
-                const selectedMonth = document.getElementById('obj-month-filter').value;
-                const selectedAdvisor = document.getElementById('obj-advisor-filter').value;
-                
-                objectiveChartInstances.forEach(chart => chart.destroy());
-                objectiveChartInstances = [];
                 container.innerHTML = '';
+                const sMonth = document.getElementById('obj-month-filter').value;
+                const sAdv = document.getElementById('obj-advisor-filter').value;
 
-                let monthsToIterate = [];
-                if (selectedMonth !== 'todos') monthsToIterate = [selectedMonth];
-                else monthsToIterate = ['10', '11', '12', '1', '2', '3', '4']; // Se agregan todos los meses
+                let months = sMonth !== 'todos' ? [sMonth] : ['5','6','7','8'];
+                let count = 0;
 
-                let cardsGenerated = 0;
-
-                const now = new Date();
-                const currentMonthValue = now.getMonth() + 1;
-
-                // Helper para ordenar meses académicos (Octubre=0 ... Marzo=5)
-                const getAcademicYearOrder = (m) => {
-                    m = parseInt(m);
-                    return m >= 10 ? m - 10 : m + 2;
-                }
-
-                monthsToIterate.forEach(monthKey => {
-                    const currentGoals = goalsConfig[monthKey];
-                    if(!currentGoals) return;
-
-                    let advisorsToIterate = [];
-                    if (selectedAdvisor !== 'todos') {
-                        if(Object.keys(currentGoals).some(k => normalizeString(k).includes(normalizeString(selectedAdvisor)))) {
-                            advisorsToIterate = [Object.keys(currentGoals).find(k => normalizeString(k).includes(normalizeString(selectedAdvisor)))];
-                        }
-                    } else {
-                        advisorsToIterate = Object.keys(currentGoals);
-                    }
-
-                    advisorsToIterate.forEach((advisorName, idx) => {
-                        if(!advisorName) return;
-
-                        const goal = currentGoals[advisorName];
-                        const targetMonthIndex = parseInt(monthKey, 10) - 1;
+                months.forEach(mKey => {
+                    const goals = goalsConfig[mKey];
+                    if(!goals) return;
+                    
+                    const advisors = sAdv !== 'todos' ? (goals[sAdv] ? [sAdv] : []) : Object.keys(goals);
+                    
+                    advisors.forEach((adv, idx) => {
+                        const goal = goals[adv];
+                        const tMonthIdx = parseInt(mKey,10)-1;
+                        const actual = fullData.filter(d => d.fecha && d.fecha.getMonth()===tMonthIdx && normalizeString(d.asesora).includes(normalizeString(adv))).length;
                         
-                        const monthData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex);
-                        const normalizedAdvisor = normalizeString(advisorName);
-                        
-                        const actual = monthData.filter(d => normalizeString(d.asesora).includes(normalizedAdvisor) || normalizedAdvisor.includes(normalizeString(d.asesora))).length;
+                        // REQUISITO: Ocultar asesores con 0 inscriptos en el mes
+                        if (actual === 0) return; 
 
-                        const percentage = Math.min(Math.round((actual / goal) * 100), 100);
-                        const isMet = actual >= goal;
+                        const pct = Math.min(Math.round((actual/goal)*100), 100);
+                        const isMet = actual>=goal;
                         
-                        // CORRECCIÓN LOGICA DE AÑO: Usamos el orden académico para saber si es mes pasado
-                        const isPastMonth = getAcademicYearOrder(monthKey) < getAcademicYearOrder(currentMonthValue);
+                        // Diseño de tarjeta (inspirado en la imagen)
+                        const advColor = asesoraData[adv] ? asesoraData[adv].color : '#94a3b8';
+                        const ringColor = advColor; // Usar el color del asesor para la rueda
                         
-                        let statusText = '';
-                        let cardClass = 'goal-card-modern';
-                        let statusIcon = '';
-
-                        if (isMet) {
-                            statusText = '¡LOGRADO!';
-                            cardClass += ' goal-met';
-                            statusIcon = '<i class="fas fa-trophy text-yellow-300 ml-2 animate-bounce"></i>';
-                            setTimeout(() => confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } }), 200 + (idx * 100));
-                        } else if (isPastMonth) {
-                            statusText = 'No alcanzado';
-                            cardClass += ' goal-failed';
-                            statusIcon = '<i class="fas fa-thumbs-down text-red-400 ml-2 animate-pulse"></i>';
-                        } else {
-                            statusText = 'En curso';
-                            cardClass += ' goal-inprogress';
-                            statusIcon = '<i class="fas fa-running text-blue-300 ml-2"></i>';
-                        }
-
-                        const advisorKey = Object.keys(asesoraData).find(k => k.includes(advisorName) || advisorName.includes(k));
-                        const advisorColor = advisorKey ? asesoraData[advisorKey].color : '#ffffff';
-                        const remainingColor = 'rgba(255,255,255,0.1)';
-                        
-                        const cardId = `obj-card-${monthKey}-${idx}`;
-                        const canvasId = `obj-chart-${monthKey}-${idx}`;
-                        const displayMonthName = monthNames[monthKey] || monthKey;
-
                         const html = `
-                            <div class="${cardClass}" id="${cardId}" onclick="showAdvisorDetails('${advisorName}')">
-                                <div class="goal-glow" style="background: radial-gradient(circle, ${advisorColor}400%, transparent 70%);"></div>
-                                <div class="z-10 flex-1">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h3 class="text-2xl font-bold text-white mb-0">${advisorName}</h3>
-                                            <p class="text-xs text-white/50 uppercase mb-2">${displayMonthName}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <p class="text-sm font-bold text-white/90 mb-4 font-mono uppercase tracking-widest flex items-center">
-                                        ${statusText} ${statusIcon}
-                                    </p>
-                                    
-                                    <div class="flex items-baseline gap-2">
-                                        <span class="text-4xl font-bold text-white">${actual}</span>
-                                        <span class="text-lg text-white/50">/ ${goal}</span>
+                            <div class="neo-card p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-center" onclick="showAdvisorDetails('${adv}')">
+                                <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-4">${monthNames[mKey]}</div>
+                                
+                                <div class="relative w-24 h-24 flex items-center justify-center mb-4">
+                                    <svg class="w-full h-full transform -rotate-90">
+                                        <circle cx="48" cy="48" r="42" stroke="#f1f5f9" stroke-width="8" fill="none" />
+                                        <circle cx="48" cy="48" r="42" stroke="${ringColor}" stroke-width="8" fill="none" stroke-dasharray="263.89" stroke-dashoffset="${263.89 - (263.89*pct/100)}" stroke-linecap="round" />
+                                    </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span class="text-xl font-extrabold text-gray-800">${pct}<span class="text-xs">%</span></span>
                                     </div>
                                 </div>
-                                <div class="z-10 w-24 h-24 relative flex items-center justify-center">
-                                    <canvas id="${canvasId}" class="absolute top-0 left-0"></canvas>
-                                    <span class="text-sm font-bold text-white">${percentage}%</span>
+                                
+                                <h4 class="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${advColor}"></span> ${adv}
+                                </h4>
+                                <p class="text-sm text-gray-500 font-medium">Progreso Mensual</p>
+                                
+                                <div class="w-full mt-4 pt-4 border-t border-gray-100 flex justify-around">
+                                    <div class="text-center">
+                                        <div class="text-xs text-gray-400 font-bold mb-1">Inscriptos</div>
+                                        <div class="text-xl font-extrabold text-gray-800">${actual}</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-xs text-gray-400 font-bold mb-1">Meta</div>
+                                        <div class="text-xl font-extrabold text-gray-800">${goal}</div>
+                                    </div>
                                 </div>
-                            </div>`;
+                            </div>
+                        `;
                         container.insertAdjacentHTML('beforeend', html);
-                        cardsGenerated++;
-
-                        const ctx = document.getElementById(canvasId).getContext('2d');
-                        const chart = new Chart(ctx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: ['Logrado', 'Restante'],
-                                datasets: [{
-                                    data: [actual, Math.max(0, goal - actual)],
-                                    backgroundColor: [advisorColor, remainingColor],
-                                    borderWidth: 0,
-                                    hoverOffset: 4
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                cutout: '75%',
-                                plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
-                                animation: { animateScale: true, animateRotate: true }
-                            }
-                        });
-                        objectiveChartInstances.push(chart);
+                        count++;
                     });
                 });
-
-                if (cardsGenerated === 0) {
-                    container.innerHTML = '<p class="text-white text-center col-span-2 text-xl opacity-50 py-10">No se encontraron objetivos para los filtros seleccionados.</p>';
-                }
+                if(count===0) container.innerHTML = '<div class="col-span-full neo-card p-10 text-center"><p class="text-gray-500 font-bold text-lg">No hay registros de inscriptos para mostrar en los filtros seleccionados.</p></div>';
             }
 
+            // --- Vista Acciones ---
             function renderActions() {
                 const container = document.getElementById('acciones-grid');
                 container.innerHTML = '';
-
-                const hasEmpresasData = fullData.some(r => r.isEmpresas);
-                const hasNavidadData = fullData.some(r => r.isNavidad);
-                const hasCarnavalData = fullData.some(r => r.isCarnaval);
-                const hasOfertonData = fullData.some(r => r.isOferton);
-
-                const remarketingCount = fullData.filter(r => r.isRemarketing).length;
-                const empresasCount = fullData.filter(r => r.isEmpresas).length;
-                const navidadCount = fullData.filter(r => r.isNavidad).length;
-                const carnavalCount = fullData.filter(r => r.isCarnaval).length;
-                const ofertonCount = fullData.filter(r => r.isOferton).length;
                 
-                // 1. Remarketing
-                const remarketingCard = `
-                <div class="glass-effect rounded-2xl p-8 card-hover flex flex-col items-center text-center h-full relative overflow-hidden group" onclick="openPromotion('remarketing')">
-                    <div class="count-badge">${remarketingCount}</div>
-                    <!-- Background Icon Faded -->
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <img src="https://i.postimg.cc/ZKLBGff6/Remarketing.png" class="w-32 h-32 object-contain grayscale">
-                    </div>
-                    
-                    <!-- Main Icon -->
-                    <img src="https://i.postimg.cc/ZKLBGff6/Remarketing.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
-                    
-                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Remarketing</h3>
-                    <p class="text-white/70 mb-6 z-10">Noviembre 2025</p>
-                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 26, 27 y 28 de noviembre.</p>
-                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">Ver Detalles</span>
-                </div>`;
-                container.insertAdjacentHTML('beforeend', remarketingCard);
+                const acts = [
+                    {id:'remarketing', name:'Remarketing', date:'Nov 2025', desc:'Ciclo 26-28 Nov', icon:'fa-sync-alt', color:'text-blue-500', bg:'bg-blue-50'},
+                    {id:'empresas', name:'Corp. Amigas', date:'Dic 2025', desc:'Convenios corporativos', icon:'fa-building', color:'text-purple-500', bg:'bg-purple-50'},
+                    {id:'navidad', name:'Navidad', date:'Dic 2025', desc:'Campaña festiva', icon:'fa-gift', color:'text-red-500', bg:'bg-red-50'},
+                    {id:'carnaval', name:'Carnaval', date:'Feb 2026', desc:'Ciclo promocional', icon:'fa-mask', color:'text-green-500', bg:'bg-green-50'},
+                    {id:'oferton', name:'Ofertón', date:'Mar 2026', desc:'Descuento masivo', icon:'fa-bolt', color:'text-orange-500', bg:'bg-orange-50'}
+                ];
 
-                // 2. Empresas
-                const empresasClass = hasEmpresasData ? 'card-hover' : 'card-locked';
-                const empresasClick = hasEmpresasData ? "onclick=\"openPromotion('empresas')\"" : '';
-                const empresasBtn = hasEmpresasData ? 'Ver Detalles' : 'Bloqueado';
-                const empresasCard = `
-                <div class="glass-effect rounded-2xl p-8 ${empresasClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${empresasClick}>
-                    <div class="count-badge">${empresasCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                         <img src="https://i.postimg.cc/dt9kbWWQ/Empresa-amiga.png" class="w-32 h-32 object-contain grayscale">
-                    </div>
-                    <img src="https://i.postimg.cc/dt9kbWWQ/Empresa-amiga.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
-                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Días Empresas Amigas</h3>
-                    <p class="text-white/70 mb-6 z-10">11 y 12 Diciembre</p>
-                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 11 y 12 de diciembre.</p>
-                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${empresasBtn}</span>
-                </div>`;
-                container.insertAdjacentHTML('beforeend', empresasCard);
+                acts.forEach(a => {
+                    const count = fullData.filter(r => r[a.id === 'empresas' ? 'isEmpresas' : 'is'+a.id.charAt(0).toUpperCase()+a.id.slice(1)]).length;
+                    const isActive = count > 0;
+                    const op = isActive ? 'opacity-100 cursor-pointer hover:border-gray-200' : 'opacity-60 grayscale cursor-not-allowed';
+                    const click = isActive ? `onclick="openPromotion('${a.id}')"` : '';
 
-                // 3. Navidad
-                const navidadClass = hasNavidadData ? 'card-hover' : 'card-locked';
-                const navidadClick = hasNavidadData ? "onclick=\"openPromotion('navidad')\"" : '';
-                const navidadBtn = hasNavidadData ? 'Ver Detalles' : 'Bloqueado';
-                const navidadCard = `
-                <div class="glass-effect rounded-2xl p-8 ${navidadClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${navidadClick}>
-                    <div class="count-badge">${navidadCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <img src="https://i.postimg.cc/8PbJ2yyh/Navidad.png" class="w-32 h-32 object-contain grayscale">
-                    </div>
-                    <img src="https://i.postimg.cc/8PbJ2yyh/Navidad.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
-                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Navideño</h3>
-                    <p class="text-white/70 mb-6 z-10">22 y 23 Diciembre</p>
-                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 22 y 23 de diciembre.</p>
-                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${navidadBtn}</span>
-                </div>`;
-                container.insertAdjacentHTML('beforeend', navidadCard);
-
-                 // 4. Carnaval
-                 const carnavalClass = hasCarnavalData ? 'card-hover' : 'card-locked';
-                 const carnavalClick = hasCarnavalData ? "onclick=\"openPromotion('carnaval')\"" : '';
-                 const carnavalBtn = hasCarnavalData ? 'Ver Detalles' : 'Bloqueado';
-                 const carnavalCard = `
-                 <div class="glass-effect rounded-2xl p-8 ${carnavalClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${carnavalClick}>
-                    <div class="count-badge">${carnavalCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <img src="https://i.postimg.cc/WpgJnpgy/Carnaval.png" class="w-32 h-32 object-contain grayscale">
-                    </div>
-                    <img src="https://i.postimg.cc/WpgJnpgy/Carnaval.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
-                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Descuento Carnaval</h3>
-                    <p class="text-white/70 mb-6 z-10">17 al 23 de Febrero</p>
-                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada del 17 al 23 de febrero.</p>
-                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${carnavalBtn}</span>
-                </div>`;
-                 container.insertAdjacentHTML('beforeend', carnavalCard);
-
-                 // 5. Oferton
-                 const ofertonClass = hasOfertonData ? 'card-hover' : 'card-locked';
-                 const ofertonClick = hasOfertonData ? "onclick=\"openPromotion('oferton')\"" : '';
-                 const ofertonBtn = hasOfertonData ? 'Ver Detalles' : 'Bloqueado';
-                 const ofertonCard = `
-                 <div class="glass-effect rounded-2xl p-8 ${ofertonClass} flex flex-col items-center text-center h-full relative overflow-hidden group" ${ofertonClick}>
-                    <div class="count-badge">${ofertonCount}</div>
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <img src="https://i.postimg.cc/VLFrx77q/Oferton.png" class="w-32 h-32 object-contain grayscale">
-                    </div>
-                    <img src="https://i.postimg.cc/VLFrx77q/Oferton.png" class="w-24 h-24 object-contain mb-6 filter drop-shadow-lg z-10 transition-transform group-hover:scale-110">
-                    <h3 class="text-2xl font-bold text-white mb-2 z-10">Ofertón Marzo</h3>
-                    <p class="text-white/70 mb-6 z-10">9 al 13 de Marzo</p>
-                    <p class="text-sm text-white/60 mb-6 z-10">Acción realizada los días 9, 10, 11, 12 y 13 de marzo.</p>
-                    <span class="mt-auto px-6 py-2 border border-white/30 rounded-full text-sm font-semibold hover:bg-white hover:text-gray-900 transition-colors z-10">${ofertonBtn}</span>
-                </div>`;
-                 container.insertAdjacentHTML('beforeend', ofertonCard);
+                    const html = `
+                        <div class="neo-card p-8 flex flex-col items-center text-center transition-all ${op}" ${click}>
+                            <div class="absolute top-4 right-4 text-xs font-extrabold text-gray-500 bg-gray-100 px-3 py-1 rounded-full shadow-sm">${count} Registros</div>
+                            <div class="w-20 h-20 rounded-full ${isActive ? a.bg : 'bg-gray-100'} flex items-center justify-center mb-5 shadow-sm">
+                                <i class="fas ${a.icon} text-3xl ${isActive ? a.color : 'text-gray-400'}"></i>
+                            </div>
+                            <h3 class="text-xl font-extrabold text-gray-800 mb-1">${a.name}</h3>
+                            <span class="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full mb-4">${a.date}</span>
+                            <p class="text-sm text-gray-500 font-medium">${a.desc}</p>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
             }
 
-            function initializeDashboard(data) {
-                const validData = data.filter(row => !Object.values(row).some(value => value === '#N/A'));
-                if(validData.length === 0) { 
-                      document.getElementById('error-info').classList.remove('hidden');
-                      const headers = Object.keys(MOCK_DATA[0]).map(h => normalizeString(h));
-                      fullData = MOCK_DATA.map(row => parseRow(row, headers));
-                 } else {
-                    document.getElementById('error-info').classList.add('hidden');
-                    const headers = Object.keys(validData[0]).map(h => normalizeString(h));
-                    fullData = validData.map(row => parseRow(row, headers));
-                }
+            // --- Inicialización y Fetch ---
+            function init(data) {
+                fullData = data;
                 populateFilters(fullData);
-                if (currentView === 'acciones') renderActions();
-                if (currentView === 'objetivos') renderObjectives();
-                applyFiltersAndRender();
+
+                // REQUISITO: Configurar mes actual por defecto en Objetivos
+                const m = String(new Date().getMonth()+1); // Mayo = 5
+                const objMonthFilter = document.getElementById('obj-month-filter');
+                if(objMonthFilter && document.querySelector(`#obj-month-filter option[value="${m}"]`)) {
+                    objMonthFilter.value = m;
+                }
+
+                if(currentView==='general') applyFiltersAndRender();
+                else if(currentView==='objetivos') renderObjectives();
+                else if(currentView==='acciones') renderActions();
             }
 
             async function fetchData() {
-                showMessage('Actualizando datos...');
                 try {
-                    const response = await fetch(`${googleSheetUrl}&t=${new Date().getTime()}`);
-                    if (!response.ok) throw new Error('Error de conexión');
-                    const csvText = await response.text();
-                    Papa.parse(csvText, {
-                        header: true, skipEmptyLines: true, transformHeader: h => h.trim(), bom: true,
-                        complete: res => {
-                            if (res.data.length > 0) { initializeDashboard(res.data); showMessage('Datos actualizados correctamente.'); } else { throw new Error('CSV Vacío'); }
-                        },
-                        error: () => { throw new Error('Error CSV'); }
+                    const res = await fetch(`${googleSheetUrl}&t=${Date.now()}`);
+                    if(!res.ok) throw new Error('Network response was not ok');
+                    const text = await res.text();
+                    Papa.parse(text, {
+                        header: true, skipEmptyLines: true, transformHeader: h=>h.trim(),
+                        complete: r => {
+                            if(r.data.length>0) {
+                                document.getElementById('error-info').classList.add('hidden');
+                                const headers = Object.keys(r.data[0]).map(normalizeString);
+                                
+                                // Filtrar filas inválidas, con #N/A, sin matrícula o sin carrera
+                                let parsedRows = r.data.map(row => parseRow(row, headers));
+                                parsedRows = parsedRows.filter(row => {
+                                    const noTieneNA = !Object.values(row).some(v => typeof v === 'string' && v.includes('#N/A'));
+                                    const tieneMatricula = row.matricula && row.matricula !== '-' && row.matricula.trim() !== '';
+                                    const tieneCarrera = row.carrera && row.carrera !== 'N/A' && row.carrera.trim() !== '';
+                                    return noTieneNA && tieneMatricula && tieneCarrera;
+                                });
+                                
+                                init(parsedRows);
+                            }
+                        }
                     });
-                } catch (error) {
-                    console.error(error);
-                    showMessage('Usando datos de respaldo (Falló conexión)', true);
-                    initializeDashboard([]);
+                } catch(e) {
+                    console.error(e);
+                    document.getElementById('error-info').classList.remove('hidden');
+                    // Fallback visual
                 }
             }
-            
-            // TOGGLE LOGIC FOR GENERAL GOAL
-            const toggleGoalBtn = document.getElementById('toggle-goal-btn');
-            if(toggleGoalBtn) {
-                toggleGoalBtn.addEventListener('click', () => {
-                    const container = document.getElementById('general-goal-container');
-                    const icon = toggleGoalBtn.querySelector('i');
-                    
-                    if (container.classList.contains('hidden')) {
-                        // Show
-                        container.classList.remove('hidden');
-                        // Small delay to allow transition
-                        requestAnimationFrame(() => {
-                            container.classList.remove('opacity-0', 'translate-y-2');
-                        });
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
-                    } else {
-                        // Hide
-                        container.classList.add('opacity-0', 'translate-y-2');
-                        setTimeout(() => {
-                            container.classList.add('hidden');
-                        }, 300); // Match transition duration
-                        icon.classList.remove('fa-eye-slash');
-                        icon.classList.add('fa-eye');
-                    }
-                });
-            }
-            
-            window.openPromotion = (promoType) => {
-                activeActionType = promoType;
-                switchView('action-detail');
-            };
 
+            // --- Navegación y Eventos ---
             const switchView = (view) => {
                 currentView = view;
-                const tabGeneral = document.getElementById('tab-general'); const tabObjetivos = document.getElementById('tab-objetivos'); const tabAcciones = document.getElementById('tab-acciones');
-                const actionInfo = document.getElementById('action-info'); 
-                const kpiTitle = document.getElementById('kpi-title');
-                const viewMain = document.getElementById('view-main'); const viewObjetivos = document.getElementById('view-objetivos'); const viewAcciones = document.getElementById('view-acciones');
-                const promoNav = document.getElementById('promo-nav-banner');
+                ['tab-general', 'tab-objetivos', 'tab-acciones'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+                ['view-main', 'view-objetivos', 'view-acciones', 'promo-nav-banner'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
 
-                [tabGeneral, tabObjetivos, tabAcciones].forEach(t => t.classList.remove('active'));
-                
-                actionInfo.classList.add('hidden'); 
-                viewMain.classList.add('hidden'); 
-                viewObjetivos.classList.add('hidden');
-                viewAcciones.classList.add('hidden');
-                promoNav.classList.add('hidden');
-
-                if (view === 'action-detail') {
-                    tabAcciones.classList.add('active'); 
-                    actionInfo.classList.remove('hidden'); 
-                    viewMain.classList.remove('hidden'); 
-                    promoNav.classList.remove('hidden');
-                    
-                    let title = "Detalle de Acción";
-                    let subtitle = "";
-                    if (activeActionType === 'remarketing') { title = "Remarketing Noviembre"; subtitle = "Acción del 26, 27 y 28 de noviembre."; }
-                    else if (activeActionType === 'empresas') { title = "Días Empresas Amigas"; subtitle = "Acción del 11 y 12 de diciembre."; }
-                    else if (activeActionType === 'navidad') { title = "Descuento Navideño"; subtitle = "Acción del 22 y 23 de diciembre."; }
-                    else if (activeActionType === 'carnaval') { title = "Descuento Carnaval"; subtitle = "Acción del 17 al 23 de febrero."; }
-                    else if (activeActionType === 'oferton') { title = "Ofertón Marzo"; subtitle = "Acción del 9 al 13 de marzo."; }
-                    
-                    document.getElementById('action-title').innerText = `📢 ${title}`;
-                    document.getElementById('action-subtitle').innerText = subtitle;
-                    kpiTitle.innerText = `Total de Inscriptos (${title})`;
+                if(view === 'action-detail') {
+                    document.getElementById('tab-acciones')?.classList.add('active');
+                    document.getElementById('promo-nav-banner')?.classList.remove('hidden');
+                    document.getElementById('view-main')?.classList.remove('hidden');
                     applyFiltersAndRender();
-                } else if (view === 'acciones') {
-                    tabAcciones.classList.add('active');
-                    viewAcciones.classList.remove('hidden');
-                    renderActions();
-                } else if (view === 'objetivos') {
-                    tabObjetivos.classList.add('active'); 
-                    viewObjetivos.classList.remove('hidden'); 
-                    renderObjectives();
                 } else {
-                    tabGeneral.classList.add('active'); 
-                    viewMain.classList.remove('hidden'); 
-                    kpiTitle.innerText = "Total de Inscriptos (General)"; 
-                    applyFiltersAndRender();
+                    document.getElementById(`tab-${view}`)?.classList.add('active');
+                    
+                    const viewId = view === 'general' ? 'view-main' : `view-${view}`;
+                    document.getElementById(viewId)?.classList.remove('hidden');
+                    
+                    if(view === 'general') applyFiltersAndRender();
+                    if(view === 'objetivos') renderObjectives();
+                    if(view === 'acciones') renderActions();
                 }
             };
 
-            const currentMonthStr = String(new Date().getMonth() + 1);
-            const monthSelect = document.getElementById('obj-month-filter');
-            if(monthSelect.querySelector(`option[value="${currentMonthStr}"]`)){ 
-                 monthSelect.value = currentMonthStr; 
-             }
+            window.openPromotion = (type) => { activeActionType = type; switchView('action-detail'); };
 
-            document.getElementById('tab-general').addEventListener('click', () => switchView('general')); 
+            document.getElementById('tab-general').addEventListener('click', () => switchView('general'));
             document.getElementById('tab-objetivos').addEventListener('click', () => switchView('objetivos'));
-            
             document.getElementById('tab-acciones').addEventListener('click', () => {
-                if (isActionsUnlocked) {
-                    switchView('acciones');
-                } else {
-                    openPasswordModal();
-                }
+                if(isActionsUnlocked) switchView('acciones'); else toggleModal('password-modal', true);
             });
-            
             document.getElementById('back-to-promos-btn').addEventListener('click', () => switchView('acciones'));
-            document.getElementById('obj-month-filter').addEventListener('change', renderObjectives);
-            document.getElementById('obj-advisor-filter').addEventListener('change', renderObjectives);
-            
-            // New Listeners for Timeline Filters (Linked to Global Filters)
-            document.getElementById('timeline-filter-advisor').addEventListener('change', (e) => {
-                document.getElementById('filter-asesora').value = e.target.value;
-                applyFiltersAndRender();
-            });
-            document.getElementById('timeline-filter-month').addEventListener('change', (e) => {
-                document.getElementById('filter-mes').value = e.target.value;
-                applyFiltersAndRender();
-            });
 
-            document.getElementById('reset-filters-btn').addEventListener('click', () => { 
-                  ['asesora', 'mes', 'carrera', 'modalidad'].forEach(key => document.getElementById(`filter-${key}`).value = 'todos'); 
-                 document.getElementById('filter-date-start').value = ''; 
-                 document.getElementById('filter-date-end').value = ''; 
-                 // Also reset timeline filters for visual consistency
-                 if(document.getElementById('timeline-filter-advisor')) document.getElementById('timeline-filter-advisor').value = 'todos';
-                 if(document.getElementById('timeline-filter-month')) document.getElementById('timeline-filter-month').value = 'todos';
-                 applyFiltersAndRender(); 
-             });
-            
+            // Escuchas de filtros
             ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.addEventListener('change', (e) => {
-                    // Sync timeline filters if needed
-                    if(id === 'filter-asesora' && document.getElementById('timeline-filter-advisor')) {
-                        document.getElementById('timeline-filter-advisor').value = e.target.value;
-                    }
-                    if(id === 'filter-mes' && document.getElementById('timeline-filter-month')) {
-                        document.getElementById('timeline-filter-month').value = e.target.value;
-                    }
+                document.getElementById(id)?.addEventListener('change', (e) => {
+                    if(id==='filter-asesora' && document.getElementById('timeline-filter-advisor')) document.getElementById('timeline-filter-advisor').value = e.target.value;
+                    if(id==='filter-mes' && document.getElementById('timeline-filter-month')) document.getElementById('timeline-filter-month').value = e.target.value;
                     applyFiltersAndRender();
                 });
             });
-
-            document.getElementById('refresh-data-btn').addEventListener('click', fetchData);
-            
-            document.getElementById('detail-modal').addEventListener('click', (e) => { if (e.target.id === 'detail-modal') closeModal(); });
-            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-            
-            // ==========================================
-            // LOGICA PDF CON MODAL Y OCULTAMIENTO
-            // ==========================================
-            const modalPDF = document.getElementById('pdf-options-modal');
-            const btnYes = document.getElementById('pdf-btn-yes');
-            const btnNo = document.getElementById('pdf-btn-no');
-            const btnCancel = document.getElementById('pdf-btn-cancel');
-
-            // Abrir modal al hacer clic en descargar
-            document.getElementById('download-report-btn').addEventListener('click', () => {
-                modalPDF.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    modalPDF.classList.remove('opacity-0');
+            ['timeline-filter-advisor', 'timeline-filter-month'].forEach(id => {
+                document.getElementById(id)?.addEventListener('change', (e) => {
+                    const targetId = id === 'timeline-filter-advisor' ? 'filter-asesora' : 'filter-mes';
+                    document.getElementById(targetId).value = e.target.value;
+                    applyFiltersAndRender();
                 });
             });
+            ['obj-month-filter', 'obj-advisor-filter'].forEach(id => document.getElementById(id)?.addEventListener('change', renderObjectives));
 
-            const closePdfModal = () => {
-                modalPDF.classList.add('opacity-0');
-                setTimeout(() => modalPDF.classList.add('hidden'), 300);
-            };
+            document.getElementById('reset-filters-btn').addEventListener('click', () => {
+                ['asesora', 'mes', 'carrera', 'modalidad'].forEach(k => document.getElementById(`filter-${k}`).value='todos');
+                document.getElementById('filter-date-start').value=''; document.getElementById('filter-date-end').value='';
+                document.getElementById('timeline-filter-advisor').value='todos'; document.getElementById('timeline-filter-month').value='todos';
+                applyFiltersAndRender();
+            });
 
-            btnCancel.addEventListener('click', closePdfModal);
-
-            const generatePDF = async (includeAdvisors) => {
-                closePdfModal();
-                showMessage('Generando PDF, aguarde un momento...', false);
-
-                // Initialize jsPDF correctly - fallback if window.jspdf is undefined
-                const jsPDF = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
-                
-                if (!jsPDF) {
-                    showMessage('Error: jsPDF library not loaded.', true);
-                    return;
+            // Contraseña
+            document.getElementById('pwd-btn-cancel').addEventListener('click', () => toggleModal('password-modal', false));
+            document.getElementById('pwd-btn-submit').addEventListener('click', () => {
+                const input = document.getElementById('actions-password-input');
+                if(input.value === '7796') {
+                    isActionsUnlocked = true; toggleModal('password-modal', false); switchView('acciones'); showMessage('Acceso permitido');
+                } else {
+                    showMessage('Contraseña incorrecta', true); input.value = '';
                 }
+            });
 
-                const source = document.getElementById('main-container');
-                const advisorChartCard = document.getElementById('card-asesora-chart');
+            // Exportar PDF
+            document.getElementById('download-report-btn').addEventListener('click', () => toggleModal('pdf-options-modal', true));
+            document.getElementById('pdf-btn-cancel').addEventListener('click', () => toggleModal('pdf-options-modal', false));
+            
+            const generatePDF = async (includeAdv) => {
+                toggleModal('pdf-options-modal', false);
+                showMessage('Generando PDF...');
+                const src = document.getElementById('main-container');
+                const advCard = document.getElementById('card-asesora-chart');
+                let oDisp = '';
+                if(!includeAdv && advCard) { oDisp = advCard.style.display; advCard.style.display='none'; }
                 
-                // 1. Guardar estados originales
-                const originalBackground = source.style.background;
-                let originalDisplay = '';
-                
-                if (!includeAdvisors && advisorChartCard) {
-                    originalDisplay = advisorChartCard.style.display;
-                    advisorChartCard.style.display = 'none';
-                }
-
-                // 2. Ocultar UI interactiva que no debe salir en el reporte PDF
-                const hideElements = [
-                    'promo-nav-banner', 'main-nav-tabs', 'filters-container', 
-                    'action-buttons', 'message-container', 'pdf-options-modal', 
-                    'detail-modal', 'password-modal', 'timeline-filters-wrapper',
-                    'toggle-goal-btn'
-                ];
-                
-                const originalDisplays = {};
-                hideElements.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        originalDisplays[id] = el.style.display;
-                        el.style.display = 'none';
-                    }
-                });
-
-                // 3. Fondo estático para evitar problemas de captura con animaciones CSS
-                source.style.background = `
-                    linear-gradient(rgba(31, 41, 55, 0.95), rgba(31, 41, 55, 0.95)),
-                    url('https://i.postimg.cc/dtDHVQ1X/image.png') 
-                    no-repeat center center fixed
-                `;
-                source.style.backgroundSize = 'cover';
-
-                // Pequeña pausa para asegurar renderizado del DOM antes de la foto
                 setTimeout(async () => {
                     try {
-                        const canvas = await html2canvas(source, {
-                            scale: 2, // Calidad alta
-                            useCORS: true,
-                            logging: false,
-                            backgroundColor: '#1f2937' // Fondo base por defecto
-                        });
-
-                        const imgData = canvas.toDataURL('image/png');
-                        
-                        // Crear PDF (A4 Vertical)
+                        const canvas = await html2canvas(src, { scale: 2, useCORS: true, backgroundColor: '#fdf6f0' }); 
+                        const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                        const jsPDF = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
                         const pdf = new jsPDF('p', 'mm', 'a4');
-                        const pdfWidth = pdf.internal.pageSize.getWidth(); // 210
-                        const pdfHeight = pdf.internal.pageSize.getHeight(); // 297
-                        
-                        const imgWidth = canvas.width;
-                        const imgHeight = canvas.height;
-                        
-                        // Relación de aspecto para que encaje perfecto sin distorsionarse
-                        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-                        
-                        const finalImgWidth = imgWidth * ratio;
-                        const finalImgHeight = imgHeight * ratio;
-                        
-                        // Centrado horizontal
-                        const xOffset = (pdfWidth - finalImgWidth) / 2;
-                        const yOffset = 10; // Margen superior
-
-                        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalImgWidth, finalImgHeight);
-
-                        // Nombre de archivo dinámico
-                        const actionName = activeActionType ? activeActionType.toUpperCase() : 'GENERAL';
-                        const fileName = `Reporte_${actionName}_${new Date().toISOString().slice(0,10)}.pdf`;
-                        
-                        // Forzar descarga
-                        pdf.save(fileName);
-                        showMessage('PDF Descargado exitosamente.', false);
-
-                    } catch (err) {
-                        console.error(err);
-                        showMessage('Error al generar PDF', true);
-                    } finally {
-                        // 4. Restaurar todo a la normalidad para el usuario
-                        source.style.background = originalBackground;
-                        if (!includeAdvisors && advisorChartCard) {
-                            advisorChartCard.style.display = originalDisplay;
-                        }
-                        hideElements.forEach(id => {
-                            const el = document.getElementById(id);
-                            if (el) {
-                                el.style.display = originalDisplays[id];
-                            }
-                        });
-                    }
-                }, 400); // 400ms para asegurar el repintado de CSS
+                        const w = pdf.internal.pageSize.getWidth(), h = pdf.internal.pageSize.getHeight();
+                        const ratio = Math.min(w/canvas.width, h/canvas.height);
+                        pdf.addImage(imgData, 'JPEG', (w-(canvas.width*ratio))/2, 10, canvas.width*ratio, canvas.height*ratio);
+                        pdf.save(`Reporte_Dashboard_${activeActionType||'General'}.pdf`);
+                        showMessage('PDF descargado correctamente');
+                    } catch(e) { showMessage('Error al generar PDF', true); }
+                    finally { if(!includeAdv && advCard) advCard.style.display = oDisp; }
+                }, 500);
             };
-
-            btnYes.addEventListener('click', () => generatePDF(true));
-            btnNo.addEventListener('click', () => generatePDF(false));
-
-            // ==========================================
-            // LOGICA CONTRASEÑA ACCIONES
-            // ==========================================
-            const pwdModal = document.getElementById('password-modal');
-            const pwdInput = document.getElementById('actions-password-input');
-            const pwdSubmit = document.getElementById('pwd-btn-submit');
-            const pwdCancel = document.getElementById('pwd-btn-cancel');
-
-            function openPasswordModal() {
-                pwdInput.value = '';
-                pwdModal.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    pwdModal.classList.remove('opacity-0');
-                    pwdInput.focus();
-                });
-            }
-
-            function closePasswordModal() {
-                pwdModal.classList.add('opacity-0');
-                setTimeout(() => pwdModal.classList.add('hidden'), 300);
-            }
-
-            pwdCancel.addEventListener('click', closePasswordModal);
-
-            pwdSubmit.addEventListener('click', () => {
-                if (pwdInput.value === 'comercial2') {
-                    isActionsUnlocked = true;
-                    closePasswordModal();
-                    switchView('acciones');
-                    showMessage('Acceso concedido', false);
-                } else {
-                    showMessage('Contraseña incorrecta', true);
-                    pwdInput.value = '';
-                    pwdInput.focus();
-                }
-            });
-
-            // Permitir "Enter" en el input
-            pwdInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    pwdSubmit.click();
-                }
-            });
+            document.getElementById('pdf-btn-yes').addEventListener('click', () => generatePDF(true));
+            document.getElementById('pdf-btn-no').addEventListener('click', () => generatePDF(false));
 
             fetchData();
         });
