@@ -23,21 +23,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* Paleta de colores Light/Soft UI inspirada en la imagen */
+        /* Paleta de colores Light/Soft UI */
         :root {
-            --bg-main: #f0f4f8; /* Fondo azulado/gris muy suave */
+            --bg-main: #f0f4f8; 
             --card-bg: #ffffff;
             --text-main: #1f2937;
             --text-muted: #8c98a4;
             --accent-purple: #8b5cf6;
             --accent-green: #34d399;
             --grid-color: rgba(0, 0, 0, 0.04);
-            --card-shadow: 0 12px 40px rgba(148, 163, 184, 0.25); /* Sombra fría */
+            --card-shadow: 0 12px 40px rgba(148, 163, 184, 0.25); 
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(135deg, #f4f7fb 0%, #e2e8f0 100%); /* Gradiente azulado */
+            background: linear-gradient(135deg, #f4f7fb 0%, #e2e8f0 100%); 
             color: var(--text-main);
             overflow-x: hidden;
             margin: 0;
@@ -92,7 +92,7 @@
         .chart-container-large { height: 320px; position: relative; width: 100%; }
         
         /* Controles de formulario Soft UI */
-        select, input[type="date"], input[type="password"] { 
+        select, input[type="date"], input[type="password"], input[type="number"] { 
             background: #f8fafc; 
             color: var(--text-main); 
             border: 1px solid #e2e8f0;
@@ -109,6 +109,13 @@
             background: #ffffff;
         }
 
+        /* Ocultar flechas en input number */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
         /* Pestañas de Navegación Modernas */
         .nav-tabs {
             display: flex;
@@ -117,6 +124,8 @@
             padding: 0.5rem;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .nav-tab {
             padding: 0.6rem 1.5rem;
@@ -160,7 +169,6 @@
             color: white;
         }
 
-        /* Filtro CSS para teñir la imagen a Azul Marino */
         .logo-navy {
             filter: brightness(0) saturate(100%) invert(18%) sepia(35%) saturate(3011%) hue-rotate(204deg) brightness(94%) contrast(104%);
         }
@@ -193,7 +201,6 @@
         <!-- HEADER -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 pb-4">
             <div class="flex items-center gap-6">
-                <!-- Se aplicó la clase logo-navy para el azul marino -->
                 <img src="https://i.ibb.co/4nqvFQGM/logo.png" alt="Cervantes Logo" class="h-16 w-auto object-contain logo-navy">
                 <div>
                     <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">
@@ -205,8 +212,10 @@
             
             <div id="main-nav-tabs" class="nav-tabs mt-6 md:mt-0">
                 <div id="tab-general" class="nav-tab active">General</div>
+                <div id="tab-lista" class="nav-tab">Lista</div>
                 <div id="tab-objetivos" class="nav-tab">Objetivos</div>
                 <div id="tab-acciones" class="nav-tab">Acciones</div>
+                <div id="tab-config" class="nav-tab" title="Modificar Objetivos"><i class="fas fa-cog"></i></div>
             </div>
         </header>
 
@@ -219,23 +228,21 @@
             <button id="download-report-btn" class="btn-neo btn-primary px-5 py-2 text-sm"><i class="fas fa-file-pdf mr-2"></i> Exportar PDF</button>
         </div>
 
+        <!-- FILTROS GLOBALES -->
+        <div id="filters-container" class="neo-card p-6 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-5 items-end">
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Desde</label><input type="date" id="filter-date-start" class="p-2.5 text-sm"></div>
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 text-sm"></div>
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Asesora</label><select id="filter-asesora" class="p-2.5 text-sm"></select></div>
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Mes</label><select id="filter-mes" class="p-2.5 text-sm"></select></div>
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Carrera</label><select id="filter-carrera" class="p-2.5 text-sm"></select></div>
+                <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Modalidad</label><select id="filter-modalidad" class="p-2.5 text-sm"></select></div>
+                <div class="flex flex-col"><button id="reset-filters-btn" class="btn-neo py-2.5 text-sm h-[42px]">Limpiar</button></div>
+            </div>
+        </div>
+
         <!-- VISTA GENERAL -->
         <div id="view-main" class="space-y-8">
-            
-            <!-- FILTROS -->
-            <div id="filters-container" class="neo-card p-6">
-                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-5 items-end">
-                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Desde</label><input type="date" id="filter-date-start" class="p-2.5 text-sm"></div>
-                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Hasta</label><input type="date" id="filter-date-end" class="p-2.5 text-sm"></div>
-                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Asesora</label><select id="filter-asesora" class="p-2.5 text-sm"></select></div>
-                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Mes</label><select id="filter-mes" class="p-2.5 text-sm"></select></div>
-                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Carrera</label><select id="filter-carrera" class="p-2.5 text-sm"></select></div>
-                    <div class="flex flex-col"><label class="text-xs text-gray-500 font-bold mb-1.5 uppercase">Modalidad</label><select id="filter-modalidad" class="p-2.5 text-sm"></select></div>
-                    <div class="flex flex-col"><button id="reset-filters-btn" class="btn-neo py-2.5 text-sm h-[42px]">Limpiar</button></div>
-                </div>
-            </div>
-
-            <!-- GRID PRINCIPAL -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 <!-- KPI Izquierda (Progreso Circular con Botón) -->
@@ -256,7 +263,7 @@
                         <span class="text-purple-600 font-extrabold text-xl"><span id="goal-percentage">0</span>%</span>
                     </div>
 
-                    <button id="toggle-goal-btn" class="btn-neo px-5 py-2 text-xs w-full">Ver Meta y Faltante</button>
+                    <button id="toggle-goal-btn" class="btn-neo px-5 py-2 text-xs w-full"><i class="fas fa-lock mr-2 text-gray-400"></i>Ver Meta y Faltante</button>
                 </div>
 
                 <!-- Gráfico Centro Arriba (Barras Horizontales Delgadas - Carreras) -->
@@ -271,7 +278,7 @@
                     <div class="chart-container"><canvas id="asesora-chart"></canvas></div>
                 </div>
 
-                <!-- Nuevo Gráfico Abajo Derecha (Doughnut - Día Semana) -->
+                <!-- Gráfico Abajo Derecha (Doughnut - Día Semana) -->
                 <div class="neo-card p-8 relative">
                     <div class="panel-header">Días de Inscripción <span class="panel-subtitle">Volumen semanal</span></div>
                     <div class="chart-container flex items-center justify-center mt-2">
@@ -279,7 +286,7 @@
                     </div>
                 </div>
 
-                <!-- Línea de Tiempo (Ancho completo, estilo ola) -->
+                <!-- Línea de Tiempo -->
                 <div class="neo-card p-8 lg:col-span-3">
                     <div class="panel-header flex-col sm:flex-row gap-4 mb-6">
                         <div>Evolución de Inscripciones <span class="panel-subtitle block sm:inline sm:ml-2">Flujo temporal</span></div>
@@ -306,6 +313,27 @@
             </div>
         </div>
 
+        <!-- VISTA LISTA -->
+        <div id="view-lista" class="hidden">
+            <div class="neo-card p-8">
+                <div class="panel-header mb-6">Lista de Inscriptos <span class="panel-subtitle">Detalle completo</span></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-xs uppercase text-gray-400 border-b border-gray-100 bg-gray-50">
+                            <tr>
+                                <th class="py-4 px-4 font-extrabold rounded-tl-lg">Fecha</th>
+                                <th class="py-4 px-4 font-extrabold">Matrícula</th>
+                                <th class="py-4 px-4 font-extrabold">Alumno</th>
+                                <th class="py-4 px-4 font-extrabold">Carrera</th>
+                                <th class="py-4 px-4 font-extrabold rounded-tr-lg">Asesora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-inscriptos-body" class="divide-y divide-gray-50 font-medium"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- VISTA OBJETIVOS -->
         <div id="view-objetivos" class="hidden space-y-8">
             <div class="neo-card p-6 flex flex-wrap gap-6 justify-center bg-white/60">
@@ -318,6 +346,34 @@
         <!-- VISTA ACCIONES -->
         <div id="view-acciones" class="hidden">
              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="acciones-grid"></div>
+        </div>
+
+        <!-- VISTA MODIFICAR OBJETIVOS (CONFIG) -->
+        <div id="view-config" class="hidden space-y-8">
+            <div class="neo-card p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-1">Configuración de Metas</h3>
+                        <p class="text-sm text-gray-500 font-medium">Ajuste de objetivos mensuales y distribución semanal por asesor.</p>
+                    </div>
+                    <!-- Selector de Mes en Vista Config -->
+                    <div class="flex items-center gap-3">
+                        <label class="text-sm font-bold text-gray-600">Configurar mes:</label>
+                        <select id="config-month-select" class="p-2 border border-gray-200 rounded-xl font-bold text-gray-700 bg-white shadow-sm outline-none focus:border-purple-500">
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto" id="config-table-container">
+                    <!-- Tabla inyectada por JS -->
+                </div>
+                <div class="mt-8 flex justify-end">
+                    <button id="save-goals-btn" class="btn-neo btn-primary px-10 py-3 shadow-lg"><i class="fas fa-save mr-2"></i>Guardar Configuración</button>
+                </div>
+            </div>
         </div>
 
         <div id="message-container" class="fixed bottom-6 right-6 z-50 text-sm"></div>
@@ -337,13 +393,14 @@
         </div>
     </div>
 
+    <!-- Modal Contraseña Unificada -->
     <div id="password-modal" class="fixed inset-0 z-[70] flex items-center justify-center modal-backdrop hidden opacity-0 transition-opacity">
         <div class="neo-card p-10 max-w-sm w-full mx-4 text-center">
             <div class="bg-red-50 text-red-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <i class="fas fa-lock text-3xl"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-800 mb-3">Área Restringida</h3>
-            <p class="text-gray-500 text-sm mb-8 font-medium">Ingrese la contraseña para visualizar las acciones comerciales.</p>
+            <h3 id="pwd-modal-title" class="text-2xl font-bold text-gray-800 mb-3">Área Restringida</h3>
+            <p id="pwd-modal-desc" class="text-gray-500 text-sm mb-8 font-medium">Ingrese la contraseña para continuar.</p>
             <input type="password" id="actions-password-input" class="w-full p-4 mb-6 text-center text-lg font-bold bg-gray-50 focus:bg-white" placeholder="••••••••">
             <div class="flex gap-3">
                 <button id="pwd-btn-submit" class="btn-neo btn-primary w-1/2 py-3">Ingresar</button>
@@ -368,34 +425,70 @@
     </div>
 
     <script>
-        // Configuración Global Chart.js para Soft UI
+        // Configuración Global
         Chart.defaults.color = '#8c98a4'; 
         Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
         Chart.defaults.font.weight = '500';
 
         const chartColors = {
-            purple: '#8b5cf6',
-            green: '#34d399',
-            blue: '#3b82f6',
-            orange: '#f97316',
-            red: '#ef4444',
-            teal: '#14b8a6',
-            yellow: '#eab308',
-            grid: 'rgba(0,0,0,0.04)'
+            purple: '#8b5cf6', green: '#34d399', blue: '#3b82f6', orange: '#f97316',
+            red: '#ef4444', teal: '#14b8a6', yellow: '#eab308', grid: 'rgba(0,0,0,0.04)'
         };
 
         window.openPromotion = null;
         window.showAdvisorDetails = null;
-        let fullData = [];
-        let chartInstances = {};
-        let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
-        let currentView = 'general';
-        let activeActionType = null;
-        let objectiveChartInstances = [];
-        let timelineHoveredIndex = -1; 
-        let isActionsUnlocked = false; 
 
         document.addEventListener('DOMContentLoaded', () => {
+            let fullData = [];
+            let chartInstances = {};
+            let currentFilters = { asesora: 'todos', mes: 'todos', carrera: 'todos', modalidad: 'todos' };
+            let currentView = 'general';
+            let activeActionType = null;
+            
+            // Bloqueos de seguridad
+            let isActionsUnlocked = false; 
+            let isConfigUnlocked = false;
+            let isMetaUnlocked = false;
+            let unlockTarget = null; // 'acciones', 'config', 'meta'
+
+            // NORMALIZACIÓN SEGURA DE METAS: Convierte el valor viejo (número único) en un objeto con porcentajes por defecto.
+            function normalizeGoals(goalsObj) {
+                if (!goalsObj) return null;
+                let newG = {};
+                for (let m in goalsObj) {
+                    newG[m] = {};
+                    for (let adv in goalsObj[m]) {
+                        if (typeof goalsObj[m][adv] === 'number') {
+                            newG[m][adv] = { total: goalsObj[m][adv], p1: 30, p2: 20, p3: 20, p4: 30 };
+                        } else {
+                            newG[m][adv] = goalsObj[m][adv];
+                        }
+                    }
+                }
+                return newG;
+            }
+
+            // Cargar Metas desde LocalStorage
+            let savedGoals = localStorage.getItem('dashGoalsConfig');
+            let goalsConfig;
+            
+            try {
+                goalsConfig = savedGoals ? normalizeGoals(JSON.parse(savedGoals)) : null;
+            } catch(e) {
+                console.warn("Error al leer metas de LocalStorage, cargando valores por defecto.", e);
+                goalsConfig = null;
+            }
+
+            if (!goalsConfig) {
+                let defaultOldFormat = {
+                    '5': { 'Belen': 22, 'Kiara': 22, 'Laura': 22, 'Lucas': 22, 'Micaela (LP)': 22, 'Ayelén': 22, 'Jeremías': 22, 'Juan': 22 },
+                    '6': { 'Belen': 35, 'Kiara': 35, 'Laura': 35, 'Lucas': 35, 'Micaela (LP)': 35, 'Ayelén': 35, 'Jeremías': 39, 'Juan': 35 },
+                    '7': { 'Belen': 60, 'Kiara': 60, 'Laura': 60, 'Lucas': 60, 'Micaela (LP)': 60, 'Ayelén': 60, 'Jeremías': 60, 'Juan': 60 },
+                    '8': { 'Belen': 50, 'Kiara': 50, 'Laura': 50, 'Lucas': 50, 'Micaela (LP)': 50, 'Ayelén': 50, 'Jeremías': 50, 'Juan': 50 }
+                };
+                goalsConfig = normalizeGoals(defaultOldFormat);
+            }
+
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEJyDexcS4KB-qdaMRi9hUtxNSXEbiwoR3ChyRfKIMPA5KhGkCu7SvfQcYQQc2_jBnrugOOnTvs_mZ/pub?output=csv';
             
             const ACTION_DATES = {
@@ -406,13 +499,6 @@
                 'oferton': ['2026-03-09', '2026-03-10', '2026-03-11', '2026-03-12', '2026-03-13']
             };
             const ACTION_NAMES = { 'remarketing': 'Remarketing', 'empresas': 'Empresas Amigas', 'navidad': 'Navidad', 'carnaval': 'Carnaval', 'oferton': 'Ofertón' };
-            
-            const goalsConfig = {
-                '5': { 'Belen': 22, 'Kiara': 22, 'Laura': 22, 'Lucas': 22, 'Micaela (LP)': 22, 'Ayelén': 22, 'Jeremías': 22, 'Juan': 22 },
-                '6': { 'Belen': 35, 'Kiara': 35, 'Laura': 35, 'Lucas': 35, 'Micaela (LP)': 35, 'Ayelén': 35, 'Jeremías': 35, 'Juan': 35 },
-                '7': { 'Belen': 60, 'Kiara': 60, 'Laura': 60, 'Lucas': 60, 'Micaela (LP)': 60, 'Ayelén': 60, 'Jeremías': 60, 'Juan': 60 },
-                '8': { 'Belen': 50, 'Kiara': 50, 'Laura': 50, 'Lucas': 50, 'Micaela (LP)': 50, 'Ayelén': 50, 'Jeremías': 50, 'Juan': 50 }
-            };
             const monthNames = { '5': 'Mayo', '6': 'Junio', '7': 'Julio', '8': 'Agosto', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre', '1': 'Enero', '2': 'Febrero', '3': 'Marzo', '4': 'Abril' };
             
             const careerData = { 
@@ -431,21 +517,36 @@
                  'Kiara': { color: '#c084fc' },
                  'Belen': { color: '#fbbf24' },
                  'Laura': { color: '#bef264' },
-                 'Jeremías': { color: '#991b1b' }, // Rojo oscuro
+                 'Jeremías': { color: '#991b1b' }, 
                  'Lucas': { color: '#3b82f6' },
-                 'Ayelén': { color: '#fde047' },
+                 'Ayelén': { color: '#fde047' }, 
                  'Micaela (LP)': { color: '#38bdf8' },
-                 'Juan': { color: '#78350f' },
+                 'Juan': { color: '#78350f' }, 
+                 'Camila': { color: '#859bcc' }, 
                  'Sin Asignar': { color: '#9ca3af' }
             };
+
+            const fallbackPalette = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#6366f1', '#0ea5e9', '#14b8a6', '#10b981', '#84cc16', '#f59e0b', '#f97316'];
+            function getAdvisorColor(name) {
+                if (asesoraData[name]) return asesoraData[name].color;
+                let hash = 0;
+                for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                const color = fallbackPalette[Math.abs(hash) % fallbackPalette.length];
+                asesoraData[name] = { color: color };
+                return color;
+            }
 
             Chart.register(ChartDataLabels);
 
             function showMessage(msg, isError = false) {
                 const container = document.getElementById('message-container');
+                if(!container) return;
                 const colorClass = isError ? 'bg-red-500 text-white' : 'bg-gray-800 text-white';
                 container.innerHTML = `<div class="${colorClass} px-6 py-3 rounded-xl shadow-lg font-bold transform transition-all duration-300 translate-y-0 opacity-100">${msg}</div>`;
-                setTimeout(() => { container.firstChild.classList.replace('opacity-100', 'opacity-0'); setTimeout(()=>container.innerHTML='', 300); }, 3000);
+                setTimeout(() => { 
+                    if(container.firstChild) container.firstChild.classList.replace('opacity-100', 'opacity-0'); 
+                    setTimeout(()=>container.innerHTML='', 300); 
+                }, 3000);
             }
 
             function normalizeString(str = '') { return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
@@ -483,14 +584,21 @@
                 const empresasIdx = 9, navidadIdx = 10, carnavalIdx = 11, ofertonIdx = 12; 
                 const matriculaIdx = findIdx(['matricula', 'legajo', 'dni']);
                 const apellidoIdx = findIdx(['apellido']), nombreIdx = findIdx(['nombre']), alumnoIdx = findIdx(['alumno', 'nombre y apellido']);
+                const colorIdx = findIdx(['color']);
 
                 let advisor = advisorIdx !== -1 ? Object.values(row)[advisorIdx] : 'Sin Asignar';
                 if (!advisor || advisor.trim() === '') advisor = 'Sin Asignar';
 
-                // Unificar versiones con y sin tilde
                 let normAdv = normalizeString(advisor);
                 if (normAdv === 'jeremias') advisor = 'Jeremías';
                 if (normAdv === 'ayelen') advisor = 'Ayelén';
+
+                if (colorIdx !== -1 && advisor !== 'Sin Asignar') {
+                    const sheetCol = Object.values(row)[colorIdx];
+                    if (sheetCol && sheetCol.trim().startsWith('#')) {
+                        asesoraData[advisor] = { color: sheetCol.trim() };
+                    }
+                }
 
                 const timestamp = timestampIdx !== -1 ? Object.values(row)[timestampIdx] : '';
                 const career = careerIdx !== -1 ? Object.values(row)[careerIdx] : 'N/A';
@@ -522,6 +630,7 @@
 
             function renderEmpresasTable(data) {
                 const tbody = document.getElementById('empresas-ranking-body');
+                if(!tbody) return;
                 tbody.innerHTML = '';
                 const counts = {};
                 data.forEach(row => {
@@ -557,9 +666,63 @@
                 });
             }
 
-            // --- Lógica de Modales ---
+            function renderListaInscriptos(data) {
+                const tbody = document.getElementById('lista-inscriptos-body');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-400 font-bold">No se encontraron inscriptos con los filtros actuales.</td></tr>';
+                    return;
+                }
+
+                const sortedData = [...data].sort((a, b) => (b.fecha || new Date(0)) - (a.fecha || new Date(0)));
+
+                let html = '';
+                sortedData.forEach(row => {
+                    const advColor = getAdvisorColor(row.asesora);
+                    const carObj = careerData[row.carrera];
+                    const carColor = carObj ? carObj.color : chartColors.purple;
+                    const carName = carObj ? carObj.name : row.carrera;
+                    
+                    let dateStr = 'S/F';
+                    if (row.fecha) {
+                        const d = row.fecha.getDate().toString().padStart(2, '0');
+                        const m = (row.fecha.getMonth() + 1).toString().padStart(2, '0');
+                        const y = row.fecha.getFullYear();
+                        dateStr = `${d}/${m}/${y}`;
+                    }
+
+                    const bgColor = `${carColor}15`; 
+                    const borderColor = `${carColor}30`;
+
+                    html += `
+                        <tr class="transition-all duration-300 border-b border-gray-50" 
+                            onmouseenter="this.style.background='linear-gradient(to left, ${advColor}25, ${carColor}25)'" 
+                            onmouseleave="this.style.background='transparent'">
+                            <td class="py-4 px-4 text-gray-500 font-semibold whitespace-nowrap">${dateStr}</td>
+                            <td class="py-4 px-4 font-extrabold text-gray-700">${row.matricula}</td>
+                            <td class="py-4 px-4 font-bold text-gray-800">${row.apellido} ${row.nombre}</td>
+                            <td class="py-4 px-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-extrabold" style="background-color: ${bgColor}; color: ${carColor}; border: 1px solid ${borderColor}">
+                                    ${carName}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${advColor}"></span>
+                                    <span class="font-extrabold text-gray-700">${row.asesora}</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            }
+
             function toggleModal(modalId, show) {
                 const modal = document.getElementById(modalId);
+                if(!modal) return;
                 if (show) {
                     modal.classList.remove('hidden');
                     requestAnimationFrame(() => modal.classList.remove('opacity-0'));
@@ -570,21 +733,29 @@
             }
 
             window.showAdvisorDetails = (advisorName) => {
-                const selectedMonth = document.getElementById('obj-month-filter').value;
+                const mFilter = document.getElementById('obj-month-filter');
+                const selectedMonth = mFilter ? mFilter.value : 'todos';
                 const targetMonthIndex = parseInt(selectedMonth, 10) - 1;
-                if(isNaN(targetMonthIndex)) { showMessage('Seleccione periodo específico.', true); return; }
+                if(isNaN(targetMonthIndex)) { showMessage('Seleccione periodo específico para ver detalles.', true); return; }
 
                 const filteredData = fullData.filter(d => d.fecha && d.fecha.getMonth() === targetMonthIndex && normalizeString(d.asesora).includes(normalizeString(advisorName)));
                 
-                document.getElementById('modal-date-title').textContent = `${advisorName}`;
-                document.getElementById('modal-promo-banner').classList.add('hidden');
-                const content = document.getElementById('modal-content');
+                const titleEl = document.getElementById('modal-date-title');
+                if(titleEl) titleEl.textContent = `${advisorName}`;
                 
-                if (filteredData.length === 0) { content.innerHTML = '<p class="text-center text-gray-400 font-medium py-4">Sin registros para este periodo.</p>'; } 
-                else {
-                    let html = `<table class="w-full text-left bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100"><thead class="bg-gray-50 text-xs text-gray-500 uppercase"><tr><th class="py-3 px-4">Matrícula</th><th class="py-3 px-4">Alumno</th><th class="py-3 px-4">Carrera</th></tr></thead><tbody class="divide-y divide-gray-100">`;
-                    filteredData.forEach(row => {
-                        html += `<tr><td class="py-3 px-4 font-bold text-gray-600">${row.matricula}</td><td class="py-3 px-4 font-semibold text-gray-800 truncate max-w-[150px]">${row.apellido} ${row.nombre}</td><td class="py-3 px-4 text-gray-500">${row.carrera}</td></tr>`;
+                const banner = document.getElementById('modal-promo-banner');
+                if(banner) banner.classList.add('hidden');
+                
+                const content = document.getElementById('modal-content');
+                if(!content) return;
+                
+                if (filteredData.length === 0) { 
+                    content.innerHTML = '<p class="text-center text-gray-400 font-medium py-4">Sin registros para este periodo.</p>'; 
+                } else {
+                    let html = `<table class="w-full text-left bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100"><thead class="bg-gray-50 text-xs text-gray-500 uppercase"><tr><th class="py-3 px-4">Fecha</th><th class="py-3 px-4">Matrícula</th><th class="py-3 px-4">Alumno</th></tr></thead><tbody class="divide-y divide-gray-100">`;
+                    filteredData.sort((a,b)=>a.fecha - b.fecha).forEach(row => {
+                        let dStr = row.fecha ? `${row.fecha.getDate()}/${row.fecha.getMonth()+1}` : '';
+                        html += `<tr><td class="py-3 px-4 text-gray-500 font-bold">${dStr}</td><td class="py-3 px-4 font-bold text-gray-600">${row.matricula}</td><td class="py-3 px-4 font-semibold text-gray-800">${row.apellido} ${row.nombre}</td></tr>`;
                     });
                     content.innerHTML = html + `</tbody></table><div class="text-right mt-4 font-bold text-gray-800">Total: ${filteredData.length}</div>`;
                 }
@@ -593,18 +764,23 @@
 
             function showDayDetails(dateString, dayData) {
                 const [year, month, day] = dateString.split('-');
-                document.getElementById('modal-date-title').textContent = `${day}/${month}/${year}`;
+                const titleEl = document.getElementById('modal-date-title');
+                if(titleEl) titleEl.textContent = `${day}/${month}/${year}`;
+                
                 const promoBanner = document.getElementById('modal-promo-banner');
                 let foundPromo = Object.keys(ACTION_DATES).find(key => ACTION_DATES[key].includes(dateString));
                 
-                if (foundPromo) {
-                    document.getElementById('modal-promo-text').textContent = `Día de Acción: ${ACTION_NAMES[foundPromo]}`;
+                if (foundPromo && promoBanner) {
+                    const pText = document.getElementById('modal-promo-text');
+                    if(pText) pText.textContent = `Día de Acción: ${ACTION_NAMES[foundPromo]}`;
                     promoBanner.classList.remove('hidden');
-                } else { promoBanner.classList.add('hidden'); }
+                } else if(promoBanner) { promoBanner.classList.add('hidden'); }
 
                 const content = document.getElementById('modal-content');
-                if (dayData.length === 0) { content.innerHTML = '<p class="text-center text-gray-400 font-medium py-4">Sin inscripciones en esta fecha.</p>'; } 
-                else {
+                if(!content) return;
+                if (dayData.length === 0) { 
+                    content.innerHTML = '<p class="text-center text-gray-400 font-medium py-4">Sin inscripciones en esta fecha.</p>'; 
+                } else {
                     const grouped = dayData.reduce((acc, curr) => { if(!acc[curr.carrera]) acc[curr.carrera]=0; acc[curr.carrera]++; return acc; }, {});
                     let html = `<ul class="space-y-2">`;
                     Object.entries(grouped).forEach(([car, count]) => {
@@ -615,7 +791,13 @@
                 }
                 toggleModal('detail-modal', true);
             }
-            document.getElementById('close-modal-btn').addEventListener('click', () => toggleModal('detail-modal', false));
+
+            function bindEvent(id, ev, cb) {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener(ev, cb);
+            }
+
+            bindEvent('close-modal-btn', 'click', () => toggleModal('detail-modal', false));
 
             // --- Filtros ---
             function populateFilters(data) {
@@ -642,14 +824,13 @@
                 fillSelect('timeline-filter-advisor', filters.asesora, 'Todas las Asesoras');
                 fillSelect('timeline-filter-month', filters.mes, 'Todos los Meses');
                 
-                // Meses para objetivos manuales
                 const objMonth = document.getElementById('obj-month-filter');
                 if(objMonth) {
                     objMonth.innerHTML = `<option value="todos">Todos los Periodos</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option>`;
                 }
             }
 
-            // --- Lógica del Botón de Meta ---
+            // Lógica del Botón de Meta y Modal de Contraseña Unificada
             let showGoal = false;
             let currentTotal = 0;
             let currentFaltan = 0;
@@ -658,26 +839,85 @@
                 const numEl = document.getElementById('gauge-number');
                 const lblEl = document.getElementById('gauge-label');
                 const btn = document.getElementById('toggle-goal-btn');
+                if(!numEl || !lblEl || !btn) return;
                 
                 if (showGoal) {
                     numEl.textContent = currentFaltan;
                     numEl.className = "text-5xl font-extrabold text-purple-600";
                     lblEl.textContent = "Faltan para Meta";
-                    btn.textContent = 'Ver Total Inscriptos';
+                    btn.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Ver Total Inscriptos';
                 } else {
                     numEl.textContent = currentTotal;
                     numEl.className = "text-6xl font-extrabold text-gray-800";
                     lblEl.textContent = "Inscriptos";
-                    btn.textContent = 'Ver Meta y Faltante';
+                    btn.innerHTML = isMetaUnlocked ? '<i class="fas fa-lock-open mr-2 text-gray-400"></i>Ver Meta y Faltante' : '<i class="fas fa-lock mr-2 text-gray-400"></i>Ver Meta y Faltante';
                 }
             }
 
-            document.getElementById('toggle-goal-btn').addEventListener('click', () => {
-                showGoal = !showGoal;
-                updateGaugeText();
+            function openPwdModal(target) {
+                unlockTarget = target;
+                const input = document.getElementById('actions-password-input');
+                if(input) input.value = '';
+                
+                const title = document.getElementById('pwd-modal-title');
+                const desc = document.getElementById('pwd-modal-desc');
+                
+                if (title && desc) {
+                    if (target === 'acciones') {
+                        title.textContent = 'Área Restringida';
+                        desc.textContent = 'Ingrese la contraseña para visualizar las acciones comerciales.';
+                    } else if (target === 'config') {
+                        title.textContent = 'Modificar Objetivos';
+                        desc.textContent = 'Ingrese la contraseña para ajustar las metas mensuales y semanales.';
+                    } else if (target === 'meta') {
+                        title.textContent = 'Meta Anual';
+                        desc.textContent = 'Ingrese la contraseña para ver el progreso real de la meta.';
+                    }
+                }
+                toggleModal('password-modal', true);
+            }
+
+            bindEvent('pwd-btn-submit', 'click', () => {
+                const input = document.getElementById('actions-password-input');
+                if(input && input.value === '1996') {
+                    toggleModal('password-modal', false);
+                    showMessage('Acceso permitido');
+                    if (unlockTarget === 'acciones') {
+                        isActionsUnlocked = true;
+                        switchView('acciones');
+                    } else if (unlockTarget === 'config') {
+                        isConfigUnlocked = true;
+                        switchView('config');
+                    } else if (unlockTarget === 'meta') {
+                        isMetaUnlocked = true;
+                        showGoal = true;
+                        updateGaugeText();
+                    }
+                } else {
+                    showMessage('Contraseña incorrecta', true);
+                    if(input) input.value = '';
+                }
             });
 
-            // --- Renderizado de Gráficos (Estilo Soft UI) ---
+            const actInput = document.getElementById('actions-password-input');
+            if (actInput) {
+                actInput.addEventListener('keypress', (e) => {
+                    if(e.key === 'Enter') {
+                        const sBtn = document.getElementById('pwd-btn-submit');
+                        if(sBtn) sBtn.click();
+                    }
+                });
+            }
+
+            bindEvent('toggle-goal-btn', 'click', () => {
+                if (!isMetaUnlocked) {
+                    openPwdModal('meta');
+                } else {
+                    showGoal = !showGoal;
+                    updateGaugeText();
+                }
+            });
+
             function createChart(chartId, type, labels, data, colors, isTimeline = false, isGauge = false, isHorizontalBar = false) {
                 const canvas = document.getElementById(chartId);
                 if (!canvas) return;
@@ -687,44 +927,29 @@
                 let config = { type, data: { labels, datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } };
 
                 if (isGauge) {
-                    // KPI Circular / Doughnut
                     config.data.datasets.push({
-                        data: data, // [actual, restante]
-                        backgroundColor: [chartColors.purple, '#f3f4f6'],
-                        borderWidth: 0,
-                        circumference: 360,
-                        cutout: '80%',
-                        borderRadius: 20
+                        data: data, backgroundColor: [chartColors.purple, '#f3f4f6'], borderWidth: 0,
+                        circumference: 360, cutout: '80%', borderRadius: 20
                     });
                     config.options.plugins.tooltip = { enabled: false };
                     config.options.plugins.datalabels = { display: false };
                 } 
                 else if (isHorizontalBar) {
-                    // Barras Horizontales (Carreras)
                     const maxVal = Math.max(...data);
-                    const threshold = maxVal * 0.15; // Límite para ver si el texto entra
-
+                    const threshold = maxVal * 0.15; 
                     config.options.indexAxis = 'y';
-                    config.options.layout = { padding: { right: 50 } }; // Forzar padding para que el texto no se corte
-                    config.data.datasets.push({
-                        data: data,
-                        backgroundColor: colors,
-                        barThickness: 24, // Más gruesa para que entre texto
-                        borderRadius: 8
-                    });
+                    config.options.layout = { padding: { right: 50 } }; 
+                    config.data.datasets.push({ data: data, backgroundColor: colors, barThickness: 24, borderRadius: 8 });
                     config.options.scales = {
-                        x: { display: false, grid: {display:false}, grace: '30%' }, // Aumentado el grace
-                        y: { display: false } // Ocultar eje Y, el label va adentro
+                        x: { display: false, grid: {display:false}, grace: '30%' }, 
+                        y: { display: false } 
                     };
                     config.options.plugins.datalabels = {
-                        anchor: 'end',
-                        align: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'start' : 'end',
-                        color: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? '#ffffff' : '#1f2937',
-                        offset: 8,
+                        anchor: 'end', align: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'start' : 'end',
+                        color: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? '#ffffff' : '#1f2937', offset: 8,
                         formatter: (val, ctx) => {
                             const lbl = ctx.chart.data.labels[ctx.dataIndex];
-                            const name = careerData[lbl]?.name || lbl;
-                            return `${name}: ${val}`;
+                            return `${careerData[lbl]?.name || lbl}: ${val}`;
                         },
                         font: { weight: 'extrabold', size: 11 },
                         textShadowBlur: 4,
@@ -732,69 +957,32 @@
                     };
                 }
                 else if (type === 'bar') {
-                    // Barras Verticales (Asesoras)
                     const maxVal = Math.max(...data);
                     const threshold = maxVal * 0.20;
-
-                    config.options.layout = { padding: { top: 40 } }; // Forzar padding arriba para etiquetas externas
-                    config.data.datasets.push({
-                        data: data,
-                        backgroundColor: colors,
-                        barThickness: 36, // Ajuste para que entre el nombre parado
-                        borderRadius: {topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight:0},
-                    });
-                    config.options.scales = {
-                        x: { display: false }, // Ocultar Eje X
-                        y: { display: false, grace: '30%' }
-                    };
+                    config.options.layout = { padding: { top: 40 } }; 
+                    config.data.datasets.push({ data: data, backgroundColor: colors, barThickness: 36, borderRadius: {topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight:0} });
+                    config.options.scales = { x: { display: false }, y: { display: false, grace: '30%' } };
                     config.options.plugins.datalabels = {
-                        anchor: 'end',
-                        align: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'start' : 'end',
-                        color: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? '#ffffff' : '#1f2937',
-                        offset: 8,
-                        rotation: -90, // TEXTO EN VERTICAL (Parado)
-                        formatter: (val, ctx) => {
-                            return ctx.chart.data.labels[ctx.dataIndex] + ' : ' + val;
-                        },
-                        textAlign: 'center',
-                        font: { weight: 'extrabold', size: 12 },
-                        textShadowBlur: 4,
-                        textShadowColor: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'rgba(0,0,0,0.5)' : 'transparent'
+                        anchor: 'end', align: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'start' : 'end',
+                        color: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? '#ffffff' : '#1f2937', offset: 8, rotation: -90, 
+                        formatter: (val, ctx) => ctx.chart.data.labels[ctx.dataIndex] + ' : ' + val,
+                        textAlign: 'center', font: { weight: 'extrabold', size: 12 },
+                        textShadowBlur: 4, textShadowColor: (ctx) => ctx.dataset.data[ctx.dataIndex] > threshold ? 'rgba(0,0,0,0.5)' : 'transparent'
                     };
                 }
                 else if (type === 'pie' || type === 'doughnut') {
-                    // Días de la semana
-                    config.options.layout = { padding: 30 }; // Padding para etiquetas por fuera
-                    config.data.datasets.push({
-                        data: data, backgroundColor: colors, borderWidth: 4, borderColor: '#ffffff', hoverOffset: 4
-                    });
+                    config.options.layout = { padding: 30 }; 
+                    config.data.datasets.push({ data: data, backgroundColor: colors, borderWidth: 4, borderColor: '#ffffff', hoverOffset: 4 });
                     config.options.cutout = type === 'doughnut' ? '65%' : '0%';
                     config.options.plugins.datalabels = {
-                        color: '#475569', 
-                        anchor: 'end',
-                        align: 'end',
-                        offset: 4,
-                        font: { weight:'extrabold', size: 11 },
-                        formatter: (val, ctx) => val > 0 ? ctx.chart.data.labels[ctx.dataIndex] + '\n' + val : '',
-                        textAlign: 'center'
+                        color: '#475569', anchor: 'end', align: 'end', offset: 4, font: { weight:'extrabold', size: 11 },
+                        formatter: (val, ctx) => val > 0 ? ctx.chart.data.labels[ctx.dataIndex] + '\n' + val : '', textAlign: 'center'
                     };
                 }
                 else if (isTimeline) {
-                    // Paleta de colores para los meses
                     const timelineColors = {
-                        5: '#34d399', // Mayo: Verde
-                        6: '#3b82f6', // Junio: Azul
-                        7: '#8b5cf6', // Julio: Morado
-                        8: '#f97316', // Agosto: Naranja
-                        10: '#f43f5e', // Octubre: Rojo
-                        11: '#14b8a6', // Nov: Teal
-                        12: '#eab308', // Dic: Amarillo
-                        1: '#0ea5e9',  // Ene: Cian
-                        2: '#d946ef',  // Feb: Fucsia
-                        3: '#84cc16',  // Mar: Lima
-                        4: '#64748b'   // Abr: Slate
+                        5: '#34d399', 6: '#ef4444', 7: '#3b82f6', 8: '#f97316', 10: '#f43f5e', 11: '#14b8a6', 12: '#eab308', 1: '#0ea5e9', 2: '#d946ef', 3: '#84cc16', 4: '#64748b'
                     };
-
                     const getMonthColor = (dateStr) => {
                         if (!dateStr) return chartColors.blue;
                         const m = parseInt(dateStr.split('-')[1], 10);
@@ -802,32 +990,15 @@
                     };
 
                     config.data.datasets.push({
-                        data: data,
-                        borderWidth: 3,
-                        fill: false, // Sin fondo para resaltar la línea multicolor
-                        tension: 0.4, // Curvas suaves
-                        pointRadius: 4, 
-                        pointHoverRadius: 7,
-                        pointBackgroundColor: ctx => getMonthColor(config.data.labels[ctx.dataIndex]),
-                        pointBorderColor: '#ffffff',
-                        pointHoverBackgroundColor: '#ffffff',
-                        pointHoverBorderColor: ctx => getMonthColor(config.data.labels[ctx.dataIndex]),
-                        pointHoverBorderWidth: 2,
-                        segment: {
-                            borderColor: ctx => getMonthColor(config.data.labels[ctx.p0DataIndex])
-                        }
+                        data: data, borderWidth: 3, fill: false, tension: 0.4, pointRadius: 4, pointHoverRadius: 7,
+                        pointBackgroundColor: ctx => getMonthColor(config.data.labels[ctx.dataIndex]), pointBorderColor: '#ffffff',
+                        pointHoverBackgroundColor: '#ffffff', pointHoverBorderColor: ctx => getMonthColor(config.data.labels[ctx.dataIndex]), pointHoverBorderWidth: 2,
+                        segment: { borderColor: ctx => getMonthColor(config.data.labels[ctx.p0DataIndex]) }
                     });
-                    config.options.scales = {
-                        x: { 
-                            ticks: { color: '#94a3b8', maxTicksLimit: 12, font: {weight: 'bold'} },
-                            grid: { color: chartColors.grid, drawBorder: false }
-                        },
-                        y: { display: false, grid: { display: false }, grace: '10%' }
-                    };
+                    config.options.scales = { x: { ticks: { color: '#94a3b8', maxTicksLimit: 12, font: {weight: 'bold'} }, grid: { color: chartColors.grid, drawBorder: false } }, y: { display: false, grid: { display: false }, grace: '10%' } };
                     config.options.plugins.datalabels = { display: false };
                 }
 
-                // Interactividad: Cliqueo para filtrar (Cross-filtering) y Modales
                 config.options.onClick = (evt, elements) => {
                     if (!elements.length) return;
                     const idx = elements[0].index;
@@ -835,14 +1006,10 @@
 
                     if (isHorizontalBar) {
                         const sel = document.getElementById('filter-carrera');
-                        sel.value = sel.value === label ? 'todos' : label;
-                        applyFiltersAndRender();
+                        if(sel) { sel.value = sel.value === label ? 'todos' : label; applyFiltersAndRender(); }
                     } else if (type === 'bar' && !isHorizontalBar) {
                         const sel = document.getElementById('filter-asesora');
-                        sel.value = sel.value === label ? 'todos' : label;
-                        applyFiltersAndRender();
-                    } else if (type === 'doughnut' && !isGauge) {
-                        // Omitir clic en día de semana para filtros
+                        if(sel) { sel.value = sel.value === label ? 'todos' : label; applyFiltersAndRender(); }
                     } else if (isTimeline) {
                         const dateLbl = config.data.labels[idx];
                         const dayData = fullData.filter(r => r.fecha && r.fecha.toLocaleDateString('en-CA') === dateLbl);
@@ -850,23 +1017,26 @@
                     }
                 };
 
-                // Cambiar cursor al pasar sobre elementos interactivos
-                config.options.onHover = (evt, elements) => {
-                    evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
-                };
-
+                config.options.onHover = (evt, elements) => { evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; };
                 chartInstances[chartId] = new Chart(ctx, config);
             }
 
             function applyFiltersAndRender() {
-                if(currentView !== 'general' && currentView !== 'action-detail') return;
+                if(currentView !== 'general' && currentView !== 'action-detail' && currentView !== 'lista') return;
 
-                const fAsesora = document.getElementById('filter-asesora').value;
-                const fMes = document.getElementById('filter-mes').value;
-                const fCarrera = document.getElementById('filter-carrera').value;
-                const fModalidad = document.getElementById('filter-modalidad').value;
-                const dStart = document.getElementById('filter-date-start').value;
-                const dEnd = document.getElementById('filter-date-end').value;
+                const fAs = document.getElementById('filter-asesora');
+                const fAsesora = fAs ? fAs.value : 'todos';
+                const fM = document.getElementById('filter-mes');
+                const fMes = fM ? fM.value : 'todos';
+                const fC = document.getElementById('filter-carrera');
+                const fCarrera = fC ? fC.value : 'todos';
+                const fMod = document.getElementById('filter-modalidad');
+                const fModalidad = fMod ? fMod.value : 'todos';
+                
+                const dStEl = document.getElementById('filter-date-start');
+                const dEnEl = document.getElementById('filter-date-end');
+                const dStart = dStEl ? dStEl.value : null;
+                const dEnd = dEnEl ? dEnEl.value : null;
 
                 let startD=null, endD=null;
                 if(dStart) startD = new Date(dStart + 'T00:00:00');
@@ -896,24 +1066,27 @@
                     return matchView && matchF && matchD;
                 });
 
-                // Mostrar Empresas si aplica
                 const secEmp = document.getElementById('empresas-ranking-section');
-                if(currentView === 'action-detail' && activeActionType === 'empresas') {
-                    secEmp.classList.remove('hidden'); renderEmpresasTable(activeData);
-                } else { secEmp.classList.add('hidden'); }
+                if(secEmp) {
+                    if(currentView === 'action-detail' && activeActionType === 'empresas') {
+                        secEmp.classList.remove('hidden'); renderEmpresasTable(activeData);
+                    } else { secEmp.classList.add('hidden'); }
+                }
 
-                // --- Renderizar Vista General ---
-                
-                // KPI Central / Gauge y Faltante
+                if (currentView === 'lista') {
+                    renderListaInscriptos(activeData);
+                    return; 
+                }
+
                 currentTotal = activeData.length;
                 currentFaltan = Math.max(0, 456 - currentTotal);
                 updateGaugeText();
 
                 const pct = Math.min(Math.round((currentTotal/456)*100), 100);
-                document.getElementById('goal-percentage').textContent = pct;
+                const goalPctEl = document.getElementById('goal-percentage');
+                if(goalPctEl) goalPctEl.textContent = pct;
                 createChart('total-gauge-chart', 'doughnut', ['Logrado', 'Restante'], [currentTotal, currentFaltan], null, false, true);
 
-                // Agrupaciones
                 const cAsesora = {}, cCarrera = {};
                 const cDias = { 'Lunes':0, 'Martes':0, 'Miércoles':0, 'Jueves':0, 'Viernes':0, 'Sábado':0, 'Domingo':0 };
                 const diasNombres = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -927,35 +1100,34 @@
                     }
                 });
 
-                // Sort Carreras
                 const sortedCarreras = Object.entries(cCarrera).sort((a,b)=>b[1]-a[1]);
                 const carLbls = sortedCarreras.map(e=>e[0]);
                 const carVals = sortedCarreras.map(e=>e[1]);
                 const carCols = carLbls.map(c => careerData[c]?careerData[c].color : chartColors.purple);
                 createChart('carrera-chart', 'bar', carLbls, carVals, carCols, false, false, true); 
                 
-                // Asesoras Vertical
                 const asLbls = Object.keys(cAsesora);
-                const asCols = asLbls.map(a => asesoraData[a]?asesoraData[a].color : '#cbd5e1');
+                const asCols = asLbls.map(a => getAdvisorColor(a));
                 createChart('asesora-chart', 'bar', asLbls, Object.values(cAsesora), asCols);
 
-                // Días de la semana Anillo (en vez de modalidad)
-                Object.keys(cDias).forEach(k => { if(cDias[k]===0) delete cDias[k] }); // Quitar los que tienen 0
+                Object.keys(cDias).forEach(k => { if(cDias[k]===0) delete cDias[k] }); 
                 const diasLbls = Object.keys(cDias);
                 const colorPalette = [chartColors.purple, chartColors.green, chartColors.blue, chartColors.orange, chartColors.teal, chartColors.red, chartColors.yellow];
                 const diasCols = diasLbls.map((d, i) => colorPalette[i % colorPalette.length]);
                 createChart('dias-chart', 'doughnut', diasLbls, Object.values(cDias), diasCols);
 
-                // --- Render Timeline ---
-                const tlAdv = document.getElementById('timeline-filter-advisor')?.value || 'todos';
-                const tlMes = document.getElementById('timeline-filter-month')?.value || 'todos';
+                const tlA = document.getElementById('timeline-filter-advisor');
+                const tlAdv = tlA ? tlA.value : 'todos';
+                const tlM = document.getElementById('timeline-filter-month');
+                const tlMes = tlM ? tlM.value : 'todos';
                 
                 let tlData = activeData;
+                const tWrapper = document.getElementById('timeline-filters-wrapper');
                 if(currentView === 'general') { 
-                    document.getElementById('timeline-filters-wrapper').classList.remove('hidden');
+                    if(tWrapper) tWrapper.classList.remove('hidden');
                     tlData = fullData.filter(r => (tlAdv==='todos'||r.asesora===tlAdv) && (tlMes==='todos'||r.mes===tlMes));
                 } else {
-                    document.getElementById('timeline-filters-wrapper').classList.add('hidden');
+                    if(tWrapper) tWrapper.classList.add('hidden');
                 }
 
                 const countsByDate = {};
@@ -968,62 +1140,142 @@
             // --- Vista Objetivos ---
             function renderObjectives() {
                 const container = document.getElementById('objetivos-container');
+                if(!container) return;
                 container.innerHTML = '';
-                const sMonth = document.getElementById('obj-month-filter').value;
-                const sAdv = document.getElementById('obj-advisor-filter').value;
+                
+                const moF = document.getElementById('obj-month-filter');
+                const sMonth = moF ? moF.value : 'todos';
+                
+                const adF = document.getElementById('obj-advisor-filter');
+                const sAdv = adF ? adF.value : 'todos';
 
                 let months = sMonth !== 'todos' ? [sMonth] : ['5','6','7','8'];
                 let count = 0;
 
                 months.forEach(mKey => {
-                    const goals = goalsConfig[mKey];
-                    if(!goals) return;
+                    const goals = goalsConfig[mKey] || {};
+                    const tMonthIdx = parseInt(mKey,10)-1;
+                    const monthData = fullData.filter(d => d.fecha && d.fecha.getMonth()===tMonthIdx);
+
+                    const activeAdvisorsThisMonth = new Set();
+                    Object.keys(goals).forEach(a => { 
+                        const t = typeof goals[a] === 'number' ? goals[a] : (goals[a]?.total || 0);
+                        if(t > 0) activeAdvisorsThisMonth.add(a); 
+                    });
+                    monthData.forEach(d => { if(d.asesora !== 'Sin Asignar') activeAdvisorsThisMonth.add(d.asesora); });
+
+                    let advisorsToIterate = sAdv !== 'todos' ? (activeAdvisorsThisMonth.has(sAdv) ? [sAdv] : []) : [...activeAdvisorsThisMonth].sort();
                     
-                    const advisors = sAdv !== 'todos' ? (goals[sAdv] ? [sAdv] : []) : Object.keys(goals);
-                    
-                    advisors.forEach((adv, idx) => {
-                        const goal = goals[adv];
-                        const tMonthIdx = parseInt(mKey,10)-1;
-                        const actual = fullData.filter(d => d.fecha && d.fecha.getMonth()===tMonthIdx && normalizeString(d.asesora).includes(normalizeString(adv))).length;
+                    advisorsToIterate.forEach((adv) => {
+                        const goalObj = goals[adv] || { total: 0, p1:30, p2:20, p3:20, p4:30 };
+                        const goalTotal = typeof goalObj === 'number' ? goalObj : (goalObj.total || 0);
+
+                        const actualData = monthData.filter(d => normalizeString(d.asesora).includes(normalizeString(adv)));
+                        const actual = actualData.length;
                         
-                        // REQUISITO: Ocultar asesores con 0 inscriptos en el mes
+                        // Solo salen asesores que tengan al menos 1 venta
                         if (actual === 0) return; 
 
-                        const pct = Math.min(Math.round((actual/goal)*100), 100);
-                        const isMet = actual>=goal;
+                        // Tarjeta simplificada para "Sin Asignar" o "No encontrado"
+                        if (adv === 'Sin Asignar' || normalizeString(adv) === 'no encontrado') {
+                            const html = `
+                                <div class="neo-card p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-center" onclick="showAdvisorDetails('${adv}')">
+                                    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                                        <i class="fas fa-question text-2xl text-gray-400"></i>
+                                    </div>
+                                    <h4 class="text-xl font-extrabold text-gray-800 mb-1">Sin Asignar</h4>
+                                    <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-6">${monthNames[mKey]}</div>
+                                    <div class="text-5xl font-extrabold text-gray-600 mb-2">${actual}</div>
+                                    <p class="text-xs text-gray-500 font-bold uppercase">Registros</p>
+                                </div>
+                            `;
+                            container.insertAdjacentHTML('beforeend', html);
+                            count++;
+                            return;
+                        }
+
+                        const advColor = getAdvisorColor(adv);
                         
-                        // Diseño de tarjeta (inspirado en la imagen)
-                        const advColor = asesoraData[adv] ? asesoraData[adv].color : '#94a3b8';
-                        const ringColor = advColor; // Usar el color del asesor para la rueda
+                        let s1Actual=0, s2Actual=0, s3Actual=0, s4Actual=0;
+                        actualData.forEach(d => {
+                            const day = d.fecha.getDate();
+                            if(day >= 1 && day <= 7) s1Actual++;
+                            else if(day >= 8 && day <= 14) s2Actual++;
+                            else if(day >= 15 && day <= 21) s3Actual++;
+                            else if(day >= 22) s4Actual++;
+                        });
+
+                        const p1 = goalObj.p1 !== undefined ? goalObj.p1 : 30;
+                        const p2 = goalObj.p2 !== undefined ? goalObj.p2 : 20;
+                        const p3 = goalObj.p3 !== undefined ? goalObj.p3 : 20;
+
+                        const g1 = Math.round(goalTotal * p1 / 100);
+                        const g2 = Math.round(goalTotal * p2 / 100);
+                        const g3 = Math.round(goalTotal * p3 / 100);
+                        const g4 = Math.max(0, goalTotal - g1 - g2 - g3);
+
+                        const renderBar = (lbl, curr, max) => {
+                            const isMet = curr >= max && max > 0;
+                            const pct = max > 0 ? Math.min(100, (curr/max)*100) : (curr > 0 ? 100 : 0);
+                            const barColor = isMet ? '#34d399' : advColor; 
+                            const textCol = isMet ? 'text-green-500 font-extrabold' : 'text-gray-600 font-bold';
+                            
+                            const extra = curr - max;
+                            const extraBadge = (extra > 0 && max > 0) 
+                                ? `<div class="ml-2 flex-shrink-0 flex items-center justify-center px-2 py-0.5 min-w-[28px] h-5 bg-gradient-to-r from-emerald-400 to-teal-500 text-white text-[10px] font-extrabold rounded-full shadow-sm">
+                                     +${extra}
+                                   </div>` : '';
+
+                            return `
+                                <div class="mb-3 last:mb-0">
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-gray-500 font-bold">${lbl}</span>
+                                        <span class="${textCol}">${curr} / ${max}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="flex-grow bg-gray-100 h-2 rounded-full overflow-hidden">
+                                            <div class="h-full rounded-full transition-all duration-500" style="background-color: ${barColor}; width: ${pct}%"></div>
+                                        </div>
+                                        ${extraBadge}
+                                    </div>
+                                </div>
+                            `;
+                        };
+
+                        const isMetTotal = actual >= goalTotal && goalTotal > 0;
+                        const ringColor = isMetTotal ? '#34d399' : advColor;
+                        const totalPct = goalTotal > 0 ? Math.min(Math.round((actual/goalTotal)*100), 100) : (actual > 0 ? 100 : 0);
                         
                         const html = `
-                            <div class="neo-card p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-center" onclick="showAdvisorDetails('${adv}')">
-                                <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-4">${monthNames[mKey]}</div>
-                                
-                                <div class="relative w-24 h-24 flex items-center justify-center mb-4">
-                                    <svg class="w-full h-full transform -rotate-90">
-                                        <circle cx="48" cy="48" r="42" stroke="#f1f5f9" stroke-width="8" fill="none" />
-                                        <circle cx="48" cy="48" r="42" stroke="${ringColor}" stroke-width="8" fill="none" stroke-dasharray="263.89" stroke-dashoffset="${263.89 - (263.89*pct/100)}" stroke-linecap="round" />
-                                    </svg>
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span class="text-xl font-extrabold text-gray-800">${pct}<span class="text-xs">%</span></span>
+                            <div class="neo-card p-6 flex flex-col cursor-pointer hover:bg-gray-50 transition-colors" onclick="showAdvisorDetails('${adv}')">
+                                <div class="flex justify-between items-start mb-4 border-b border-gray-100 pb-4">
+                                    <div>
+                                        <h4 class="text-xl font-extrabold text-gray-800 flex items-center gap-2">
+                                            <span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${advColor}"></span> ${adv}
+                                        </h4>
+                                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">${monthNames[mKey]}</div>
+                                    </div>
+                                    <div class="relative w-14 h-14 flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-full h-full transform -rotate-90">
+                                            <circle cx="28" cy="28" r="24" stroke="#f1f5f9" stroke-width="4" fill="none" />
+                                            <circle cx="28" cy="28" r="24" stroke="${ringColor}" stroke-width="4" fill="none" stroke-dasharray="150.8" stroke-dashoffset="${150.8 - (150.8*totalPct/100)}" stroke-linecap="round" />
+                                        </svg>
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <span class="text-xs font-extrabold text-gray-800">${totalPct}%</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <h4 class="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
-                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${advColor}"></span> ${adv}
-                                </h4>
-                                <p class="text-sm text-gray-500 font-medium">Progreso Mensual</p>
+                                <div class="flex-grow">
+                                    ${renderBar('S1 (Días 1-7)', s1Actual, g1)}
+                                    ${renderBar('S2 (Días 8-14)', s2Actual, g2)}
+                                    ${renderBar('S3 (Días 15-21)', s3Actual, g3)}
+                                    ${renderBar('S4 (Días 22+)', s4Actual, g4)}
+                                </div>
                                 
-                                <div class="w-full mt-4 pt-4 border-t border-gray-100 flex justify-around">
-                                    <div class="text-center">
-                                        <div class="text-xs text-gray-400 font-bold mb-1">Inscriptos</div>
-                                        <div class="text-xl font-extrabold text-gray-800">${actual}</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-xs text-gray-400 font-bold mb-1">Meta</div>
-                                        <div class="text-xl font-extrabold text-gray-800">${goal}</div>
-                                    </div>
+                                <div class="w-full mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <div class="text-sm font-bold text-gray-500">Total Mensual</div>
+                                    <div class="text-lg font-extrabold ${isMetTotal ? 'text-green-500' : 'text-gray-800'}">${actual} / ${goalTotal}</div>
                                 </div>
                             </div>
                         `;
@@ -1031,12 +1283,143 @@
                         count++;
                     });
                 });
-                if(count===0) container.innerHTML = '<div class="col-span-full neo-card p-10 text-center"><p class="text-gray-500 font-bold text-lg">No hay registros de inscriptos para mostrar en los filtros seleccionados.</p></div>';
+                if(count===0) container.innerHTML = '<div class="col-span-full neo-card p-10 text-center"><p class="text-gray-500 font-bold text-lg">No hay registros de inscriptos ni metas para mostrar.</p></div>';
             }
+
+            // --- Vista Configuración Bidireccional ---
+            function renderConfigView() {
+                const container = document.getElementById('config-table-container');
+                const monthSelect = document.getElementById('config-month-select');
+                if(!container || !monthSelect) return;
+
+                const m = monthSelect.value;
+                const allAdvisorsWithSales = new Set();
+                fullData.forEach(r => { if(r.asesora !== 'Sin Asignar') allAdvisorsWithSales.add(r.asesora); });
+
+                let html = `<table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                        <tr>
+                            <th class="py-3 px-4 rounded-tl-lg font-extrabold">Asesora</th>
+                            <th class="py-3 px-4 font-extrabold text-center border-r border-gray-200">Total Mensual</th>
+                            <th class="py-3 px-4 font-extrabold text-center">Semana 1</th>
+                            <th class="py-3 px-4 font-extrabold text-center">Semana 2</th>
+                            <th class="py-3 px-4 font-extrabold text-center">Semana 3</th>
+                            <th class="py-3 px-4 rounded-tr-lg font-extrabold text-center">Semana 4</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 font-bold text-gray-700">`;
+
+                [...allAdvisorsWithSales].sort().forEach(adv => {
+                    const goalObj = goalsConfig[m] && goalsConfig[m][adv] ? goalsConfig[m][adv] : { total: 0, p1:30, p2:20, p3:20, p4:30 };
+                    const total = typeof goalObj === 'number' ? goalObj : (goalObj.total || 0);
+                    const p1 = goalObj.p1 !== undefined ? goalObj.p1 : 30;
+                    const p2 = goalObj.p2 !== undefined ? goalObj.p2 : 20;
+                    const p3 = goalObj.p3 !== undefined ? goalObj.p3 : 20;
+                    const p4 = goalObj.p4 !== undefined ? goalObj.p4 : 30;
+
+                    const n1 = Math.round(total * p1 / 100);
+                    const n2 = Math.round(total * p2 / 100);
+                    const n3 = Math.round(total * p3 / 100);
+                    const n4 = Math.max(0, total - n1 - n2 - n3);
+
+                    const renderWeekInput = (week, num, pct) => `
+                        <td class="py-3 px-2 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <input type="number" data-adv="${adv}" data-type="num" data-week="${week}" value="${num}" class="w-14 p-1.5 border border-gray-200 rounded text-center text-xs font-bold text-gray-800 bg-white focus:border-purple-500 outline-none config-input" title="Cantidad Inscriptos">
+                                <span class="text-gray-300">|</span>
+                                <input type="number" data-adv="${adv}" data-type="pct" data-week="${week}" value="${pct}" class="w-14 p-1.5 border border-purple-200 rounded text-center text-xs font-bold text-purple-700 bg-purple-50 focus:border-purple-500 outline-none config-input" title="Porcentaje de la meta"><span class="text-xs text-gray-400">%</span>
+                            </div>
+                        </td>
+                    `;
+
+                    html += `<tr class="hover:bg-gray-50 transition-colors config-row" data-adv="${adv}">
+                        <td class="py-3 px-4 flex items-center gap-3 min-w-[150px]">
+                            <span class="w-3 h-3 rounded-full shadow-sm" style="background-color:${getAdvisorColor(adv)}"></span>
+                            ${adv}
+                        </td>
+                        <td class="py-3 px-4 text-center border-r border-gray-200">
+                            <input type="number" data-adv="${adv}" data-type="total" value="${total}" class="w-20 p-2 border border-gray-300 rounded-lg text-center font-extrabold text-gray-800 bg-white shadow-sm focus:border-purple-500 outline-none config-input">
+                        </td>
+                        ${renderWeekInput(1, n1, p1)}
+                        ${renderWeekInput(2, n2, p2)}
+                        ${renderWeekInput(3, n3, p3)}
+                        ${renderWeekInput(4, n4, p4)}
+                    </tr>`;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+                attachConfigListeners();
+            }
+
+            function attachConfigListeners() {
+                const inputs = document.querySelectorAll('.config-input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', function() {
+                        const adv = this.getAttribute('data-adv');
+                        const type = this.getAttribute('data-type');
+                        const week = this.getAttribute('data-week');
+                        
+                        const row = document.querySelector(`.config-row[data-adv="${adv}"]`);
+                        const totalInput = row.querySelector(`input[data-type="total"]`);
+                        let total = parseFloat(totalInput.value) || 0;
+
+                        if (type === 'total') {
+                            [1,2,3,4].forEach(w => {
+                                const pctInput = row.querySelector(`input[data-type="pct"][data-week="${w}"]`);
+                                const numInput = row.querySelector(`input[data-type="num"][data-week="${w}"]`);
+                                const pct = parseFloat(pctInput.value) || 0;
+                                if (w === 4) {
+                                    let sumPrev = 0;
+                                    [1,2,3].forEach(prevW => { sumPrev += parseFloat(row.querySelector(`input[data-type="num"][data-week="${prevW}"]`).value) || 0; });
+                                    numInput.value = Math.max(0, total - sumPrev);
+                                } else {
+                                    numInput.value = Math.round((total * pct) / 100);
+                                }
+                            });
+                        } else if (type === 'num') {
+                            const pctInput = row.querySelector(`input[data-type="pct"][data-week="${week}"]`);
+                            const num = parseFloat(this.value) || 0;
+                            if (total > 0) {
+                                pctInput.value = Math.round((num / total) * 100);
+                            } else {
+                                pctInput.value = 0;
+                            }
+                        } else if (type === 'pct') {
+                            const numInput = row.querySelector(`input[data-type="num"][data-week="${week}"]`);
+                            const pct = parseFloat(this.value) || 0;
+                            numInput.value = Math.round((total * pct) / 100);
+                        }
+                    });
+                });
+            }
+
+            bindEvent('save-goals-btn', 'click', () => {
+                const monthSelect = document.getElementById('config-month-select');
+                const m = monthSelect.value;
+                if (!goalsConfig[m]) goalsConfig[m] = {};
+
+                const rows = document.querySelectorAll('.config-row');
+                rows.forEach(row => {
+                    const adv = row.getAttribute('data-adv');
+                    const total = parseInt(row.querySelector('input[data-type="total"]').value) || 0;
+                    const p1 = parseInt(row.querySelector('input[data-type="pct"][data-week="1"]').value) || 0;
+                    const p2 = parseInt(row.querySelector('input[data-type="pct"][data-week="2"]').value) || 0;
+                    const p3 = parseInt(row.querySelector('input[data-type="pct"][data-week="3"]').value) || 0;
+                    const p4 = parseInt(row.querySelector('input[data-type="pct"][data-week="4"]').value) || 0;
+                    
+                    goalsConfig[m][adv] = { total, p1, p2, p3, p4 };
+                });
+                localStorage.setItem('dashGoalsConfig', JSON.stringify(goalsConfig));
+                showMessage('Metas y distribución semanal guardadas correctamente.');
+            });
+
+            bindEvent('config-month-select', 'change', renderConfigView);
 
             // --- Vista Acciones ---
             function renderActions() {
                 const container = document.getElementById('acciones-grid');
+                if(!container) return;
                 container.innerHTML = '';
                 
                 const acts = [
@@ -1068,21 +1451,20 @@
                 });
             }
 
-            // --- Inicialización y Fetch ---
             function init(data) {
                 fullData = data;
                 populateFilters(fullData);
 
-                // REQUISITO: Configurar mes actual por defecto en Objetivos
-                const m = String(new Date().getMonth()+1); // Mayo = 5
+                const m = String(new Date().getMonth()+1);
                 const objMonthFilter = document.getElementById('obj-month-filter');
                 if(objMonthFilter && document.querySelector(`#obj-month-filter option[value="${m}"]`)) {
                     objMonthFilter.value = m;
                 }
 
-                if(currentView==='general') applyFiltersAndRender();
+                if(currentView==='general' || currentView==='lista') applyFiltersAndRender();
                 else if(currentView==='objetivos') renderObjectives();
                 else if(currentView==='acciones') renderActions();
+                else if(currentView==='config') renderConfigView();
             }
 
             async function fetchData() {
@@ -1094,10 +1476,10 @@
                         header: true, skipEmptyLines: true, transformHeader: h=>h.trim(),
                         complete: r => {
                             if(r.data.length>0) {
-                                document.getElementById('error-info').classList.add('hidden');
-                                const headers = Object.keys(r.data[0]).map(normalizeString);
+                                const errBox = document.getElementById('error-info');
+                                if(errBox) errBox.classList.add('hidden');
                                 
-                                // Filtrar filas inválidas, con #N/A, sin matrícula o sin carrera
+                                const headers = Object.keys(r.data[0]).map(normalizeString);
                                 let parsedRows = r.data.map(row => parseRow(row, headers));
                                 parsedRows = parsedRows.filter(row => {
                                     const noTieneNA = !Object.values(row).some(v => typeof v === 'string' && v.includes('#N/A'));
@@ -1112,81 +1494,106 @@
                     });
                 } catch(e) {
                     console.error(e);
-                    document.getElementById('error-info').classList.remove('hidden');
-                    // Fallback visual
+                    const errBox = document.getElementById('error-info');
+                    if(errBox) errBox.classList.remove('hidden');
                 }
             }
 
-            // --- Navegación y Eventos ---
             const switchView = (view) => {
                 currentView = view;
-                ['tab-general', 'tab-objetivos', 'tab-acciones'].forEach(id => document.getElementById(id)?.classList.remove('active'));
-                ['view-main', 'view-objetivos', 'view-acciones', 'promo-nav-banner'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+                
+                const tabs = ['tab-general', 'tab-lista', 'tab-objetivos', 'tab-acciones', 'tab-config'];
+                tabs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.classList.remove('active');
+                });
+
+                const views = ['view-main', 'view-lista', 'view-objetivos', 'view-acciones', 'view-config', 'promo-nav-banner', 'filters-container'];
+                views.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.classList.add('hidden');
+                });
 
                 if(view === 'action-detail') {
-                    document.getElementById('tab-acciones')?.classList.add('active');
-                    document.getElementById('promo-nav-banner')?.classList.remove('hidden');
-                    document.getElementById('view-main')?.classList.remove('hidden');
+                    const tAc = document.getElementById('tab-acciones'); if(tAc) tAc.classList.add('active');
+                    const pNav = document.getElementById('promo-nav-banner'); if(pNav) pNav.classList.remove('hidden');
+                    const fCon = document.getElementById('filters-container'); if(fCon) fCon.classList.remove('hidden');
+                    const vMain = document.getElementById('view-main'); if(vMain) vMain.classList.remove('hidden');
                     applyFiltersAndRender();
                 } else {
-                    document.getElementById(`tab-${view}`)?.classList.add('active');
+                    const tCur = document.getElementById(`tab-${view}`); if(tCur) tCur.classList.add('active');
                     
                     const viewId = view === 'general' ? 'view-main' : `view-${view}`;
-                    document.getElementById(viewId)?.classList.remove('hidden');
+                    const vCur = document.getElementById(viewId); if(vCur) vCur.classList.remove('hidden');
                     
-                    if(view === 'general') applyFiltersAndRender();
+                    if(view === 'general' || view === 'lista') {
+                        const fCon = document.getElementById('filters-container'); if(fCon) fCon.classList.remove('hidden');
+                        applyFiltersAndRender();
+                    }
                     if(view === 'objetivos') renderObjectives();
                     if(view === 'acciones') renderActions();
+                    if(view === 'config') renderConfigView();
                 }
             };
 
             window.openPromotion = (type) => { activeActionType = type; switchView('action-detail'); };
 
-            document.getElementById('tab-general').addEventListener('click', () => switchView('general'));
-            document.getElementById('tab-objetivos').addEventListener('click', () => switchView('objetivos'));
-            document.getElementById('tab-acciones').addEventListener('click', () => {
-                if(isActionsUnlocked) switchView('acciones'); else toggleModal('password-modal', true);
+            bindEvent('tab-general', 'click', () => switchView('general'));
+            bindEvent('tab-lista', 'click', () => switchView('lista'));
+            bindEvent('tab-objetivos', 'click', () => switchView('objetivos'));
+            bindEvent('tab-acciones', 'click', () => {
+                if(isActionsUnlocked) switchView('acciones'); else openPwdModal('acciones');
             });
-            document.getElementById('back-to-promos-btn').addEventListener('click', () => switchView('acciones'));
+            bindEvent('tab-config', 'click', () => {
+                if(isConfigUnlocked) switchView('config'); else openPwdModal('config');
+            });
+            
+            bindEvent('back-to-promos-btn', 'click', () => switchView('acciones'));
 
-            // Escuchas de filtros
-            ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'].forEach(id => {
-                document.getElementById(id)?.addEventListener('change', (e) => {
-                    if(id==='filter-asesora' && document.getElementById('timeline-filter-advisor')) document.getElementById('timeline-filter-advisor').value = e.target.value;
-                    if(id==='filter-mes' && document.getElementById('timeline-filter-month')) document.getElementById('timeline-filter-month').value = e.target.value;
+            const filterIds = ['filter-asesora', 'filter-mes', 'filter-carrera', 'filter-modalidad', 'filter-date-start', 'filter-date-end'];
+            filterIds.forEach(id => {
+                bindEvent(id, 'change', (e) => {
+                    if(id==='filter-asesora') {
+                        const ta = document.getElementById('timeline-filter-advisor');
+                        if(ta) ta.value = e.target.value;
+                    }
+                    if(id==='filter-mes') {
+                        const tm = document.getElementById('timeline-filter-month');
+                        if(tm) tm.value = e.target.value;
+                    }
                     applyFiltersAndRender();
                 });
             });
+
             ['timeline-filter-advisor', 'timeline-filter-month'].forEach(id => {
-                document.getElementById(id)?.addEventListener('change', (e) => {
+                bindEvent(id, 'change', (e) => {
                     const targetId = id === 'timeline-filter-advisor' ? 'filter-asesora' : 'filter-mes';
-                    document.getElementById(targetId).value = e.target.value;
+                    const el = document.getElementById(targetId);
+                    if (el) el.value = e.target.value;
                     applyFiltersAndRender();
                 });
             });
-            ['obj-month-filter', 'obj-advisor-filter'].forEach(id => document.getElementById(id)?.addEventListener('change', renderObjectives));
 
-            document.getElementById('reset-filters-btn').addEventListener('click', () => {
-                ['asesora', 'mes', 'carrera', 'modalidad'].forEach(k => document.getElementById(`filter-${k}`).value='todos');
-                document.getElementById('filter-date-start').value=''; document.getElementById('filter-date-end').value='';
-                document.getElementById('timeline-filter-advisor').value='todos'; document.getElementById('timeline-filter-month').value='todos';
+            bindEvent('obj-month-filter', 'change', renderObjectives);
+            bindEvent('obj-advisor-filter', 'change', renderObjectives);
+
+            bindEvent('reset-filters-btn', 'click', () => {
+                ['asesora', 'mes', 'carrera', 'modalidad'].forEach(k => {
+                    const el = document.getElementById(`filter-${k}`);
+                    if(el) el.value='todos';
+                });
+                const st = document.getElementById('filter-date-start'); if(st) st.value=''; 
+                const end = document.getElementById('filter-date-end'); if(end) end.value='';
+                
+                const tAdv = document.getElementById('timeline-filter-advisor'); if(tAdv) tAdv.value='todos'; 
+                const tMon = document.getElementById('timeline-filter-month'); if(tMon) tMon.value='todos';
                 applyFiltersAndRender();
             });
 
-            // Contraseña
-            document.getElementById('pwd-btn-cancel').addEventListener('click', () => toggleModal('password-modal', false));
-            document.getElementById('pwd-btn-submit').addEventListener('click', () => {
-                const input = document.getElementById('actions-password-input');
-                if(input.value === '7796') {
-                    isActionsUnlocked = true; toggleModal('password-modal', false); switchView('acciones'); showMessage('Acceso permitido');
-                } else {
-                    showMessage('Contraseña incorrecta', true); input.value = '';
-                }
-            });
+            bindEvent('pwd-btn-cancel', 'click', () => toggleModal('password-modal', false));
 
-            // Exportar PDF
-            document.getElementById('download-report-btn').addEventListener('click', () => toggleModal('pdf-options-modal', true));
-            document.getElementById('pdf-btn-cancel').addEventListener('click', () => toggleModal('pdf-options-modal', false));
+            bindEvent('download-report-btn', 'click', () => toggleModal('pdf-options-modal', true));
+            bindEvent('pdf-btn-cancel', 'click', () => toggleModal('pdf-options-modal', false));
             
             const generatePDF = async (includeAdv) => {
                 toggleModal('pdf-options-modal', false);
@@ -1198,7 +1605,7 @@
                 
                 setTimeout(async () => {
                     try {
-                        const canvas = await html2canvas(src, { scale: 2, useCORS: true, backgroundColor: '#fdf6f0' }); 
+                        const canvas = await html2canvas(src, { scale: 2, useCORS: true, backgroundColor: '#f0f4f8' }); 
                         const imgData = canvas.toDataURL('image/jpeg', 0.9);
                         const jsPDF = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
                         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -1211,8 +1618,9 @@
                     finally { if(!includeAdv && advCard) advCard.style.display = oDisp; }
                 }, 500);
             };
-            document.getElementById('pdf-btn-yes').addEventListener('click', () => generatePDF(true));
-            document.getElementById('pdf-btn-no').addEventListener('click', () => generatePDF(false));
+            
+            bindEvent('pdf-btn-yes', 'click', () => generatePDF(true));
+            bindEvent('pdf-btn-no', 'click', () => generatePDF(false));
 
             fetchData();
         });
