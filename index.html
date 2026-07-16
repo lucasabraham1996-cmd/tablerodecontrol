@@ -424,7 +424,25 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC59_WNpbGApivGZZSZMLECgn1GkOHG8xY",
+            authDomain: "ediciondemodulos.firebaseapp.com",
+            projectId: "ediciondemodulos",
+            storageBucket: "ediciondemodulos.firebasestorage.app",
+            messagingSenderId: "1049798557703",
+            appId: "1:1049798557703:web:0533d1edc07ff6556a2aa2",
+            measurementId: "G-XGSL7NZE2T"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         // Configuración Global
         Chart.defaults.color = '#8c98a4'; 
         Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
@@ -451,7 +469,7 @@
             let isMetaUnlocked = false;
             let unlockTarget = null; // 'acciones', 'config', 'meta'
 
-            // NORMALIZACIÓN SEGURA DE METAS: Convierte el valor viejo (número único) en un objeto con porcentajes por defecto.
+            // NORMALIZACIÓN SEGURA DE METAS
             function normalizeGoals(goalsObj) {
                 if (!goalsObj) return null;
                 let newG = {};
@@ -468,25 +486,37 @@
                 return newG;
             }
 
-            // Cargar Metas desde LocalStorage
-            let savedGoals = localStorage.getItem('dashGoalsConfig');
-            let goalsConfig;
-            
-            try {
-                goalsConfig = savedGoals ? normalizeGoals(JSON.parse(savedGoals)) : null;
-            } catch(e) {
-                console.warn("Error al leer metas de LocalStorage, cargando valores por defecto.", e);
-                goalsConfig = null;
-            }
+            let goalsConfig = null;
 
-            if (!goalsConfig) {
-                let defaultOldFormat = {
-                    '5': { 'Belen': 22, 'Kiara': 22, 'Laura': 22, 'Lucas': 22, 'Micaela (LP)': 22, 'Ayelén': 22, 'Jeremías': 22, 'Juan': 22 },
-                    '6': { 'Belen': 35, 'Kiara': 35, 'Laura': 35, 'Lucas': 35, 'Micaela (LP)': 35, 'Ayelén': 35, 'Jeremías': 39, 'Juan': 35 },
-                    '7': { 'Belen': 60, 'Kiara': 60, 'Laura': 60, 'Lucas': 60, 'Micaela (LP)': 60, 'Ayelén': 60, 'Jeremías': 60, 'Juan': 60 },
-                    '8': { 'Belen': 50, 'Kiara': 50, 'Laura': 50, 'Lucas': 50, 'Micaela (LP)': 50, 'Ayelén': 50, 'Jeremías': 50, 'Juan': 50 }
-                };
-                goalsConfig = normalizeGoals(defaultOldFormat);
+            // Cargar Metas desde Firebase Firestore
+            async function loadGoalsFromFirebase() {
+                try {
+                    const docRef = doc(db, "dashboardData", "objetivos");
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        goalsConfig = normalizeGoals(docSnap.data());
+                    } else {
+                        // Valores por defecto iniciales si la base de datos está vacía
+                        let defaultFormat = {
+                            '5': { 'Belen': 22, 'Kiara': 22, 'Laura': 22, 'Lucas': 22, 'Micaela (LP)': 22, 'Ayelén': 22, 'Jeremías': 22, 'Juan': 22 },
+                            '6': { 'Belen': 35, 'Kiara': 35, 'Laura': 35, 'Lucas': 35, 'Micaela (LP)': 35, 'Ayelén': 35, 'Jeremías': 39, 'Juan': 35 },
+                            '7': { 'Belen': 60, 'Kiara': 60, 'Laura': 60, 'Lucas': 60, 'Micaela (LP)': 60, 'Ayelén': 60, 'Jeremías': 60, 'Juan': 60 },
+                            '8': { 'Belen': 50, 'Kiara': 50, 'Laura': 50, 'Lucas': 50, 'Micaela (LP)': 50, 'Ayelén': 50, 'Jeremías': 50, 'Juan': 50 }
+                        };
+                        goalsConfig = normalizeGoals(defaultFormat);
+                    }
+                } catch(e) {
+                    console.error("Error al leer metas de Firebase, cargando valores por defecto.", e);
+                    // Fallback local
+                    let defaultFormat = {
+                        '5': { 'Belen': 22, 'Kiara': 22, 'Laura': 22, 'Lucas': 22, 'Micaela (LP)': 22, 'Ayelén': 22, 'Jeremías': 22, 'Juan': 22 },
+                        '6': { 'Belen': 35, 'Kiara': 35, 'Laura': 35, 'Lucas': 35, 'Micaela (LP)': 35, 'Ayelén': 35, 'Jeremías': 39, 'Juan': 35 },
+                        '7': { 'Belen': 60, 'Kiara': 60, 'Laura': 60, 'Lucas': 60, 'Micaela (LP)': 60, 'Ayelén': 60, 'Jeremías': 60, 'Juan': 60 },
+                        '8': { 'Belen': 50, 'Kiara': 50, 'Laura': 50, 'Lucas': 50, 'Micaela (LP)': 50, 'Ayelén': 50, 'Jeremías': 50, 'Juan': 50 }
+                    };
+                    goalsConfig = normalizeGoals(defaultFormat);
+                }
             }
 
             const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEJyDexcS4KB-qdaMRi9hUtxNSXEbiwoR3ChyRfKIMPA5KhGkCu7SvfQcYQQc2_jBnrugOOnTvs_mZ/pub?output=csv';
@@ -1394,7 +1424,7 @@
                 });
             }
 
-            bindEvent('save-goals-btn', 'click', () => {
+            bindEvent('save-goals-btn', 'click', async () => {
                 const monthSelect = document.getElementById('config-month-select');
                 const m = monthSelect.value;
                 if (!goalsConfig[m]) goalsConfig[m] = {};
@@ -1410,8 +1440,16 @@
                     
                     goalsConfig[m][adv] = { total, p1, p2, p3, p4 };
                 });
-                localStorage.setItem('dashGoalsConfig', JSON.stringify(goalsConfig));
-                showMessage('Metas y distribución semanal guardadas correctamente.');
+                
+                try {
+                    showMessage('Guardando en la nube...', false);
+                    const docRef = doc(db, "dashboardData", "objetivos");
+                    await setDoc(docRef, goalsConfig);
+                    showMessage('Metas guardadas correctamente en la nube. Los gráficos se han actualizado.');
+                } catch(e) {
+                    console.error("Error guardando en Firebase:", e);
+                    showMessage('Error al guardar en la nube. Revisa permisos de Firebase.', true);
+                }
             });
 
             bindEvent('config-month-select', 'change', renderConfigView);
@@ -1622,7 +1660,13 @@
             bindEvent('pdf-btn-yes', 'click', () => generatePDF(true));
             bindEvent('pdf-btn-no', 'click', () => generatePDF(false));
 
-            fetchData();
+            async function startDashboard() {
+                showMessage('Sincronizando con la nube...', false);
+                await loadGoalsFromFirebase();
+                fetchData();
+            }
+
+            startDashboard();
         });
     </script>
 </body>
